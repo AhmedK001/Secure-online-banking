@@ -1,6 +1,6 @@
 ﻿namespace Core.Interfaces;
 
-public interface IBankAccount : IUser
+public interface IBankAccount
 {
      int NationalId { get; set; }
      string AccountNumber { get; set; }

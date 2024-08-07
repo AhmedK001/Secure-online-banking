@@ -8,7 +8,7 @@ public interface ICard
     decimal Balance { get; set; }
     int CardId { get; set; }
     string CardNumber { get; set; }
-    DateTime expiryDate { get; set; }
+    DateTime ExpiryDate { get; set; }
     EnumCardType CardType { get; set; }
 
     void Activate();

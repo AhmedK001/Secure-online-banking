@@ -4,5 +4,6 @@ public enum EnumUserRole
 {
     AdminRole,
     NormalRole,
-    PauseRole
+    PauseRole,
+    ClosedAccountRole,
 }

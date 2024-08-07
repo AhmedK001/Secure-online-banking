@@ -7,6 +7,6 @@ public interface IReceiverClient
 
     void DeductBalance();
     void AddBalance();
-    ITransaction GetOperationReport();
+    IOperation GetOperationReport();
     IReceiverClient GetReceiverClientInfo();
 }

@@ -8,11 +8,18 @@ public class ReceiverClientEntityTypeConfig : IEntityTypeConfiguration<ReceiverC
 {
     public void Configure(EntityTypeBuilder<ReceiverClient> builder)
     {
-        //PrimaryKey
+        // Primary Key
         builder.HasKey(receiverClient => receiverClient.AccountNumber);
-        //Required
-        builder.Property(receiverClient => receiverClient.AccountNumber).IsRequired();
 
-        builder.Property(receiverClient => receiverClient.FullName).IsRequired();
+        // Required Properties
+        builder.Property(receiverClient => receiverClient.AccountNumber)
+            .IsRequired()
+            .HasMaxLength(20)
+            .HasColumnType("varchar(20)");
+            
+        builder.Property(receiverClient => receiverClient.FullName)
+            .IsRequired()
+            .HasMaxLength(100)
+            .HasColumnType("varchar(100)");
     }
 }

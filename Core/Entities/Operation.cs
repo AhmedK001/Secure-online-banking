@@ -12,7 +12,9 @@ public class Operation : IOperation
     public DateTime DateTime { get; set; }
     public EnumOperationType OperationType { get; set; }
     public decimal Amount { get; set; }
-    
+    public string? Description { get; set; }
+    public ReceiverClient Receiver { get; set; }
+
     public IOperation GetTransactionInfo()
     {
         throw new NotImplementedException();

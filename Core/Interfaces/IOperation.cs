@@ -1,4 +1,5 @@
-﻿using Core.Enums;
+﻿using Core.Entities;
+using Core.Enums;
 
 namespace Core.Interfaces;
 
@@ -10,6 +11,7 @@ public interface IOperation
     DateTime DateTime { get; set; }
     EnumOperationType OperationType { get; set; }
     decimal Amount { get; set; }
-
+    ReceiverClient Receiver { get; set; }
+    
     IOperation GetTransactionInfo();
 }

@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Core.Enums;
 using Core.Interfaces;
 
 namespace Core.Entities;
 
+[Table("Cards")]
 public class BankCard : ICard
 {
     public string AccountNumber { get; set; }
@@ -12,6 +14,8 @@ public class BankCard : ICard
     public int CVV { get; set; }
     public DateTime ExpiryDate { get; set; }
     public EnumCardType CardType { get; set; }
+    public bool OpenedForOnlinePurchase { get; set; }
+    public bool OpenedForPhysicalOperations { get; set; }
     public decimal Balance { get; set; }
 
     

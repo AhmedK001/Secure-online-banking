@@ -10,6 +10,9 @@ public interface ICard
     string CardNumber { get; set; }
     DateTime ExpiryDate { get; set; }
     EnumCardType CardType { get; set; }
+    
+    bool OpenedForOnlinePurchase { get; set; }
+    bool OpenedForPhysicalOperations { get; set; }
 
     void Activate();
     void DeActivate();

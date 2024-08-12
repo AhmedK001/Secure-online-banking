@@ -12,9 +12,10 @@ namespace Core.Entities
     public class User : IUser
     {
         public int NationalId { get; set; }
-        public string FullName { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public DateTime DateOfBirth { get; set; }
-        public string Email { get; set; }
-        public string PhoneNumber { get; set; }
+        public UserContactInfo UserContactInfo { get; set; }
+        public List<BankAccount> Accounts { get; set; }
     }
 }

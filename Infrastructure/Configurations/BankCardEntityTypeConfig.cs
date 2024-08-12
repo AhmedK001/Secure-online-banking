@@ -8,22 +8,39 @@ public class BankCardEntityTypeConfig : IEntityTypeConfiguration<BankCard>
 {
     public void Configure(EntityTypeBuilder<BankCard> builder)
     {
-        //PrimaryKey
+        // Primary Key
         builder.HasKey(bankCard => bankCard.CardId);
 
-        //Required
-        builder.Property(bankCard => bankCard.AccountNumber).IsRequired();
+        // Required Properties
+        builder.Property(bankCard => bankCard.CardId)
+            .IsRequired()
+            .HasColumnType("int");
 
-        builder.Property(bankCard => bankCard.CardId).IsRequired();
+        builder.Property(bankCard => bankCard.AccountNumber)
+            .IsRequired()
+            .HasMaxLength(20)
+            .HasColumnType("varchar(20)"); 
+            
+        builder.Property(bankCard => bankCard.CardNumber)
+            .IsRequired()
+            .HasMaxLength(16) 
+            .HasColumnType("varchar(16)"); 
 
-        builder.Property(bankCard => bankCard.CardNumber).IsRequired();
+        builder.Property(bankCard => bankCard.CVV)
+            .IsRequired()
+            .HasMaxLength(4)
+            .HasColumnType("varchar(4)");
+            
+        builder.Property(bankCard => bankCard.ExpiryDate)
+            .IsRequired()
+            .HasColumnType("date"); 
 
-        builder.Property(bankCard => bankCard.CVV).IsRequired();
+        builder.Property(bankCard => bankCard.CardType)
+            .IsRequired()
+            .HasColumnType("varchar(10)"); 
 
-        builder.Property(bankCard => bankCard.ExpiryDate).IsRequired();
-
-        builder.Property(bankCard => bankCard.CardType).IsRequired();
-
-        builder.Property(bankCard => bankCard.Balance).IsRequired();
+        builder.Property(bankCard => bankCard.Balance)
+            .IsRequired()
+            .HasColumnType("decimal(18, 2)"); 
     }
 }

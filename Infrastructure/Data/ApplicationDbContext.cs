@@ -14,7 +14,7 @@ public class ApplicationDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseSqlServer(
-            "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=SecureBankDb;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False");
+            "Data Source=TUF;Initial Catalog=BankDb;Integrated Security=True;Trust Server Certificate=True");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -24,6 +24,7 @@ public class ApplicationDbContext : DbContext
         new OperationEntityTypeConfig().Configure(modelBuilder.Entity<Operation>());
         new ReceiverClientEntityTypeConfig().Configure(modelBuilder.Entity<ReceiverClient>());
         new BankCardEntityTypeConfig().Configure(modelBuilder.Entity<BankCard>());
+        new UserContactInfoEntityTypeConfig().Configure(modelBuilder.Entity<UserContactInfo>());
     }
 
     public DbSet<User> Users { get; set; }

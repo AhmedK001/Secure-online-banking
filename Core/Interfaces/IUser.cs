@@ -1,12 +1,13 @@
-﻿using Core.Enums;
+﻿using Core.Entities;
+using Core.Enums;
 
 namespace Core.Interfaces;
 
 public interface IUser
 {
      int NationalId { get; set; }
-     string FullName { get; set; }
+     string FirstName { get; set; }
+     string LastName { get; set; }
      DateTime DateOfBirth { get; set; }
-     string Email { get; set; }
-     string PhoneNumber { get; set; } 
+     List<BankAccount> Accounts { get; set; }
 }

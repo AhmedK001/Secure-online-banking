@@ -9,5 +9,5 @@ public interface IUser
      string FirstName { get; set; }
      string LastName { get; set; }
      DateTime DateOfBirth { get; set; }
-     List<BankAccount> Accounts { get; set; }
+     BankAccount Account { get; set; }
 }

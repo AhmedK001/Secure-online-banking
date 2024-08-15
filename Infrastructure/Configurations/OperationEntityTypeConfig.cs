@@ -11,6 +11,15 @@ public class OperationEntityTypeConfig : IEntityTypeConfiguration<Operation>
         // Primary Key
         builder.HasKey(operation => operation.OperationId);
 
+        // AccountNumber, AccountId as a foreign-keys
+        builder.HasAlternateKey(operation => operation.AccountNumber);
+        builder.HasAlternateKey(operation => operation.AccountId);
+
+        // Indexing for OperationId, AccountId, AccountNumber
+        builder.HasIndex(operation => operation.OperationId);
+        builder.HasIndex(operation => operation.AccountId);
+        builder.HasIndex(operation => operation.AccountNumber);
+
         // Required Properties
         builder.Property(operation => operation.OperationId)
             .IsRequired()
@@ -40,7 +49,7 @@ public class OperationEntityTypeConfig : IEntityTypeConfiguration<Operation>
         
         // Relations With other tables
         
-        // One to one relationship with Receiver
+        // One-to-one relationship with Receiver
         builder.HasOne(operation => operation.Receiver)
             .WithOne(receiver => receiver.Operation)
             .HasForeignKey<Operation>(operation => operation.OperationId)

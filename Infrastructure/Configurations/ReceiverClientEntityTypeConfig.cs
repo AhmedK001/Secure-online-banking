@@ -11,6 +11,13 @@ public class ReceiverClientEntityTypeConfig : IEntityTypeConfiguration<ReceiverC
         // Primary Key
         builder.HasKey(receiverClient => receiverClient.AccountNumber);
 
+        // OperationId as a foreign-key
+        builder.HasAlternateKey(client => client.OperationId);
+
+        // Indexing for OperationId, AccountNumber
+        builder.HasIndex(client => client.OperationId);
+        builder.HasIndex(client => client.AccountNumber);
+
         // Required Properties
         builder.Property(receiverClient => receiverClient.AccountNumber)
             .IsRequired()

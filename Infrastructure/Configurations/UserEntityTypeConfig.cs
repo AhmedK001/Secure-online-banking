@@ -12,9 +12,6 @@ public class UserEntityTypeConfig : IEntityTypeConfiguration<User>
         // NationalId as a Primary key
         builder.HasKey(user => user.NationalId);
 
-        // One user could have many accounts
-        builder.HasMany(user => user.Accounts).WithMany();
-
         // Properties
         builder.Property(user => user.NationalId)
             .IsRequired()
@@ -37,10 +34,16 @@ public class UserEntityTypeConfig : IEntityTypeConfiguration<User>
         
         // Relations With other tables
         
-        // One to one relationship with UserContactInfoTable
+        // One-to-one relationship with UserContactInfoTable
         builder.HasOne(user => user.UserContactInfo)
             .WithOne(contactInfo => contactInfo.User)
             .HasForeignKey<User>(user => user.NationalId);
+        
+        // One-to-one relationship with BankAccountsTable
+        builder.HasOne(user => user.Account)
+            .WithOne(account => account.User)
+            .IsRequired(false);
+        
 
     }
 }

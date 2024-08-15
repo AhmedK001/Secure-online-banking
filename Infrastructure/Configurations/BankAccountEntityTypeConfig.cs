@@ -11,6 +11,13 @@ public class BankAccountEntityTypeConfig : IEntityTypeConfiguration<BankAccount>
         // Primary Key
         builder.HasKey(account => account.NationalId);
         
+        // NationalId as a foreign-key 
+        builder.HasAlternateKey(account => account.NationalId);
+        
+        // Indexing for NationalId, AccountNumber
+        builder.HasIndex(account => account.NationalId);
+        builder.HasIndex(account => account.AccountNumber);
+        
         // Properties
         builder.Property(account => account.NationalId)
             .IsRequired()
@@ -34,5 +41,13 @@ public class BankAccountEntityTypeConfig : IEntityTypeConfiguration<BankAccount>
             .IsRequired()
             .HasDefaultValue(0)
             .HasColumnType("decimal(18, 2)");
+        
+        // Relations With other tables
+
+        // One-to-many relationship with BankCardsTable
+        builder.HasMany(account => account.BankCards)
+            .WithOne(bankCard => bankCard.BankAccount)
+            .IsRequired(false);
+        
     }
 }

@@ -16,6 +16,6 @@ namespace Core.Entities
         public string LastName { get; set; }
         public DateTime DateOfBirth { get; set; }
         public UserContactInfo UserContactInfo { get; set; }
-        public List<BankAccount> Accounts { get; set; }
+        public BankAccount? Account { get; set; }
     }
 }

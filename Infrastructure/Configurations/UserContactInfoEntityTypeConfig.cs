@@ -10,6 +10,16 @@ public class UserContactInfoEntityTypeConfig : IEntityTypeConfiguration<UserCont
     {
         // NationalId as a Primary key
         builder.HasKey(user => user.NationalId);
+
+        // NationalId as a foreign key
+        builder.HasAlternateKey(user => user.NationalId);
+
+        // Indexing for phoneNumber, Email
+        builder.HasIndex(user => user.PhoneNumber)
+            .IsUnique();
+
+        builder.HasIndex(user => user.Email)
+            .IsUnique();
         
         builder.Property(user => user.Email)
             .IsRequired()

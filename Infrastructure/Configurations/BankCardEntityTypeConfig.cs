@@ -10,7 +10,15 @@ public class BankCardEntityTypeConfig : IEntityTypeConfiguration<BankCard>
     {
         // Primary Key
         builder.HasKey(bankCard => bankCard.CardId);
-
+        
+        // AccountNumber as a foreign-key
+        builder.HasAlternateKey(card => card.AccountNumber);
+        
+        // Indexing for cardId, cardNumber, accountNumber
+        builder.HasIndex(card => card.CardId);
+        builder.HasIndex(card => card.CardNumber);
+        builder.HasIndex(card => card.AccountNumber);
+        
         // Required Properties
         builder.Property(bankCard => bankCard.CardId)
             .IsRequired()
@@ -41,6 +49,14 @@ public class BankCardEntityTypeConfig : IEntityTypeConfiguration<BankCard>
 
         builder.Property(bankCard => bankCard.Balance)
             .IsRequired()
-            .HasColumnType("decimal(18, 2)"); 
+            .HasColumnType("decimal(18, 2)");
+        
+        // Relations With other tables
+
+        // One-to-many relationship with Payments
+        builder.HasMany(card => card.Payments)
+            .WithOne(payment => payment.Card)
+            .IsRequired(false);
+
     }
 }

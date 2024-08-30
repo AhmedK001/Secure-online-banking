@@ -18,7 +18,7 @@ public class BankCard : ICard
     public bool OpenedForPhysicalOperations { get; set; }
     public decimal Balance { get; set; }
     public BankAccount BankAccount { get; set; }
-    public List<Payment> Payments { get; set; }
+    public List<Payment>? Payments { get; set; }
 
     
     

@@ -54,9 +54,11 @@ public class BankCardEntityTypeConfig : IEntityTypeConfiguration<BankCard>
         // Relations With other tables
 
         // One-to-many relationship with Payments
-        builder.HasMany(card => card.Payments)
+        builder.HasMany(bankCard => bankCard.Payments)
             .WithOne(payment => payment.Card)
-            .IsRequired(false);
+            //.HasForeignKey(payment => payment.CardId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
 
     }
 }

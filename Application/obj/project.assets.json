@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\ahmed\\source\\RiderProjects\\Secure-online-banking\\Application\\Application.csproj",
+      "projectUniqueName": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Application\\Application.csproj",
       "projectName": "Application",
-      "projectPath": "C:\\Users\\ahmed\\source\\RiderProjects\\Secure-online-banking\\Application\\Application.csproj",
+      "projectPath": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Application\\Application.csproj",
       "packagesPath": "C:\\Users\\ahmed\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\ahmed\\source\\RiderProjects\\Secure-online-banking\\Application\\obj\\",
+      "outputPath": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Application\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\ahmed\\AppData\\Roaming\\NuGet\\NuGet.Config",

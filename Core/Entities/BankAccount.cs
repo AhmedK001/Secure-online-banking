@@ -14,10 +14,10 @@ namespace Core.Entities;
        
         public int NationalId { get; set; }
         public string AccountNumber { get; set; }
-        public string Password { get; set; }
         public DateTime CreationDate { get; set; }
         public decimal Balance { get; set; }
         public List<Operation>? Operations { get; set; }
         public User User { get; set; }
         public List<BankCard> BankCards { get; set; }
+        public LoginDetails LoginDetails { get; set; }
     }

@@ -12,16 +12,12 @@ public class PaymentEntityTypeConfig : IEntityTypeConfiguration<Payment>
         builder.HasKey(payment => payment.PaymentId);
 
         // CardId as a foreign-key
-        builder.HasAlternateKey(payment => payment.CardId);
+        //builder.HasAlternateKey(payment => payment.CardId);
 
         // Indexing for PaymentId, CardId
         builder.HasIndex(payment => payment.PaymentId);
         builder.HasIndex(payment => payment.CardId);
 
-        // Indexing for paymentId, cardId
-        builder.HasIndex(payment => payment.PaymentId);
-        builder.HasIndex(payment => payment.CardId);
-        
         // Required Properties
         builder.Property(payment => payment.CardId)
             .IsRequired()

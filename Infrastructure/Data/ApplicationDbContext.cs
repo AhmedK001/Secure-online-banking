@@ -14,7 +14,7 @@ public class ApplicationDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseSqlServer(
-            "Data Source=TUF;Initial Catalog=BankDb;Integrated Security=True;Trust Server Certificate=True");
+            "Data Source=TUF;Initial Catalog=BankDatabase;Integrated Security=True;Trust Server Certificate=True");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -25,11 +25,16 @@ public class ApplicationDbContext : DbContext
         new ReceiverClientEntityTypeConfig().Configure(modelBuilder.Entity<ReceiverClient>());
         new BankCardEntityTypeConfig().Configure(modelBuilder.Entity<BankCard>());
         new UserContactInfoEntityTypeConfig().Configure(modelBuilder.Entity<UserContactInfo>());
+        new PaymentEntityTypeConfig().Configure(modelBuilder.Entity<Payment>());
+        new LoginDetailsEntityTypeConfig().Configure(modelBuilder.Entity<LoginDetails>());
     }
 
     public DbSet<User> Users { get; set; }
     public DbSet<BankAccount> Accounts { get; set; }
     public DbSet<Operation> Operations { get; set; }
     public DbSet<BankCard> BankCards { get; set; }
+    public DbSet<UserContactInfo> ContactInfos { get; set; }
     public DbSet<ReceiverClient> ReceiverClients { get; set; }
+    public DbSet<Payment> Payments { get; set; }
+    public DbSet<LoginDetails> LoginDetails { get; set; }
 }

@@ -9,7 +9,7 @@ public class ReceiverClientEntityTypeConfig : IEntityTypeConfiguration<ReceiverC
     public void Configure(EntityTypeBuilder<ReceiverClient> builder)
     {
         // Primary Key
-        builder.HasKey(receiverClient => receiverClient.AccountNumber);
+        builder.HasKey(receiverClient => receiverClient.OperationId);
 
         // OperationId as a foreign-key
         builder.HasAlternateKey(client => client.OperationId);

@@ -42,6 +42,7 @@ public class UserEntityTypeConfig : IEntityTypeConfiguration<User>
         // One-to-one relationship with BankAccountsTable
         builder.HasOne(user => user.Account)
             .WithOne(account => account.User)
+            .HasForeignKey<User>(user => user.NationalId)
             .IsRequired(false);
         
 

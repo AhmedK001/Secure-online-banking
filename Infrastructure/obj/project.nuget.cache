@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "56V6SBNbOGp539jKT0gNW1HkKZLbjlRVjbvyvPuj4phzcxtdTMyMEEJ03X2mD1hoVsqdavJBnFtFvgdV2EtylA==",
+  "dgSpecHash": "JNs0cq9Qdr8=",
   "success": true,
-  "projectFilePath": "C:\\Users\\ahmed\\source\\RiderProjects\\Secure-online-banking\\Infrastructure\\Infrastructure.csproj",
+  "projectFilePath": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Infrastructure.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ahmed\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\ahmed\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",

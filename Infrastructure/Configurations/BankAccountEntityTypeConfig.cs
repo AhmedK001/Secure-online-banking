@@ -12,7 +12,7 @@ public class BankAccountEntityTypeConfig : IEntityTypeConfiguration<BankAccount>
         builder.HasKey(account => account.NationalId);
         
         // NationalId as a foreign-key 
-        builder.HasAlternateKey(account => account.NationalId);
+        //builder.HasAlternateKey(account => account.NationalId);
         
         // Indexing for NationalId, AccountNumber
         builder.HasIndex(account => account.NationalId);
@@ -27,11 +27,6 @@ public class BankAccountEntityTypeConfig : IEntityTypeConfiguration<BankAccount>
             .IsRequired()
             .HasMaxLength(20)
             .HasColumnType("varchar(20)");
-            
-        builder.Property(account => account.Password)
-            .IsRequired()
-            .HasMaxLength(64)
-            .HasColumnType("varchar(64)");
             
         builder.Property(account => account.CreationDate)
             .IsRequired()
@@ -49,5 +44,16 @@ public class BankAccountEntityTypeConfig : IEntityTypeConfiguration<BankAccount>
             .WithOne(bankCard => bankCard.BankAccount)
             .IsRequired(false);
         
+        // One-to-one relationship with LoginDetails
+        builder.HasOne(account => account.LoginDetails)
+            .WithOne(LoginDetails => LoginDetails.BankAccount)
+            .HasForeignKey<LoginDetails>(loginDetails => loginDetails.NationalId);
+            //.HasForeignKey<BankAccount>(account => account.NationalId)
+            //.HasForeignKey<LoginDetails>(account => account.Email)
+            //.HasForeignKey<LoginDetails>(LoginDetails =>
+                //LoginDetails.PhoneNumber)
+                ;
+
+
     }
 }

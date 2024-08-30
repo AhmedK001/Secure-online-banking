@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ahmed\\source\\RiderProjects\\Secure-online-banking\\Adapters\\Adapters.csproj": {}
+    "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Adapters\\Adapters.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ahmed\\source\\RiderProjects\\Secure-online-banking\\Adapters\\Adapters.csproj": {
+    "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Adapters\\Adapters.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ahmed\\source\\RiderProjects\\Secure-online-banking\\Adapters\\Adapters.csproj",
+        "projectUniqueName": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Adapters\\Adapters.csproj",
         "projectName": "Adapters",
-        "projectPath": "C:\\Users\\ahmed\\source\\RiderProjects\\Secure-online-banking\\Adapters\\Adapters.csproj",
+        "projectPath": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Adapters\\Adapters.csproj",
         "packagesPath": "C:\\Users\\ahmed\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ahmed\\source\\RiderProjects\\Secure-online-banking\\Adapters\\obj\\",
+        "outputPath": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Adapters\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\ahmed\\AppData\\Roaming\\NuGet\\NuGet.Config",

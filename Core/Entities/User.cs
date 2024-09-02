@@ -17,5 +17,15 @@ namespace Core.Entities
         public DateTime DateOfBirth { get; set; }
         public UserContactInfo UserContactInfo { get; set; }
         public BankAccount? Account { get; set; }
+    
+        public override string ToString()
+        {
+            return $"NationalId: {NationalId}, " +
+                   $"FirstName: {FirstName}, " +
+                   $"LastName: {LastName}, " +
+                   $"DateOfBirth: {DateOfBirth.ToString("yyyy-MM-dd")}, " +
+                   $"UserContactInfo: {UserContactInfo}, " +
+                   $"Account: {(Account != null ? Account.ToString() : "None")}";
+        }
     }
 }

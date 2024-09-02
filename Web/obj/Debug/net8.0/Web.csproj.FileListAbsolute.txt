@@ -282,3 +282,5 @@ C:\Users\ahmed\source\MyProjects\Secure-online-banking\Web\obj\Debug\net8.0\refi
 C:\Users\ahmed\source\MyProjects\Secure-online-banking\Web\obj\Debug\net8.0\Web.pdb
 C:\Users\ahmed\source\MyProjects\Secure-online-banking\Web\obj\Debug\net8.0\Web.genruntimeconfig.cache
 C:\Users\ahmed\source\MyProjects\Secure-online-banking\Web\obj\Debug\net8.0\ref\Web.dll
+C:\Users\ahmed\source\MyProjects\Secure-online-banking\Web\bin\Debug\net8.0\Application.dll
+C:\Users\ahmed\source\MyProjects\Secure-online-banking\Web\bin\Debug\net8.0\Application.pdb

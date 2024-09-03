@@ -62,9 +62,10 @@ public class UserInfoValidator
             return new ValidationResult("National ID cannot be empty.");
         }
         
+        string nationalIdAsString = nationalId.ToString();
+        
         string pattern = @"^[1-9]\d{9}$";
         Regex regex = new Regex(pattern);
-        string nationalIdAsString = nationalId.ToString();
         char firstNationalIdDigit = nationalIdAsString[0];
         
         
@@ -106,40 +107,44 @@ public class UserInfoValidator
 
     public static ValidationResult IsEmail(string? email)
     {
-        if (email is null) return new ValidationResult("Email address is required.");
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return new ValidationResult("Email address is required.");
+        }
 
-        string pattern
-            = @"^[a-zA-Z0-9._%+-]{1,100}@[a-zA-Z0-9.-]{1,100}\\.[a-zA-Z]{2,}$\n";
+        // Improved email regex pattern
+        string pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
         Regex regex = new Regex(pattern);
 
         if (!regex.IsMatch(email))
         {
-            return new ValidationResult("Invalid Email address.");
+            return new ValidationResult("Invalid email address.");
         }
-        
+
         return ValidationResult.Success;
     }
+
 
     public static ValidationResult IsPhoneNumber(string phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(phoneNumber))
             return new ValidationResult("Phone number is required.");
 
-        if (!phoneNumber.ToString().StartsWith("0"))
+        if (!phoneNumber.StartsWith("0"))
         {
             return new ValidationResult("Phone number must start with 0.");
         }
 
-        if (phoneNumber.ToString().Length != 10)
+        if (phoneNumber.Length != 10)
         {
             return new ValidationResult(
-                "Phone number must be exactly 10 digits.1");
+                "Phone number must be exactly 10 digits.");
         }
         
-        string pattern = @"^0\d{0}$";
+        string pattern = @"^0\d{9}$";
         Regex regex = new Regex(pattern);
 
-        if (!regex.IsMatch(pattern))
+        if (!regex.IsMatch(phoneNumber))
         {
             return new ValidationResult("Invalid phone number.");
         }
@@ -150,30 +155,30 @@ public class UserInfoValidator
     public static ValidationResult IsAcceptedBirthDate(object birthDate)
     {
 
-        if (string.IsNullOrWhiteSpace(birthDate.ToString()))
-            return new ValidationResult("Birth date is required");
-        
-        if (birthDate is not string dateString)
-            return new ValidationResult("Invalid birth date");
-
-        string pattern = @"^\d{4}-\d{2}-\d{2}$";
-        Regex regex = new Regex(pattern);
-        
-        if (!regex.IsMatch(dateString))
-        {
-            return new ValidationResult("Date must be in YYYY-MM-DD format.");
-        }
-        
-        // Try to parse the date
-        if (!DateTime.TryParseExact(dateString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateOfBirth))
-        {
-            return new ValidationResult("Date must be in YYYY-MM-DD format.");
-        }
-        
-        if (dateOfBirth > DateTime.Now.AddYears(-16))
-        {
-            return new ValidationResult("You must be at least 16 years old.");
-        }
+        // if (string.IsNullOrWhiteSpace(birthDate.ToString()))
+        //     return new ValidationResult("Birth date is required");
+        //
+        // if (birthDate is not string dateString)
+        //     return new ValidationResult("Invalid birth date");
+        //
+        // string pattern = @"^\d{4}-\d{2}-\d{2}$";
+        // Regex regex = new Regex(pattern);
+        //
+        // if (!regex.IsMatch(dateString))
+        // {
+        //     return new ValidationResult("Date must be in YYYY-MM-DD format.");
+        // }
+        //
+        // // Try to parse the date
+        // if (!DateTime.TryParseExact(dateString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateOfBirth))
+        // {
+        //     return new ValidationResult("Date must be in YYYY-MM-DD format.");
+        // }
+        //
+        // if (dateOfBirth > DateTime.Now.AddYears(-16))
+        // {
+        //     return new ValidationResult("You must be at least 16 years old.");
+        // }
 
         return ValidationResult.Success;
     }

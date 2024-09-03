@@ -9,7 +9,7 @@ public class RegistrationService : IRegistrationService
 {
     public async Task<string> RegisterUser(User user)
     {
-        new NotImplementedException();
+        return $"Your data has been saved successfully for user: {user}";
     }
 
 }

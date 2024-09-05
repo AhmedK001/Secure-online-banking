@@ -5,14 +5,17 @@ using Application.Mappers;
 using Microsoft.AspNetCore.Mvc;
 using Application.Validators;
 using Core.Entities;
+using Core.Interfaces;
 
 public class UserController : ControllerBase
 {
     private readonly IRegistrationService _registrationService;
+    private readonly IIbanGeneratorService _ibanGeneratorService;
 
-    public UserController(IRegistrationService registrationService)
+    public UserController(IRegistrationService registrationService, IIbanGeneratorService ibanGeneratorService)
     {
         _registrationService = registrationService;
+        _ibanGeneratorService = ibanGeneratorService;
     }
 
     [HttpPost("register")]
@@ -42,8 +45,9 @@ public class UserController : ControllerBase
 
         // Register User
         var registrationResult = _registrationService.RegisterUser(user);
+        var ibanResult = _ibanGeneratorService.GenerateIban(user.NationalId);
 
 
-        return Ok(new { Message = registrationResult });
+        return Ok(new { IbanMessage = ibanResult , Message = registrationResult});
     }
 }

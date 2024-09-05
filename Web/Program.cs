@@ -1,5 +1,7 @@
 using Application.Interfaces;
 using Application.Services.RegistrationService;
+using Core.Interfaces;
+using Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
+builder.Services.AddScoped<IIbanGeneratorService, IbanGeneratorService>();
 
 var app = builder.Build();
 

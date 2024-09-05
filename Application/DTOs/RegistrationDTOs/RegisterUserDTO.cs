@@ -12,10 +12,10 @@ public class RegisterUserDTO
     [Required(ErrorMessage = "Last name is required..")]
     public string LastName { get; set; }
     [Required(ErrorMessage = "Date of birth is required.")]
-    [RegularExpression(@"^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$", ErrorMessage = "Date of Birth must be in the format yyyy-MM-dd")]
+    //[RegularExpression(@"^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$", ErrorMessage = "Date of Birth must be in the format yyyy-MM-dd")]
     public DateTime DateOfBirth { get; set; }
     [Required(ErrorMessage = "Email address is required.")]
-    [EmailAddress(ErrorMessage = "Invalid email address.")]
+    [EmailAddress(ErrorMessage = "Invalid email address. ")]
     public string Email { get; set; }
     [Required(ErrorMessage = "Phone number is required.")]
     [RegularExpression(@"^0\d{9}$",ErrorMessage = "Phone number must be consist of 10 digits, Starts with 0.")]

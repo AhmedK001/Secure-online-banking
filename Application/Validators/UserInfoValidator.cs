@@ -127,27 +127,27 @@ public class UserInfoValidator
 
     public static ValidationResult IsPhoneNumber(string phoneNumber)
     {
-        if (string.IsNullOrWhiteSpace(phoneNumber))
-            return new ValidationResult("Phone number is required.");
-
-        if (!phoneNumber.StartsWith("0"))
-        {
-            return new ValidationResult("Phone number must start with 0.");
-        }
-
-        if (phoneNumber.Length != 10)
-        {
-            return new ValidationResult(
-                "Phone number must be exactly 10 digits.");
-        }
-        
-        string pattern = @"^0\d{9}$";
-        Regex regex = new Regex(pattern);
-
-        if (!regex.IsMatch(phoneNumber))
-        {
-            return new ValidationResult("Invalid phone number.");
-        }
+        // if (string.IsNullOrWhiteSpace(phoneNumber))
+        //     return new ValidationResult("Phone number is required.");
+        //
+        // if (!phoneNumber.StartsWith("0"))
+        // {
+        //     return new ValidationResult("Phone number must start with 0.");
+        // }
+        //
+        // if (phoneNumber.Length != 10)
+        // {
+        //     return new ValidationResult(
+        //         "Phone number must be exactly 10 digits.");
+        // }
+        //
+        // string pattern = @"^0\d{9}$";
+        // Regex regex = new Regex(pattern);
+        //
+        // if (!regex.IsMatch(phoneNumber))
+        // {
+        //     return new ValidationResult("Invalid phone number.");
+        // }
         
         return ValidationResult.Success;
     }

@@ -1,9 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Core.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Core.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Infrastructure.Configurations;
+using Microsoft.EntityFrameworkCore;
 
 public class UserEntityTypeConfig : IEntityTypeConfiguration<User>
 {
@@ -16,13 +13,14 @@ public class UserEntityTypeConfig : IEntityTypeConfiguration<User>
         builder.Property(user => user.NationalId)
             .IsRequired()
             .HasColumnType("int")
-            .HasMaxLength(10);
+            .HasMaxLength(10)
+            .ValueGeneratedNever();
 
         builder.Property(user => user.FirstName)
             .IsRequired()
             .HasMaxLength(40)
             .HasColumnType("varchar(100)");
-        
+
         builder.Property(user => user.LastName)
             .IsRequired()
             .HasMaxLength(40)
@@ -31,20 +29,17 @@ public class UserEntityTypeConfig : IEntityTypeConfiguration<User>
         builder.Property(user => user.DateOfBirth)
             .IsRequired()
             .HasColumnType("date");
-        
-        // Relations With other tables
-        
-        // One-to-one relationship with UserContactInfoTable
+
+        // One-to-one relationship with UserContactInfo (Required)
         builder.HasOne(user => user.UserContactInfo)
             .WithOne(contactInfo => contactInfo.User)
-            .HasForeignKey<User>(user => user.NationalId);
-        
-        // One-to-one relationship with BankAccountsTable
+            .HasForeignKey<UserContactInfo>(contactInfo => contactInfo.NationalId)
+            .IsRequired();  // UserContactInfo is required
+
+        // One-to-one relationship with BankAccount (Optional)
         builder.HasOne(user => user.Account)
             .WithOne(account => account.User)
-            .HasForeignKey<User>(user => user.NationalId)
-            .IsRequired(false);
-        
-
+            .HasForeignKey<BankAccount>(account => account.NationalId)
+            .IsRequired(false);  // BankAccount is optional
     }
 }

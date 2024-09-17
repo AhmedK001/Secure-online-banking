@@ -24,14 +24,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Core.Entities.BankAccount", b =>
                 {
-                    b.Property<int>("NationalId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NationalId"));
-
                     b.Property<string>("AccountNumber")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
@@ -43,11 +36,16 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime");
 
-                    b.HasKey("NationalId");
+                    b.Property<int>("NationalId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("AccountNumber");
+                    b.HasKey("AccountNumber");
 
-                    b.HasIndex("NationalId");
+                    b.HasIndex("AccountNumber")
+                        .IsUnique();
+
+                    b.HasIndex("NationalId")
+                        .IsUnique();
 
                     b.ToTable("Accounts");
                 });
@@ -68,8 +66,9 @@ namespace Infrastructure.Migrations
                     b.Property<decimal>("Balance")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<int>("BankAccountNationalId")
-                        .HasColumnType("int");
+                    b.Property<string>("BankAccountAccountNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("CVV")
                         .IsRequired()
@@ -100,7 +99,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("AccountNumber");
 
-                    b.HasIndex("BankAccountNationalId");
+                    b.HasIndex("BankAccountAccountNumber");
 
                     b.HasIndex("CardId");
 
@@ -112,8 +111,11 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Core.Entities.LoginDetails", b =>
                 {
                     b.Property<int>("NationalId")
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(10)
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NationalId"));
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -157,8 +159,8 @@ namespace Infrastructure.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<int?>("BankAccountNationalId")
-                        .HasColumnType("int");
+                    b.Property<string>("BankAccountAccountNumber")
+                        .HasColumnType("varchar(20)");
 
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("datetime");
@@ -181,7 +183,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("AccountNumber");
 
-                    b.HasIndex("BankAccountNationalId");
+                    b.HasIndex("BankAccountAccountNumber");
 
                     b.HasIndex("OperationId")
                         .IsUnique();
@@ -269,10 +271,7 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Core.Entities.UserContactInfo", b =>
                 {
                     b.Property<int>("NationalId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NationalId"));
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -295,20 +294,28 @@ namespace Infrastructure.Migrations
                     b.ToTable("ContactInfos");
                 });
 
+            modelBuilder.Entity("Core.Entities.BankAccount", b =>
+                {
+                    b.HasOne("Core.Entities.LoginDetails", "LoginDetails")
+                        .WithOne("BankAccount")
+                        .HasForeignKey("Core.Entities.BankAccount", "NationalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.User", "User")
+                        .WithOne("Account")
+                        .HasForeignKey("Core.Entities.BankAccount", "NationalId");
+
+                    b.Navigation("LoginDetails");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Core.Entities.BankCard", b =>
                 {
                     b.HasOne("Core.Entities.BankAccount", "BankAccount")
                         .WithMany("BankCards")
-                        .HasForeignKey("BankAccountNationalId");
-
-                    b.Navigation("BankAccount");
-                });
-
-            modelBuilder.Entity("Core.Entities.LoginDetails", b =>
-                {
-                    b.HasOne("Core.Entities.BankAccount", "BankAccount")
-                        .WithOne("LoginDetails")
-                        .HasForeignKey("Core.Entities.LoginDetails", "NationalId")
+                        .HasForeignKey("BankAccountAccountNumber")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -319,7 +326,7 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Core.Entities.BankAccount", null)
                         .WithMany("Operations")
-                        .HasForeignKey("BankAccountNationalId");
+                        .HasForeignKey("BankAccountAccountNumber");
 
                     b.HasOne("Core.Entities.ReceiverClient", "Receiver")
                         .WithOne("Operation")
@@ -339,39 +346,33 @@ namespace Infrastructure.Migrations
                     b.Navigation("Card");
                 });
 
-            modelBuilder.Entity("Core.Entities.User", b =>
+            modelBuilder.Entity("Core.Entities.UserContactInfo", b =>
                 {
-                    b.HasOne("Core.Entities.BankAccount", "Account")
-                        .WithOne("User")
-                        .HasForeignKey("Core.Entities.User", "NationalId");
-
-                    b.HasOne("Core.Entities.UserContactInfo", "UserContactInfo")
-                        .WithOne("User")
-                        .HasForeignKey("Core.Entities.User", "NationalId")
+                    b.HasOne("Core.Entities.User", "User")
+                        .WithOne("UserContactInfo")
+                        .HasForeignKey("Core.Entities.UserContactInfo", "NationalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Account");
-
-                    b.Navigation("UserContactInfo");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Core.Entities.BankAccount", b =>
                 {
                     b.Navigation("BankCards");
 
-                    b.Navigation("LoginDetails")
-                        .IsRequired();
-
                     b.Navigation("Operations");
-
-                    b.Navigation("User")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Core.Entities.BankCard", b =>
                 {
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("Core.Entities.LoginDetails", b =>
+                {
+                    b.Navigation("BankAccount")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Core.Entities.ReceiverClient", b =>
@@ -380,9 +381,11 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Core.Entities.UserContactInfo", b =>
+            modelBuilder.Entity("Core.Entities.User", b =>
                 {
-                    b.Navigation("User")
+                    b.Navigation("Account");
+
+                    b.Navigation("UserContactInfo")
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

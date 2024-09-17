@@ -2,14 +2,30 @@
 using Application.Interfaces;
 using Application.Validators;
 using Core.Entities;
+using Core.Interfaces;
 
 namespace Application.Services.RegistrationService;
 
 public class RegistrationService : IRegistrationService
 {
-    public async Task<string> RegisterUser(User user)
+    private readonly IUserRepository _userRepository;
+
+    public RegistrationService(IUserRepository userRepository)
     {
-        return $"Your data has been saved successfully for user: {user}";
+        _userRepository = userRepository;
+    }
+
+    public Task<string> RegisterUser(User user)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<string> RegisterUserAsync(User user)
+    {
+        await _userRepository.AddUserAsync(user);
+        await _userRepository.SaveChangesAsync();
+
+        return $"Your data has been saved successfully for user: {user.FirstName} {user.LastName}\n With National Id number {user.NationalId}";
     }
 
 }

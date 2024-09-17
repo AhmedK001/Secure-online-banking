@@ -127,6 +127,8 @@ public class UserInfoValidator
 
     public static ValidationResult IsPhoneNumber(string phoneNumber)
     {
+        throw new NotImplementedException(); // not implemented yet
+
         // if (string.IsNullOrWhiteSpace(phoneNumber))
         //     return new ValidationResult("Phone number is required.");
         //
@@ -154,6 +156,7 @@ public class UserInfoValidator
 
     public static ValidationResult IsAcceptedBirthDate(object birthDate)
     {
+        throw new NotImplementedException(); // not implemented yet
 
         // if (string.IsNullOrWhiteSpace(birthDate.ToString()))
         //     return new ValidationResult("Birth date is required");

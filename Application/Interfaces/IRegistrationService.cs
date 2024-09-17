@@ -4,6 +4,6 @@ namespace Application.Interfaces;
 
 public interface IRegistrationService
 {
-    Task<string> RegisterUser(User user);
-    
+    Task<string> RegisterUserAsync(User user);
+
 }

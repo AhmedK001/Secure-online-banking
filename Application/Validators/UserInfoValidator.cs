@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Application.DTOs.Helpers;
 using Core.Entities;
 
 namespace Application.Validators;
@@ -32,7 +33,7 @@ public class UserInfoValidator
         }
 
         // Validate Date of Birth
-        var birthDateValidation = IsAcceptedBirthDate(user.DateOfBirth);
+        var birthDateValidation = IsAcceptedBirthDate(user.DateOfBirth.ToString());
         if (birthDateValidation != ValidationResult.Success)
         {
             return birthDateValidation;
@@ -154,36 +155,38 @@ public class UserInfoValidator
         return ValidationResult.Success;
     }
 
-    public static ValidationResult IsAcceptedBirthDate(object birthDate)
+    public static ValidationResult IsAcceptedBirthDate(string birthDateString)
     {
-        throw new NotImplementedException(); // not implemented yet
+        if (string.IsNullOrWhiteSpace(birthDateString))
+        {
+            return new ValidationResult("Birth date is required.");
+        }
 
-        // if (string.IsNullOrWhiteSpace(birthDate.ToString()))
-        //     return new ValidationResult("Birth date is required");
-        //
-        // if (birthDate is not string dateString)
-        //     return new ValidationResult("Invalid birth date");
-        //
-        // string pattern = @"^\d{4}-\d{2}-\d{2}$";
-        // Regex regex = new Regex(pattern);
-        //
-        // if (!regex.IsMatch(dateString))
-        // {
-        //     return new ValidationResult("Date must be in YYYY-MM-DD format.");
-        // }
-        //
-        // // Try to parse the date
-        // if (!DateTime.TryParseExact(dateString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateOfBirth))
-        // {
-        //     return new ValidationResult("Date must be in YYYY-MM-DD format.");
-        // }
-        //
-        // if (dateOfBirth > DateTime.Now.AddYears(-16))
-        // {
-        //     return new ValidationResult("You must be at least 16 years old.");
-        // }
+        // Check if the format is correct
+        if (!DateTime.TryParseExact(birthDateString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime birthDate))
+        {
+            return new ValidationResult("Invalid birth date format. Please use yyyy-MM-dd.");
+        }
 
+        // Calculate age
+        var currentDate = DateTime.Now;
+        var age = currentDate.Year - birthDate.Year;
+
+        // Adjust age if the birth date hasn't occurred yet this year
+        if (birthDate > currentDate.AddYears(-age))
+        {
+            age--;
+        }
+
+        // Validate age
+        if (age < 16 || age > 120)
+        {
+            return new ValidationResult("The age must be between 16 and 120 years.");
+        }
+
+        // Validation passed
         return ValidationResult.Success;
     }
+
 
 }

@@ -1,6 +1,11 @@
-﻿namespace Application.Mappers;
+﻿using Application.DTOs.SearchUserDto;
 
-public class stringToIntMapper
+namespace Application.Mappers;
+
+public class StringToIntMapper
 {
-    
+    public static int ConvertStringToInt(SearchByIdDto seachDto)
+    {
+        return int.Parse(seachDto.NationalId);
+    }
 }

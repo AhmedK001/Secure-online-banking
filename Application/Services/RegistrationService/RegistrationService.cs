@@ -25,7 +25,8 @@ public class RegistrationService : IRegistrationService
         await _userRepository.AddUserAsync(user);
         await _userRepository.SaveChangesAsync();
 
-        return $"Your data has been saved successfully for user: {user.FirstName} {user.LastName}\n With National Id number {user.NationalId}";
+        return $"Your data has been saved successfully for user: {user.FirstName} {user.LastName} " +
+               $"With National Id number {user.NationalId}";
     }
 
 }

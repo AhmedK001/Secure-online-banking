@@ -1,10 +1,15 @@
 using Application.Interfaces;
 using Application.Services.RegistrationService;
+using Application.Services.SearchDataService;
 using Core.Interfaces;
 using Core.Services;
 using Infrastructure.Data;
-using Infrastructure.Repositoryies;
+using Infrastructure.Repositorys;
 using Microsoft.EntityFrameworkCore;
+
+
+
+// read from Db make sure data is not doublicated //
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +23,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IIbanGeneratorService, IbanGeneratorService>();
+builder.Services.AddScoped<ISearchUserService, SearchUserService>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 var app = builder.Build();
@@ -26,7 +32,10 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    });
 }
 
 app.UseHttpsRedirection();

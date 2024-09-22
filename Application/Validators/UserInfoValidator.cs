@@ -129,29 +129,6 @@ public class UserInfoValidator
     public static ValidationResult IsPhoneNumber(string phoneNumber)
     {
         throw new NotImplementedException(); // not implemented yet
-
-        // if (string.IsNullOrWhiteSpace(phoneNumber))
-        //     return new ValidationResult("Phone number is required.");
-        //
-        // if (!phoneNumber.StartsWith("0"))
-        // {
-        //     return new ValidationResult("Phone number must start with 0.");
-        // }
-        //
-        // if (phoneNumber.Length != 10)
-        // {
-        //     return new ValidationResult(
-        //         "Phone number must be exactly 10 digits.");
-        // }
-        //
-        // string pattern = @"^0\d{9}$";
-        // Regex regex = new Regex(pattern);
-        //
-        // if (!regex.IsMatch(phoneNumber))
-        // {
-        //     return new ValidationResult("Invalid phone number.");
-        // }
-        
         return ValidationResult.Success;
     }
 
@@ -181,7 +158,7 @@ public class UserInfoValidator
         // Validate age
         if (age < 16 || age > 120)
         {
-            return new ValidationResult("The age must be between 16 and 120 years.");
+            return new ValidationResult("The minimum required age is 16.");
         }
 
         // Validation passed

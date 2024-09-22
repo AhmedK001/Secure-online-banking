@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace Application.DTOs.RegistrationDTOs;
 
-public class RegisterUserDTO
+public class RegisterUserDto
 {
     [Required(ErrorMessage = "National ID cannot be empty.")]
     [RegularExpression(@"^11\d{8}$",

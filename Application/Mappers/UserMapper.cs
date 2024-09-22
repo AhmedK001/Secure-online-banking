@@ -6,7 +6,7 @@ namespace Application.Mappers;
 
 public class UserMapper
 {
-    public static User ConvertToUser(RegisterUserDTO userDto)
+    public static User ConvertToUserObject(RegisterUserDto userDto)
     {
         // Convert userDto to user object
         User user = new User
@@ -14,7 +14,7 @@ public class UserMapper
             NationalId = int.Parse(userDto.NationalId), // convert National ID as string to int
             FirstName = userDto.FirstName,
             LastName = userDto.LastName,
-            DateOfBirth = DateTime.ParseExact(userDto.DateOfBirth, "yyyy-MM-dd", CultureInfo.InvariantCulture),
+            DateOfBirth = DateTime.ParseExact(userDto.DateOfBirth, "yyyy-MM-dd", CultureInfo.InvariantCulture), // convert date of birth to DateTime format
             UserContactInfo = new UserContactInfo
             {
                 Email = userDto.Email, PhoneNumber = userDto.PhoneNumber

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System;
+using System.ComponentModel;
 using System.Globalization;
 
 namespace Application.DTOs.RegistrationDTOs;
@@ -38,6 +39,17 @@ public class RegisterUserDto
         ErrorMessage
             = "Phone number must be consist of 10 digits, Starts with 05.")]
     public required string PhoneNumber { get; set; }
+    
+    [Required]
+    [DataType(DataType.Password)]
+    [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters long.")]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$", 
+        ErrorMessage = "Password must have at least one uppercase letter, one lowercase letter, and one number.")]
+    public string Password { get; set; }
+
+    [Compare("Password", ErrorMessage = "Passwords do not match.")]
+    [DataType(DataType.Password)]
+    public string ConfirmPassword { get; set; }
 
     
     public override string ToString()

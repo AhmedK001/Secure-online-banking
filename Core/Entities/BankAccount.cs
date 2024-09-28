@@ -13,6 +13,7 @@ namespace Core.Entities;
     {
        
         public int NationalId { get; set; }
+        public Guid UserId { get; set; }
         public string AccountNumber { get; set; }
         public DateTime CreationDate { get; set; }
         public decimal Balance { get; set; }

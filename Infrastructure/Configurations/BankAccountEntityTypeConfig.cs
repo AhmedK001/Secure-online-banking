@@ -35,7 +35,7 @@ public class BankAccountEntityTypeConfig : IEntityTypeConfiguration<BankAccount>
         // Relations with other tables
         builder.HasOne(account => account.User)
        .WithOne(user => user.Account)
-       .HasForeignKey<BankAccount>(account => account.NationalId)
+       .HasForeignKey<BankAccount>(account => account.UserId)
        .IsRequired(false); // Ensure this relationship is optional
 
         builder.HasOne(account => account.LoginDetails)

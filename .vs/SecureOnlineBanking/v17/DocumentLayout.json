@@ -3,8 +3,46 @@
   "WorkspaceRootPath": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Migrations\\20240917140219_InitialDbStructure.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Infrastructure\\Migrations\\20240917140219_InitialDbStructure.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Migrations\\20240928154820_InitialDbStructure.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Infrastructure\\Migrations\\20240928154820_InitialDbStructure.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2953005-FF69-48A8-A6F4-A65BD8E476F2}|Core\\Core.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\core\\interfaces\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2953005-FF69-48A8-A6F4-A65BD8E476F2}|Core\\Core.csproj|solutionrelative:core\\interfaces\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\infrastructure\\infrastructure.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|solutionrelative:infrastructure\\infrastructure.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\infrastructure\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|solutionrelative:infrastructure\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\infrastructure\\repositorys\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|solutionrelative:infrastructure\\repositorys\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\infrastructure\\configurations\\logindetailsentitytypeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|solutionrelative:infrastructure\\configurations\\logindetailsentitytypeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ahmed\\source\\ddddd\\Secure-online-banking\\Infrastructure\\Migrations\\20240928131339_Initial.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ahmed\\source\\ddddd\\Secure-online-banking\\Infrastructure\\Migrations\\20240928131148_ad.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\infrastructure\\configurations\\userentitytypeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|solutionrelative:infrastructure\\configurations\\userentitytypeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3530CA16-4F59-4413-9B25-96272E1B06D0}|Web\\Web.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\web\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{3530CA16-4F59-4413-9B25-96272E1B06D0}|Web\\Web.csproj|solutionrelative:web\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3530CA16-4F59-4413-9B25-96272E1B06D0}|Web\\Web.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\web\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{3530CA16-4F59-4413-9B25-96272E1B06D0}|Web\\Web.csproj|solutionrelative:web\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Migrations\\20240917140135_InitialDbStructure.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -19,10 +57,6 @@
       "RelativeMoniker": "D:0:0:{98FCA973-4692-4B7A-9CB8-087CF24DC47A}|Application\\Application.csproj|solutionrelative:application\\dtos\\registrationdtos\\registeruserdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E2953005-FF69-48A8-A6F4-A65BD8E476F2}|Core\\Core.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\core\\interfaces\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E2953005-FF69-48A8-A6F4-A65BD8E476F2}|Core\\Core.csproj|solutionrelative:core\\interfaces\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{98FCA973-4692-4B7A-9CB8-087CF24DC47A}|Application\\Application.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\application\\services\\registrationservice\\registrationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{98FCA973-4692-4B7A-9CB8-087CF24DC47A}|Application\\Application.csproj|solutionrelative:application\\services\\registrationservice\\registrationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -34,20 +68,12 @@
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ahmed\\source\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240916122704_www.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\infrastructure\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|solutionrelative:infrastructure\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{3530CA16-4F59-4413-9B25-96272E1B06D0}|Web\\Web.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\web\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3530CA16-4F59-4413-9B25-96272E1B06D0}|Web\\Web.csproj|solutionrelative:web\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{98FCA973-4692-4B7A-9CB8-087CF24DC47A}|Application\\Application.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\application\\mappers\\usermapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{98FCA973-4692-4B7A-9CB8-087CF24DC47A}|Application\\Application.csproj|solutionrelative:application\\mappers\\usermapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{3530CA16-4F59-4413-9B25-96272E1B06D0}|Web\\Web.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\web\\controllers\\registrationcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3530CA16-4F59-4413-9B25-96272E1B06D0}|Web\\Web.csproj|solutionrelative:web\\controllers\\registrationcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ahmed\\source\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240916114913_Test.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
@@ -60,37 +86,13 @@
       "RelativeMoniker": "D:0:0:{E2953005-FF69-48A8-A6F4-A65BD8E476F2}|Core\\Core.csproj|solutionrelative:core\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E2953005-FF69-48A8-A6F4-A65BD8E476F2}|Core\\Core.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\core\\interfaces\\iusercontactinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E2953005-FF69-48A8-A6F4-A65BD8E476F2}|Core\\Core.csproj|solutionrelative:core\\interfaces\\iusercontactinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\infrastructure\\configurations\\userentitytypeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|solutionrelative:infrastructure\\configurations\\userentitytypeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ahmed\\source\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240914193249_test.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\infrastructure\\configurations\\usercontactinfoentitytypeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|solutionrelative:infrastructure\\configurations\\usercontactinfoentitytypeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\infrastructure\\configurations\\logindetailsentitytypeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|solutionrelative:infrastructure\\configurations\\logindetailsentitytypeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ahmed\\source\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240914192923_OptionalBKA.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\ahmed\\source\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240914192146_Main.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\infrastructure\\repositorys\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|solutionrelative:infrastructure\\repositorys\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\infrastructure\\infrastructure.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|solutionrelative:infrastructure\\infrastructure.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B22F6C08-6239-4207-8C7C-65137A1CB6BD}|Infrastructure\\Infrastructure.csproj|c:\\users\\ahmed\\source\\myprojects\\secure-online-banking\\infrastructure\\configurations\\receivercliententitytypeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -120,11 +122,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 242,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 14,
               "Title": "RegistrationService.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Application\\Services\\RegistrationService\\RegistrationService.cs",
               "RelativeDocumentMoniker": "Application\\Services\\RegistrationService\\RegistrationService.cs",
@@ -138,54 +140,15 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "RegistrationController.cs",
-              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Web\\Controllers\\RegistrationController.cs",
-              "RelativeDocumentMoniker": "Web\\Controllers\\RegistrationController.cs",
-              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Web\\Controllers\\RegistrationController.cs",
-              "RelativeToolTip": "Web\\Controllers\\RegistrationController.cs",
-              "ViewState": "AQIAADkAAAAAAAAAAAAqwEsAAAA/AAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-14T18:40:10.349Z",
-              "IsPinned": true
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "20240917140219_InitialDbStructure.cs",
-              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Migrations\\20240917140219_InitialDbStructure.cs",
-              "RelativeDocumentMoniker": "Infrastructure\\Migrations\\20240917140219_InitialDbStructure.cs",
-              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Migrations\\20240917140219_InitialDbStructure.cs",
-              "RelativeToolTip": "Infrastructure\\Migrations\\20240917140219_InitialDbStructure.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAA4AAAAlAAAA",
+              "Title": "20240928154820_InitialDbStructure.cs",
+              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Migrations\\20240928154820_InitialDbStructure.cs",
+              "RelativeDocumentMoniker": "Infrastructure\\Migrations\\20240928154820_InitialDbStructure.cs",
+              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Migrations\\20240928154820_InitialDbStructure.cs",
+              "RelativeToolTip": "Infrastructure\\Migrations\\20240928154820_InitialDbStructure.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-17T14:02:19.096Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "20240917140135_InitialDbStructure.cs",
-              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Migrations\\20240917140135_InitialDbStructure.cs",
-              "RelativeDocumentMoniker": "Infrastructure\\Migrations\\20240917140135_InitialDbStructure.cs",
-              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Migrations\\20240917140135_InitialDbStructure.cs",
-              "RelativeToolTip": "Infrastructure\\Migrations\\20240917140135_InitialDbStructure.cs",
-              "ViewState": "AQIAAAMAAAAAAAAAAAAAAAIAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-17T14:01:35.299Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "RegisterUserDTO.cs",
-              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Application\\DTOs\\RegistrationDTOs\\RegisterUserDTO.cs",
-              "RelativeDocumentMoniker": "Application\\DTOs\\RegistrationDTOs\\RegisterUserDTO.cs",
-              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Application\\DTOs\\RegistrationDTOs\\RegisterUserDTO.cs",
-              "RelativeToolTip": "Application\\DTOs\\RegistrationDTOs\\RegisterUserDTO.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAoAAAApAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-17T13:48:43.74Z",
+              "WhenOpened": "2024-09-28T15:48:20.254Z",
               "EditorCaption": ""
             },
             {
@@ -194,19 +157,148 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 9,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Web\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "Web\\Properties\\launchSettings.json",
+              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Web\\Properties\\launchSettings.json",
+              "RelativeToolTip": "Web\\Properties\\launchSettings.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAIBJwCEAAAAbAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2024-09-26T21:59:54.501Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
               "Title": "LoginDetailsEntityTypeConfig.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Configurations\\LoginDetailsEntityTypeConfig.cs",
               "RelativeDocumentMoniker": "Infrastructure\\Configurations\\LoginDetailsEntityTypeConfig.cs",
               "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Configurations\\LoginDetailsEntityTypeConfig.cs",
               "RelativeToolTip": "Infrastructure\\Configurations\\LoginDetailsEntityTypeConfig.cs",
-              "ViewState": "AQIAAAYAAAAAAAAAAAAywCoAAAAAAAAA",
+              "ViewState": "AQIAAAcAAAAAAAAAAADwvxMAAABBAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-08T20:32:07.774Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 4,
+              "Title": "UserRepository.cs",
+              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Repositorys\\UserRepository.cs",
+              "RelativeDocumentMoniker": "Infrastructure\\Repositorys\\UserRepository.cs",
+              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Repositorys\\UserRepository.cs",
+              "RelativeToolTip": "Infrastructure\\Repositorys\\UserRepository.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAgAAAAtAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-14T18:42:01.634Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "IUserRepository.cs",
+              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Core\\Interfaces\\IUserRepository.cs",
+              "RelativeDocumentMoniker": "Core\\Interfaces\\IUserRepository.cs",
+              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Core\\Interfaces\\IUserRepository.cs",
+              "RelativeToolTip": "Core\\Interfaces\\IUserRepository.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAA8AAAABAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-14T18:43:09.569Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Infrastructure.csproj",
+              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Infrastructure.csproj",
+              "RelativeDocumentMoniker": "Infrastructure\\Infrastructure.csproj",
+              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Infrastructure.csproj",
+              "RelativeToolTip": "Infrastructure\\Infrastructure.csproj",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAB4AAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-09-14T18:41:31.379Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "20240928131148_ad.cs",
+              "DocumentMoniker": "C:\\Users\\ahmed\\source\\ddddd\\Secure-online-banking\\Infrastructure\\Migrations\\20240928131148_ad.cs",
+              "RelativeDocumentMoniker": "..\\..\\ddddd\\Secure-online-banking\\Infrastructure\\Migrations\\20240928131148_ad.cs",
+              "ToolTip": "C:\\Users\\ahmed\\source\\ddddd\\Secure-online-banking\\Infrastructure\\Migrations\\20240928131148_ad.cs",
+              "RelativeToolTip": "..\\..\\ddddd\\Secure-online-banking\\Infrastructure\\Migrations\\20240928131148_ad.cs",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-28T13:11:48.112Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ApplicationDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Data\\ApplicationDbContext.cs",
+              "RelativeDocumentMoniker": "Infrastructure\\Data\\ApplicationDbContext.cs",
+              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Data\\ApplicationDbContext.cs",
+              "RelativeToolTip": "Infrastructure\\Data\\ApplicationDbContext.cs",
+              "ViewState": "AQIAABUAAAAAAAAAAAAowCcAAAAGAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-07T08:42:18.18Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "20240928131339_Initial.cs",
+              "DocumentMoniker": "C:\\Users\\ahmed\\source\\ddddd\\Secure-online-banking\\Infrastructure\\Migrations\\20240928131339_Initial.cs",
+              "RelativeDocumentMoniker": "..\\..\\ddddd\\Secure-online-banking\\Infrastructure\\Migrations\\20240928131339_Initial.cs",
+              "ToolTip": "C:\\Users\\ahmed\\source\\ddddd\\Secure-online-banking\\Infrastructure\\Migrations\\20240928131339_Initial.cs",
+              "RelativeToolTip": "..\\..\\ddddd\\Secure-online-banking\\Infrastructure\\Migrations\\20240928131339_Initial.cs",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-28T13:13:39.119Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "20240917140135_InitialDbStructure.cs",
+              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Migrations\\20240917140135_InitialDbStructure.cs",
+              "RelativeDocumentMoniker": "Infrastructure\\Migrations\\20240917140135_InitialDbStructure.cs",
+              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Migrations\\20240917140135_InitialDbStructure.cs",
+              "RelativeToolTip": "Infrastructure\\Migrations\\20240917140135_InitialDbStructure.cs",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-17T14:01:35.299Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "RegisterUserDTO.cs",
+              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Application\\DTOs\\RegistrationDTOs\\RegisterUserDTO.cs",
+              "RelativeDocumentMoniker": "Application\\DTOs\\RegistrationDTOs\\RegisterUserDTO.cs",
+              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Application\\DTOs\\RegistrationDTOs\\RegisterUserDTO.cs",
+              "RelativeToolTip": "Application\\DTOs\\RegistrationDTOs\\RegisterUserDTO.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAoAAAAUAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-17T13:48:43.74Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "UserEntityTypeConfig.cs",
+              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Configurations\\UserEntityTypeConfig.cs",
+              "RelativeDocumentMoniker": "Infrastructure\\Configurations\\UserEntityTypeConfig.cs",
+              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Configurations\\UserEntityTypeConfig.cs",
+              "RelativeToolTip": "Infrastructure\\Configurations\\UserEntityTypeConfig.cs",
+              "ViewState": "AQIAAAgAAAAAAAAAAAAiwDYAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-08T20:30:30.476Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Web\\appsettings.json",
+              "RelativeDocumentMoniker": "Web\\appsettings.json",
+              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Web\\appsettings.json",
+              "RelativeToolTip": "Web\\appsettings.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2024-09-26T21:59:48.811Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Web\\Program.cs",
               "RelativeDocumentMoniker": "Web\\Program.cs",
@@ -218,7 +310,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 15,
               "Title": "BankAccountEntityTypeConfig.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Configurations\\BankAccountEntityTypeConfig.cs",
               "RelativeDocumentMoniker": "Infrastructure\\Configurations\\BankAccountEntityTypeConfig.cs",
@@ -230,20 +322,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "IUserRepository.cs",
-              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Core\\Interfaces\\IUserRepository.cs",
-              "RelativeDocumentMoniker": "Core\\Interfaces\\IUserRepository.cs",
-              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Core\\Interfaces\\IUserRepository.cs",
-              "RelativeToolTip": "Core\\Interfaces\\IUserRepository.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAAhAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-14T18:43:09.569Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 12,
               "Title": "IRegistrationService.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Application\\Interfaces\\IRegistrationService.cs",
               "RelativeDocumentMoniker": "Application\\Interfaces\\IRegistrationService.cs",
@@ -251,48 +330,33 @@
               "RelativeToolTip": "Application\\Interfaces\\IRegistrationService.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAUAAAABAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-14T18:49:38.278Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-09-14T18:49:38.278Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
-              "Title": "IUserContactInfo.cs",
-              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Core\\Interfaces\\IUserContactInfo.cs",
-              "RelativeDocumentMoniker": "Core\\Interfaces\\IUserContactInfo.cs",
-              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Core\\Interfaces\\IUserContactInfo.cs",
-              "RelativeToolTip": "Core\\Interfaces\\IUserContactInfo.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-16T11:45:26.201Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 20,
               "Title": "20240916114714_testtt.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240916114714_testtt.cs",
               "RelativeDocumentMoniker": "..\\..\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240916114714_testtt.cs",
               "ToolTip": "C:\\Users\\ahmed\\source\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240916114714_testtt.cs",
               "RelativeToolTip": "..\\..\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240916114714_testtt.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-16T11:47:14.926Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 19,
               "Title": "20240916114913_Test.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240916114913_Test.cs",
               "RelativeDocumentMoniker": "..\\..\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240916114913_Test.cs",
               "ToolTip": "C:\\Users\\ahmed\\source\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240916114913_Test.cs",
               "RelativeToolTip": "..\\..\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240916114913_Test.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-16T11:49:13.527Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 16,
               "Title": "20240916122704_www.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240916122704_www.cs",
               "RelativeDocumentMoniker": "..\\..\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240916122704_www.cs",
@@ -303,43 +367,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
-              "Title": "UserRepository.cs",
-              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Repositorys\\UserRepository.cs",
-              "RelativeDocumentMoniker": "Infrastructure\\Repositorys\\UserRepository.cs",
-              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Repositorys\\UserRepository.cs",
-              "RelativeToolTip": "Infrastructure\\Repositorys\\UserRepository.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABAAAAAFAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-14T18:42:01.634Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 18,
               "Title": "UserMapper.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Application\\Mappers\\UserMapper.cs",
               "RelativeDocumentMoniker": "Application\\Mappers\\UserMapper.cs",
               "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Application\\Mappers\\UserMapper.cs",
               "RelativeToolTip": "Application\\Mappers\\UserMapper.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABgAAAABAAAA",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABYAAAABAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-14T19:39:43.136Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "ApplicationDbContext.cs",
-              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Data\\ApplicationDbContext.cs",
-              "RelativeDocumentMoniker": "Infrastructure\\Data\\ApplicationDbContext.cs",
-              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Data\\ApplicationDbContext.cs",
-              "RelativeToolTip": "Infrastructure\\Data\\ApplicationDbContext.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAACQAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-08-07T08:42:18.18Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 23,
               "Title": "20240914192923_OptionalBKA.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240914192923_OptionalBKA.cs",
               "RelativeDocumentMoniker": "..\\..\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240914192923_OptionalBKA.cs",
@@ -350,7 +390,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 22,
               "Title": "20240914193249_test.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240914193249_test.cs",
               "RelativeDocumentMoniker": "..\\..\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240914193249_test.cs",
@@ -361,43 +401,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 21,
               "Title": "User.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Core\\Entities\\User.cs",
               "RelativeDocumentMoniker": "Core\\Entities\\User.cs",
               "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Core\\Entities\\User.cs",
               "RelativeToolTip": "Core\\Entities\\User.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAB8AAAAAAAAA",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABgAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-08-07T09:14:03.094Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
-              "Title": "UserEntityTypeConfig.cs",
-              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Configurations\\UserEntityTypeConfig.cs",
-              "RelativeDocumentMoniker": "Infrastructure\\Configurations\\UserEntityTypeConfig.cs",
-              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Configurations\\UserEntityTypeConfig.cs",
-              "RelativeToolTip": "Infrastructure\\Configurations\\UserEntityTypeConfig.cs",
-              "ViewState": "AQIAAAgAAAAAAAAAAAAiwC0AAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-08T20:30:30.476Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 18,
-              "Title": "UserContactInfoEntityTypeConfig.cs",
-              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Configurations\\UserContactInfoEntityTypeConfig.cs",
-              "RelativeDocumentMoniker": "Infrastructure\\Configurations\\UserContactInfoEntityTypeConfig.cs",
-              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Configurations\\UserContactInfoEntityTypeConfig.cs",
-              "RelativeToolTip": "Infrastructure\\Configurations\\UserContactInfoEntityTypeConfig.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABIAAABGAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-08-30T21:18:18.198Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 25,
               "Title": "ReceiverClientEntityTypeConfig.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Configurations\\ReceiverClientEntityTypeConfig.cs",
               "RelativeDocumentMoniker": "Infrastructure\\Configurations\\ReceiverClientEntityTypeConfig.cs",
@@ -409,7 +425,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 24,
               "Title": "20240914192146_Main.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240914192146_Main.cs",
               "RelativeDocumentMoniker": "..\\..\\ReSolve\\Secure-online-banking\\Infrastructure\\Migrations\\20240914192146_Main.cs",
@@ -420,19 +436,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
-              "Title": "Infrastructure.csproj",
-              "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Infrastructure.csproj",
-              "RelativeDocumentMoniker": "Infrastructure\\Infrastructure.csproj",
-              "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\Infrastructure.csproj",
-              "RelativeToolTip": "Infrastructure\\Infrastructure.csproj",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2024-09-14T18:41:31.379Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 26,
               "Title": "BankAccount.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Core\\Entities\\BankAccount.cs",
               "RelativeDocumentMoniker": "Core\\Entities\\BankAccount.cs",
@@ -444,19 +448,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 28,
               "Title": "Web.csproj",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Web\\Web.csproj",
               "RelativeDocumentMoniker": "Web\\Web.csproj",
               "ToolTip": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Web\\Web.csproj",
               "RelativeToolTip": "Web\\Web.csproj",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAB4AAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
               "WhenOpened": "2024-08-07T09:02:04.563Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 27,
               "Title": "CurrencyConverter.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Infrastructure\\CurrencyConverter.cs",
               "RelativeDocumentMoniker": "Infrastructure\\CurrencyConverter.cs",
@@ -468,7 +472,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 29,
               "Title": "Class1.cs",
               "DocumentMoniker": "C:\\Users\\ahmed\\source\\MyProjects\\Secure-online-banking\\Application\\Class1.cs",
               "RelativeDocumentMoniker": "Application\\Class1.cs",

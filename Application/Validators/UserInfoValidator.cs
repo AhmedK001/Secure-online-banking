@@ -40,14 +40,14 @@ public class UserInfoValidator
         }
 
         // Validate Email
-        var emailValidation = IsEmail(user.UserContactInfo?.Email);
+        var emailValidation = IsEmail(user.Email);
         if (emailValidation != ValidationResult.Success)
         {
             return emailValidation;
         }
 
         // Validate Phone Number
-        var phoneNumberValidation = IsPhoneNumber(user.UserContactInfo?.PhoneNumber);
+        var phoneNumberValidation = IsPhoneNumber(user.PhoneNumber);
         if (phoneNumberValidation != ValidationResult.Success)
         {
             return phoneNumberValidation;

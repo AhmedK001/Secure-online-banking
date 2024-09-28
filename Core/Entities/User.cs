@@ -6,26 +6,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Core.Enums;
+using Microsoft.AspNetCore.Identity;
 
 namespace Core.Entities
 {
-    public class User : IUser
+    public class User : IdentityUser<Guid>,IUser
     {
         public int NationalId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
         public DateTime DateOfBirth { get; set; }
-        public UserContactInfo UserContactInfo { get; set; }
         public BankAccount? Account { get; set; }
     
-        public override string ToString()
-        {
-            return $"NationalId: {NationalId}, " +
-                   $"FirstName: {FirstName}, " +
-                   $"LastName: {LastName}, " +
-                   $"DateOfBirth: {DateOfBirth.ToString("yyyy-MM-dd")}, " +
-                   $"UserContactInfo: {UserContactInfo}, " +
-                   $"Account: {(Account != null ? Account.ToString() : "None")}";
-        }
     }
 }

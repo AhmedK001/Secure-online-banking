@@ -34,3 +34,17 @@ C:\Users\ahmed\source\ReSolve\Secure-online-banking\Adapters\obj\Debug\net8.0\Ad
 C:\Users\ahmed\source\ReSolve\Secure-online-banking\Adapters\obj\Debug\net8.0\refint\Adapters.dll
 C:\Users\ahmed\source\ReSolve\Secure-online-banking\Adapters\obj\Debug\net8.0\Adapters.pdb
 C:\Users\ahmed\source\ReSolve\Secure-online-banking\Adapters\obj\Debug\net8.0\ref\Adapters.dll
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\bin\Debug\net8.0\Adapters.deps.json
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\bin\Debug\net8.0\Adapters.dll
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\bin\Debug\net8.0\Adapters.pdb
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\obj\Debug\net8.0\Adapters.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\obj\Debug\net8.0\Adapters.AssemblyInfoInputs.cache
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\obj\Debug\net8.0\Adapters.AssemblyInfo.cs
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\obj\Debug\net8.0\Adapters.csproj.CoreCompileInputs.cache
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\obj\Debug\net8.0\Adapters.sourcelink.json
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\obj\Debug\net8.0\Adapters.dll
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\obj\Debug\net8.0\refint\Adapters.dll
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\obj\Debug\net8.0\Adapters.pdb
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\obj\Debug\net8.0\ref\Adapters.dll
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\bin\Debug\net8.0\Adapters.runtimeconfig.json
+C:\Users\ahmed\source\ddddd\Secure-online-banking\Adapters\obj\Debug\net8.0\Adapters.genruntimeconfig.cache

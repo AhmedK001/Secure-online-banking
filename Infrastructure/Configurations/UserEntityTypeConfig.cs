@@ -8,7 +8,12 @@ public class UserEntityTypeConfig : IEntityTypeConfiguration<User>
     {
         // NationalId as a Primary key
         builder.HasKey(user => user.NationalId);
-
+        
+        // Indexing
+        builder.HasIndex(user => user.NationalId).IsUnique();
+        builder.HasIndex(user => user.PhoneNumber).IsUnique();
+        builder.HasIndex(user => user.Email).IsUnique();
+        
         // Properties
         builder.Property(user => user.NationalId)
             .IsRequired()
@@ -25,21 +30,25 @@ public class UserEntityTypeConfig : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(40)
             .HasColumnType("varchar(100)");
+        
+        builder.Property(user => user.Email)
+            .IsRequired()
+            .HasMaxLength(256)
+            .HasColumnType("varchar(256)");
+
+        builder.Property(user => user.PhoneNumber)
+            .IsRequired()
+            .HasMaxLength(15)
+            .HasColumnType("varchar(15)");
 
         builder.Property(user => user.DateOfBirth)
             .IsRequired()
             .HasColumnType("date");
 
-        // One-to-one relationship with UserContactInfo (Required)
-        builder.HasOne(user => user.UserContactInfo)
-            .WithOne(contactInfo => contactInfo.User)
-            .HasForeignKey<UserContactInfo>(contactInfo => contactInfo.NationalId)
-            .IsRequired();  // UserContactInfo is required
-
         // One-to-one relationship with BankAccount (Optional)
         builder.HasOne(user => user.Account)
             .WithOne(account => account.User)
-            .HasForeignKey<BankAccount>(account => account.NationalId)
+            .HasForeignKey<BankAccount>(account => account.UserId)
             .IsRequired(false);  // BankAccount is optional
     }
 }

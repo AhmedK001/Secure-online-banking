@@ -15,10 +15,8 @@ public class UserMapper
             FirstName = userDto.FirstName,
             LastName = userDto.LastName,
             DateOfBirth = DateTime.ParseExact(userDto.DateOfBirth, "yyyy-MM-dd", CultureInfo.InvariantCulture), // convert date of birth to DateTime format
-            UserContactInfo = new UserContactInfo
-            {
-                Email = userDto.Email, PhoneNumber = userDto.PhoneNumber
-            }
+            Email = userDto.Email, 
+            PhoneNumber = userDto.PhoneNumber
         };
 
         return user;

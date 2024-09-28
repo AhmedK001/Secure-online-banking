@@ -1,10 +1,13 @@
 using Application.Interfaces;
 using Application.Services.RegistrationService;
 using Application.Services.SearchDataService;
+using Core.Entities;
 using Core.Interfaces;
 using Core.Services;
 using Infrastructure.Data;
 using Infrastructure.Repositorys;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -26,7 +29,26 @@ builder.Services.AddScoped<IIbanGeneratorService, IbanGeneratorService>();
 builder.Services.AddScoped<ISearchUserService, SearchUserService>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+builder.Services.AddIdentity<User, Role>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders()
+    .AddUserStore<UserStore<User,Role,ApplicationDbContext,Guid>>()
+    .AddRoleStore<RoleStore<Role,ApplicationDbContext,Guid>>();
+
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 6;
+});
+
+
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

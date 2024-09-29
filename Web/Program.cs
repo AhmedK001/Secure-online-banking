@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.Services;
 using Application.Services.RegistrationService;
 using Application.Services.SearchDataService;
 using Core.Entities;
@@ -43,9 +44,10 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireLowercase = true;
     options.Password.RequireUppercase = true;
     options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequiredLength = 6;
+    options.Password.RequiredLength = 8;
 });
 
+builder.Services.AddTransient<IJwtService, JwtService>();
 
 var app = builder.Build();
 

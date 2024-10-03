@@ -47,7 +47,7 @@ public class RegisterUserDto
         ErrorMessage = "Password must have at least one uppercase letter, one lowercase letter, and one number.")]
     public string Password { get; set; }
 
-    [Compare("Password", ErrorMessage = "Passwords do not match.")]
+    [Compare("Password", ErrorMessage = "Passwords does not match.")]
     [DataType(DataType.Password)]
     public string ConfirmPassword { get; set; }
 

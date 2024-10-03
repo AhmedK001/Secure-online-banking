@@ -1,3 +1,4 @@
+using System.Text;
 using Application.Interfaces;
 using Application.Services;
 using Application.Services.RegistrationService;
@@ -7,10 +8,11 @@ using Core.Interfaces;
 using Core.Services;
 using Infrastructure.Data;
 using Infrastructure.Repositorys;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.IdentityModel.Tokens;
 
 
 // read from Db make sure data is not doublicated //
@@ -28,6 +30,8 @@ builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IIbanGeneratorService, IbanGeneratorService>();
 builder.Services.AddScoped<ISearchUserService, SearchUserService>();
+builder.Services.AddScoped<IUpdatePassword, UpdatePasswordService>();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -48,6 +52,19 @@ builder.Services.Configure<IdentityOptions>(options =>
 });
 
 builder.Services.AddTransient<IJwtService, JwtService>();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey
+                = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(builder.Configuration["Jwt:KEY"])),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
 
 var app = builder.Build();
 
@@ -66,7 +83,9 @@ app.UseHttpsRedirection();
 
 // Add routing for controllers
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
+
 
 // Map controllers
 app.MapControllers(); // Add this line to map the controllers

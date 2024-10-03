@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using Application.DTOs;
 using Application.DTOs.RegistrationDTOs;
 using Application.Interfaces;
@@ -6,6 +7,7 @@ using Application.Mappers;
 using Application.Validators;
 using Core.Entities;
 using Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -22,8 +24,9 @@ public class AccountController : ControllerBase
     private readonly ISearchUserService _searchUserService;
     private readonly IIbanGeneratorService _ibanGeneratorService;
     private readonly IJwtService _jwtService;
+    private readonly IUpdatePassword _updatePassword;
 
-    public AccountController(IJwtService jwtService,UserManager<User> userManager, SignInManager<User> signInManager,IRegistrationService registrationService, IIbanGeneratorService ibanGeneratorService,ISearchUserService searchUserService)
+    public AccountController(IUpdatePassword updatePassword,IJwtService jwtService,UserManager<User> userManager, SignInManager<User> signInManager,IRegistrationService registrationService, IIbanGeneratorService ibanGeneratorService,ISearchUserService searchUserService)
     {
         _userManager = userManager;
         _registrationService = registrationService;
@@ -31,6 +34,7 @@ public class AccountController : ControllerBase
         _searchUserService = searchUserService;
         _signInManager = signInManager;
         _jwtService = jwtService;
+        _updatePassword = updatePassword;
     }
 
     [HttpPost("register")]
@@ -107,31 +111,73 @@ public class AccountController : ControllerBase
         // Attempt to sign the user in using email and password
         var passwordLoginResult = await _signInManager.PasswordSignInAsync(user.UserName, userLoginDto.Password, isPersistent: false, lockoutOnFailure: false);
 
-        if (passwordLoginResult.Succeeded)
-        {
-            var authenticationResponse = _jwtService.CreateJwtToken(user);
-
-            var userPhoneNumberFromDb = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
-
-            return Ok(new
-            {
-                Message = "Successfully signed in.",
-                PhoneNumber = userPhoneNumberFromDb?.PhoneNumber,
-                authenticationResponse = authenticationResponse,
-            });
-        }
-        else if (passwordLoginResult.IsLockedOut)
+        if (passwordLoginResult.IsLockedOut)
         {
             return BadRequest("Your account is locked out.");
         }
-        else if (passwordLoginResult.RequiresTwoFactor)
+        if (passwordLoginResult.RequiresTwoFactor)
         {
             return BadRequest("Two-factor authentication is required.");
         }
-        else
+
+        if (passwordLoginResult.Succeeded)
         {
-            return BadRequest("Email or password is incorrect.");
+
+            var userPhoneNumberFromDb = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+
+            var token = _jwtService.CreateJwtToken(user);
+
+            return Ok(new
+            {
+                token = token,
+                expiration = DateTime.UtcNow.AddMinutes(10),
+                Message = "Successfully signed in.",
+                PhoneNumber = userPhoneNumberFromDb?.PhoneNumber,
+            });
         }
+
+        return BadRequest("Email or password is incorrect.");
+    }
+
+    [HttpPost("update-password")]
+    [Authorize]
+    public async Task<IActionResult> UpdatePassword(
+        [FromBody] UpdatePasswordDto _updatePasswordDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            BadRequest(ModelState);
+        }
+
+        if (!User.Identity.IsAuthenticated)
+        {
+            return Unauthorized("You are not logged in.");
+        }
+
+        // get user id
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized("User not found.");
+
+        // get user object
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null) return NotFound("User not found.");
+
+        // check old password if matches current one.
+        var callUpdatePasswordServiceMethodResult
+            = _updatePassword.UpdatePasswordAsync(user, _updatePasswordDto);
+
+        if (!callUpdatePasswordServiceMethodResult.Result.Succeeded)
+        {
+            return BadRequest(callUpdatePasswordServiceMethodResult.Result);
+        }
+
+        if (callUpdatePasswordServiceMethodResult.Result.Succeeded)
+        {
+            return Ok("Your password has been updated successfully.");
+
+        }
+
+        return Unauthorized("You are not logged in.");
     }
 
 

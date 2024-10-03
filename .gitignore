@@ -1,0 +1,37 @@
+# Visual Studio files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# NuGet Packages
+*.nupkg
+packages/
+.nuget/
+
+# Logs
+*.log
+
+# User-specific files
+*.vs/
+
+# IDE specific files
+.idea/
+.vscode/
+*.sln.iml
+
+# Temporary files
+*.tmp
+*.temp
+
+# Operating System specific files
+Thumbs.db
+ehthumbs.db
+
+# Ignore other unnecessary files
+.cache/

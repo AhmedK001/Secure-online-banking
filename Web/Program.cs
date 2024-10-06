@@ -1,13 +1,11 @@
 using System.Text;
 using Application.Interfaces;
 using Application.Services;
-using Application.Services.RegistrationService;
-using Application.Services.SearchDataService;
 using Core.Entities;
 using Core.Interfaces;
-using Core.Services;
+using Core.Interfaces.IRepositories;
 using Infrastructure.Data;
-using Infrastructure.Repositorys;
+using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -28,9 +26,12 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IIbanGeneratorService, IbanGeneratorService>();
+//builder.Services.AddScoped<IIbanGeneratorService, BankAccountService>();
 builder.Services.AddScoped<ISearchUserService, SearchUserService>();
 builder.Services.AddScoped<IUpdatePassword, UpdatePasswordService>();
+builder.Services.AddScoped<IBankAccountService, BankAccountService>();
+builder.Services.AddScoped<IBankAccountRepository, BankAccountRepository>();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

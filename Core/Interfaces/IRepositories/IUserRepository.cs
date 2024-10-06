@@ -1,6 +1,6 @@
 ﻿using Core.Entities;
 
-namespace Core.Interfaces;
+namespace Core.Interfaces.IRepositories;
 
 public interface IUserRepository
 {
@@ -9,7 +9,8 @@ public interface IUserRepository
     bool CheckIfNationalIdUnique(string nationalId);
     bool CheckIfEmailUnique(string email);
     bool CheckIfPhoneUnique(string phone);
-    Task<User> FindUserAsyncById(int nationalId);
+    Task<User> FindUserAsyncById(Guid id);
+    Task<User> FindUserAsyncByNationalId(int nationalId);
     Task<User?> FindUserAsyncByEmail(string email);
     Task<User?> FindUserAsyncByPhone(string phone);
     Task SaveChangesAsync();

@@ -1,7 +1,9 @@
-﻿using Core.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Core.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 
+//[Table("BankAccounts")]
 public class BankAccountEntityTypeConfig : IEntityTypeConfiguration<BankAccount>
 {
     public void Configure(EntityTypeBuilder<BankAccount> builder)
@@ -38,8 +40,8 @@ public class BankAccountEntityTypeConfig : IEntityTypeConfiguration<BankAccount>
        .HasForeignKey<BankAccount>(account => account.UserId)
        .IsRequired(false); // Ensure this relationship is optional
 
-        builder.HasOne(account => account.LoginDetails)
-            .WithOne(loginDetails => loginDetails.BankAccount)
-            .HasForeignKey<LoginDetails>(loginDetails => loginDetails.NationalId);
+        // builder.HasOne(account => account.LoginDetails)
+        //     .WithOne(loginDetails => loginDetails.BankAccount)
+        //     .HasForeignKey<LoginDetails>(loginDetails => loginDetails.NationalId);
     }
 }

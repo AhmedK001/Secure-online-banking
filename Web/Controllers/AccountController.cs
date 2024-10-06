@@ -22,15 +22,13 @@ public class AccountController : ControllerBase
     private readonly SignInManager<User> _signInManager;
     private readonly IRegistrationService _registrationService;
     private readonly ISearchUserService _searchUserService;
-    private readonly IIbanGeneratorService _ibanGeneratorService;
     private readonly IJwtService _jwtService;
     private readonly IUpdatePassword _updatePassword;
 
-    public AccountController(IUpdatePassword updatePassword,IJwtService jwtService,UserManager<User> userManager, SignInManager<User> signInManager,IRegistrationService registrationService, IIbanGeneratorService ibanGeneratorService,ISearchUserService searchUserService)
+    public AccountController(IUpdatePassword updatePassword,IJwtService jwtService,UserManager<User> userManager, SignInManager<User> signInManager,IRegistrationService registrationService,ISearchUserService searchUserService)
     {
         _userManager = userManager;
         _registrationService = registrationService;
-        _ibanGeneratorService = ibanGeneratorService;
         _searchUserService = searchUserService;
         _signInManager = signInManager;
         _jwtService = jwtService;
@@ -76,7 +74,7 @@ public class AccountController : ControllerBase
         }
 
         // Convert userDto to user object
-        User user = UserMapper.ConvertToUserObject(userDto);
+        User user = ConvertToSomeObject.ConvertToUserObject(userDto);
         {
             user.UserName = userDto.Email;
         };

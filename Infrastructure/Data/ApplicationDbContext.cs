@@ -28,20 +28,16 @@ public class ApplicationDbContext : IdentityDbContext<User,Role,Guid>
     {
         base.OnModelCreating(modelBuilder);
 
-        //new UserEntityTypeConfig().Configure(modelBuilder.Entity<User>());
         new BankAccountEntityTypeConfig().Configure(modelBuilder.Entity<BankAccount>());
         new OperationEntityTypeConfig().Configure(modelBuilder.Entity<Operation>());
         new ReceiverClientEntityTypeConfig().Configure(modelBuilder.Entity<ReceiverClient>());
         new BankCardEntityTypeConfig().Configure(modelBuilder.Entity<BankCard>());
         new PaymentEntityTypeConfig().Configure(modelBuilder.Entity<Payment>());
-        new LoginDetailsEntityTypeConfig().Configure(modelBuilder.Entity<LoginDetails>());
     }
 
-    //public DbSet<User> Users { get; set; }
     public DbSet<BankAccount> Accounts { get; set; }
     public DbSet<Operation> Operations { get; set; }
     public DbSet<BankCard> BankCards { get; set; }
     public DbSet<ReceiverClient> ReceiverClients { get; set; }
     public DbSet<Payment> Payments { get; set; }
-    public DbSet<LoginDetails> LoginDetails { get; set; }
 }

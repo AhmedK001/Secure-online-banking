@@ -4,7 +4,7 @@ using Core.Entities;
 
 namespace Application.Mappers;
 
-public class UserMapper
+public class ConvertToSomeObject
 {
     public static User ConvertToUserObject(RegisterUserDto userDto)
     {

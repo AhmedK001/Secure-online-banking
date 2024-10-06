@@ -1,10 +1,9 @@
-﻿using System.Net.Http.Json;
-using Application.Interfaces;
-using Application.Validators;
+﻿using Application.Interfaces;
 using Core.Entities;
 using Core.Interfaces;
+using Core.Interfaces.IRepositories;
 
-namespace Application.Services.RegistrationService;
+namespace Application.Services;
 
 public class RegistrationService : IRegistrationService
 {

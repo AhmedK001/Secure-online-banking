@@ -1,8 +1,8 @@
 ﻿using Application.Interfaces;
 using Core.Entities;
-using Core.Interfaces;
+using Core.Interfaces.IRepositories;
 
-namespace Application.Services.SearchDataService;
+namespace Application.Services;
 
 public class SearchUserService : ISearchUserService
 {
@@ -14,8 +14,9 @@ public class SearchUserService : ISearchUserService
     }
     public async Task<User> FindUser(int nationalId)
     {
-        var result = await _userRepository.FindUserAsyncById(nationalId);
-        return result;
+        // var result = await _userRepository.FindUserAsyncByNationalId((Guid)nationalId);
+        // return result;
+        return null;
     }
 
     public bool CheckIfNationalIdUnique(string nationalId)

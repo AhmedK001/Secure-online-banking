@@ -20,5 +20,5 @@ namespace Core.Entities;
         public List<Operation>? Operations { get; set; }
         public User User { get; set; }
         public List<BankCard> BankCards { get; set; }
-        public LoginDetails LoginDetails { get; set; }
+        //public LoginDetails LoginDetails { get; set; }
     }

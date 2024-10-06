@@ -1,9 +1,10 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
+using Core.Interfaces.IRepositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Repositorys;
+namespace Infrastructure.Repositories;
 
 
 public class UserRepository : IUserRepository
@@ -58,7 +59,15 @@ public class UserRepository : IUserRepository
         return !isPhoneNumberUsed;
     }
 
-    public async Task<User> FindUserAsyncById(int nationalId)
+    public async Task<User> FindUserAsyncById(Guid id)
+    {
+        var user
+            = await _applicationDbContext.Users.FirstOrDefaultAsync(u =>
+                u.Id == id);
+        return user;
+    }
+
+    public async Task<User> FindUserAsyncByNationalId(int nationalId)
     {
         var user = await _applicationDbContext.Users.FirstOrDefaultAsync(u => u.NationalId == nationalId);
         return user;

@@ -24,6 +24,9 @@ builder.Services.AddControllers(); // Add this line to register controllers
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+builder.Services.AddHttpClient<IStockService, StockService>();
+//builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 //builder.Services.AddScoped<IIbanGeneratorService, BankAccountService>();
@@ -53,19 +56,22 @@ builder.Services.Configure<IdentityOptions>(options =>
 });
 
 builder.Services.AddTransient<IJwtService, JwtService>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey
-                = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(builder.Configuration["Jwt:KEY"])),
-            ValidateIssuer = false,
-            ValidateAudience = false
+            ValidIssuer = builder.Configuration["Jwt:ISSUER"],
+            ValidAudience = builder.Configuration["Jwt:AUDIENCE"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:KEY"] ?? string.Empty))
         };
     });
+
 
 var app = builder.Build();
 

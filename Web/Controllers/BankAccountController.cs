@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Web.Controllers;
 
 [ApiController]
-[Route("api/[Controller]")]
+[Route("api/bank-account")]
 public class BankAccountController : ControllerBase
 {
     private readonly UserManager<User> _userManager;
@@ -23,46 +23,46 @@ public class BankAccountController : ControllerBase
         _bankAccountService = bankAccountService;
     }
 
-
     [HttpPost("create-bank-account")]
     [Authorize]
     public async Task<IActionResult> CreateBankAccount()
     {
-        if (!User.Identity.IsAuthenticated)
+        if (User.Identity == null || !User.Identity.IsAuthenticated)
         {
             return Unauthorized("You are not logged in.");
         }
 
-        var userIdClaim  = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim  is null)
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+        if (userIdClaim == null)
         {
             return Unauthorized("You are not logged in");
         }
 
-        if (!Guid.TryParse(userIdClaim.Value , out var userId))
+        if (!Guid.TryParse(userIdClaim.Value, out var userId))
         {
             return BadRequest("Invalid user ID.");
         }
 
         if (await _bankAccountService.IsUserHasBankAccount(userId))
         {
-            return BadRequest("Only one bank account is allowed for you");
+            return Conflict("Only one bank account is allowed for you");
         }
 
         var bankAccount = await _bankAccountService.CreateBankAccount(userId);
 
-        if (bankAccount is null)
+        if (bankAccount == null)
         {
             return BadRequest("Something went wrong.");
         }
 
-        return Ok(new {
-            Message = " You bank account has been created successfully.",
+        return Ok(new
+        {
+            Message = "Your bank account has been created successfully.",
             bankAccount.AccountNumber,
             bankAccount.Balance,
             bankAccount.CreationDate,
             bankAccount.UserId
-            });
-
+        });
     }
+
 }

@@ -34,6 +34,8 @@ builder.Services.AddScoped<ISearchUserService, SearchUserService>();
 builder.Services.AddScoped<IUpdatePassword, UpdatePasswordService>();
 builder.Services.AddScoped<IBankAccountService, BankAccountService>();
 builder.Services.AddScoped<IBankAccountRepository, BankAccountRepository>();
+builder.Services.AddScoped<ICurrencyService, CurrencyService>();
+
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

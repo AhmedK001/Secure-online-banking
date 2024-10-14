@@ -6,18 +6,20 @@ using Application.DTOs;
 using Application.DTOs.ExternalModels.StocksApiResponse.GetSingleStock;
 using Application.DTOs.ExternalModels.StocksApiResponse.GetTopGainers_Losers_Actice;
 using Application.Interfaces;
+using Microsoft.Extensions.Configuration;
 
 namespace Application.Services;
 
 public class StockService : IStockService
 {
     private readonly HttpClient _httpClient;
-    private static readonly string ApiKey = "LKMNW304JYH21FWO";
-    private static readonly string DemoApiKey = "demo";
+    private readonly IConfiguration _configuration;
 
-    public StockService(HttpClient httpClient)
+
+    public StockService(HttpClient httpClient,IConfiguration configuration)
     {
         _httpClient = httpClient;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -28,9 +30,9 @@ public class StockService : IStockService
     /// <exception cref="KeyNotFoundException"></exception>
     public async Task<JsonObject> GetStockPricesAsync(StockPricesDto stockPricesDto)
     {
-        var requistUri = $"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={stockPricesDto.Symbol}&interval={stockPricesDto.Timestamp}min&apikey={ApiKey}";
+        var requestUri = $"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={stockPricesDto.Symbol}&interval={stockPricesDto.Timestamp}min&apikey={_configuration["AlphaVantageApi:ApiKey"]}";
 
-        var response = await _httpClient.GetAsync(requistUri);
+        var response = await _httpClient.GetAsync(requestUri);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -82,7 +84,7 @@ public class StockService : IStockService
     private async Task<JsonObject> GetTopGainersAndLosersAndActivityAsync()
     {
         var requistUri
-            = $"https://www.alphavantage.co/query?function=TOP_GAINERS_LOSERS&apikey={ApiKey}";
+            = $"https://www.alphavantage.co/query?function=TOP_GAINERS_LOSERS&apikey={_configuration["AlphaVantageApi:ApiKey"]}";
 
         var response = await _httpClient.GetAsync(requistUri);
 
@@ -105,23 +107,16 @@ public class StockService : IStockService
     /// <summary>
     /// This method responsible for deserializing jsonObject to GainersLosersActiveResponse object
     /// </summary>
-    /// <param name="taskResponse"></param>
+    /// <param name="jsonObject"></param>
     /// <returns></returns>
     /// <exception cref="JsonException"></exception>
-    private async Task<GainersLosersActive> DeserializeGainersLosersActiveResponse(JsonObject taskResponse)
+    private async Task<GainersLosersActive> DeserializeGainersLosersActiveResponse(JsonObject jsonObject)
     {
-        // if (!taskResponse.)
-        // {
-        //     throw new JsonException("Data not found.");
-        // }
+        var jsonResponse = jsonObject.ToJsonString();
 
-        //var jsonRespose = taskResponse.Result.ToJsonString();
+        Console.WriteLine(jsonResponse);
 
-        var jsonRespnose = taskResponse.ToJsonString();
-
-        Console.WriteLine(jsonRespnose);
-
-        GainersLosersActive gainersLosersActive = JsonSerializer.Deserialize<GainersLosersActive>(jsonRespnose);
+        GainersLosersActive? gainersLosersActive = JsonSerializer.Deserialize<GainersLosersActive>(jsonResponse);
 
         if (gainersLosersActive == null)
         {

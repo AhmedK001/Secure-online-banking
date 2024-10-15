@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Stripe;
+using Stripe.BillingPortal;
+using BankAccountService = Application.Services.BankAccountService;
 
 
 // read from Db make sure data is not doublicated //
@@ -35,6 +38,7 @@ builder.Services.AddScoped<IUpdatePassword, UpdatePasswordService>();
 builder.Services.AddScoped<IBankAccountService, BankAccountService>();
 builder.Services.AddScoped<IBankAccountRepository, BankAccountRepository>();
 builder.Services.AddScoped<ICurrencyService, CurrencyService>();
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 builder.Services.AddHttpContextAccessor();
 

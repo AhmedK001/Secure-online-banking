@@ -15,7 +15,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Web.Controllers;
 
 [ApiController]
-[Route("api/account")]
+[Route("api/accounts")]
 public class AccountController : ControllerBase
 {
     private readonly UserManager<User> _userManager;
@@ -154,7 +154,7 @@ public class AccountController : ControllerBase
         return BadRequest("Email or password is incorrect.");
     }
 
-    [HttpPost("update-password")]
+    [HttpPut("update-password")]
     [Authorize]
     public async Task<IActionResult> UpdatePassword(
         [FromBody] UpdatePasswordDto _updatePasswordDto)
@@ -194,7 +194,7 @@ public class AccountController : ControllerBase
         return Unauthorized("You are not logged in.");
     }
 
-    [HttpGet("sign-out")]
+    [HttpGet("logout")]
     public async Task<IActionResult> Logout()
     {
         if (User.Identity == null || !User.Identity.IsAuthenticated)

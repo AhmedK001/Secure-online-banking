@@ -17,7 +17,7 @@ public class StocksController : ControllerBase
         _stockService = stockService;
     }
 
-    [HttpGet("get-stock")]
+    [HttpGet("stock")]
     [Authorize]
     public async Task<IActionResult> GetStockPrices([FromQuery] StockPricesDto stockPricesDto)
     {
@@ -36,7 +36,7 @@ public class StocksController : ControllerBase
         return Ok(stockPrices);
     }
 
-    [HttpGet("get-top-gainers")]
+    [HttpGet("top-gainers")]
     [Authorize]
     public async Task<IActionResult> GetTopGainers()
     {
@@ -50,7 +50,7 @@ public class StocksController : ControllerBase
         return Ok(topGainersResponse);
     }
 
-    [HttpGet("get-top-losers")]
+    [HttpGet("top-losers")]
     [Authorize]
     public async Task<IActionResult> GetTopLosers()
     {
@@ -64,7 +64,7 @@ public class StocksController : ControllerBase
         return Ok(topLosersResponse);
     }
 
-    [HttpGet("get-most-actively")]
+    [HttpGet("most-actively")]
     [Authorize]
     public async Task<IActionResult> GetMostActively()
     {

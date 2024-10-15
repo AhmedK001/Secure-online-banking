@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Web.Controllers;
 
 [ApiController]
-[Route("api/currency")]
+[Route("api/currencies")]
 public class CurrencyController : ControllerBase
 {
     private readonly ICurrencyService _currencyService;
@@ -21,7 +21,7 @@ public class CurrencyController : ControllerBase
         _currencyService = currencyService;
     }
 
-    [HttpGet("get-exchange-rate")]
+    [HttpGet("exchange-rate")]
     [Authorize]
     public async Task<IActionResult> GetExchangeRate([FromQuery] string currentCurrency,[FromQuery] string aimedCurrency)
     {
@@ -46,7 +46,7 @@ public class CurrencyController : ControllerBase
         }
     }
 
-    [HttpGet("get-historical-exchange-rate")]
+    [HttpGet("historical-exchange-rate")]
     public async Task<IActionResult> GetHistoricalExchangeRate([FromQuery] string currentCurrency,[FromQuery] string aimedCurrency, [FromQuery] string timeSeries)
     {
         if (string.IsNullOrWhiteSpace(currentCurrency) || string.IsNullOrWhiteSpace(aimedCurrency) || timeSeries.IsNullOrEmpty())

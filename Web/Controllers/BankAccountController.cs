@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Web.Controllers;
 
 [ApiController]
-[Route("api/bank-account")]
+[Route("api/bank-accounts")]
 public class BankAccountController : ControllerBase
 {
     private readonly UserManager<User> _userManager;
@@ -23,7 +23,7 @@ public class BankAccountController : ControllerBase
         _bankAccountService = bankAccountService;
     }
 
-    [HttpPost("create-bank-account")]
+    [HttpPost("bank-account")]
     [Authorize]
     public async Task<IActionResult> CreateBankAccount()
     {

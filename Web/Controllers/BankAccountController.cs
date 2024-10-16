@@ -64,5 +64,4 @@ public class BankAccountController : ControllerBase
             bankAccount.UserId
         });
     }
-
 }

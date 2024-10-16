@@ -3,6 +3,7 @@ using Core.Interfaces.IRepositories;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
@@ -35,7 +36,7 @@ public class BankAccountRepository : IBankAccountRepository
         return addBankAccountResult.Entity;
     }
 
-    public async Task<BankAccount> GetBankAccountDetailsByNationalId(Guid id)
+    public async Task<BankAccount> GetBankAccountDetailsById(Guid id)
     {
         var accountDetailsResult
             = await _dbContext.Accounts.FirstOrDefaultAsync(a =>
@@ -90,5 +91,27 @@ public class BankAccountRepository : IBankAccountRepository
         }
 
         return accountBalanceResult.Balance;
+    }
+
+    public async Task<bool> ChargeAccount(Guid id,decimal amount)
+    {
+        try
+        {
+            var chargeRequestResult = await _dbContext.Accounts.FirstAsync(a => a.UserId == id);
+
+            if (chargeRequestResult == null)
+            {
+                return false;
+            }
+            chargeRequestResult.Balance = chargeRequestResult.Balance + amount;
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            return false;
+            throw new Exception();
+        }
+        return true;
     }
 }

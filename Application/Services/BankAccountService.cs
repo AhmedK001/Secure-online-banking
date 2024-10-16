@@ -75,6 +75,38 @@ public class BankAccountService : IBankAccountService
         return finalBankAccountDetails;
     }
 
+    public async Task<bool> ChargeAccount(Guid id, decimal amount)
+    {
+        var chargeResult = await _bankAccountRepository.ChargeAccount(id, amount);
+        if (chargeResult == false)
+        {
+            return false;
+        }
+        return true;
+
+    }
+
+    public async Task<BankAccount> GetBankAccountDetailsById(Guid id)
+    {
+        var getDeatilsResult
+            = await _bankAccountRepository.GetBankAccountDetailsById(id);
+
+        return getDeatilsResult;
+    }
+    public Task<BankAccount> GetBankAccountDetailsByNationalId(int nationalId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<BankAccount> GetBankAccountDetailsByAccountNumber(string accountNumber)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<decimal> GetBankAccountBalance(int nationalId)
+    {
+        throw new NotImplementedException();
+    }
 
     private int GeneratedRandom7DigitsNumber()
     {

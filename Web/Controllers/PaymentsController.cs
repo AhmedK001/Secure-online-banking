@@ -1,6 +1,10 @@
-﻿using Application.DTOs;
+﻿using System.Security.Claims;
+using Application.DTOs;
+using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
+using BankAccount = Core.Entities.BankAccount;
 
 namespace Web.Controllers;
 
@@ -9,16 +13,34 @@ namespace Web.Controllers;
 public class PaymentsController : ControllerBase
 {
     private readonly IConfiguration _configuration;
+    private static decimal chargeAmount;
+    private readonly IBankAccountService _bankAccountService;
 
-    public PaymentsController(IConfiguration configuration)
+    public PaymentsController(IConfiguration configuration, IBankAccountService bankAccountService)
     {
         _configuration = configuration;
+        _bankAccountService = bankAccountService;
     }
 
 
     [HttpPost("charge")]
+    [Authorize]
     public async Task<IActionResult> Charge([FromBody] ChargeRequestDto chargeRequestDto)
     {
+
+        // get user claims
+        if (!Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                out Guid userId))
+        {
+            return Unauthorized("User ID not found.");
+        }
+
+        if (!await _bankAccountService.IsUserHasBankAccount(userId))
+        {
+            return NotFound(
+                "You must create a bank account to be able to use these services");
+        }
+
         var options = new PaymentIntentCreateOptions
         {
             Amount = (long)(chargeRequestDto.Amount * 100), //
@@ -39,6 +61,7 @@ public class PaymentsController : ControllerBase
             var paymentIntent = await service.CreateAsync(options);
 
             // Return the PaymentIntentId
+            chargeAmount = chargeRequestDto.Amount;
             return Ok(new
             {
                 PaymentIntentId = paymentIntent.Id,
@@ -53,6 +76,7 @@ public class PaymentsController : ControllerBase
 
 
     [HttpPost("confirm")]
+    [Authorize]
     public async Task<IActionResult> ConfirmPayment([FromBody] ConfirmRequestDto confirmRequestDto)
     {
         var service = new PaymentIntentService();
@@ -61,8 +85,45 @@ public class PaymentsController : ControllerBase
             // Confirm the Payment
             var paymentIntent
                 = await service.ConfirmAsync(confirmRequestDto.PaymentIntentId, new PaymentIntentConfirmOptions());
-            return Ok(new { paymentIntent.Status });
+
+            // get user claims
+            if (!Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                    out Guid userId))
+            {
+                return Unauthorized("User ID not found.");
+            }
+
+            if (!await _bankAccountService.IsUserHasBankAccount(userId))
+            {
+                return NotFound(
+                    "You must create a bank account to be able to use these services");
+            }
+
+
+            var chargeBankResult = await _bankAccountService.ChargeAccount(userId, chargeAmount);
+
+            if (chargeBankResult == false)
+            {
+                return BadRequest("Something went wrong.");
+            }
+
+            var bankAccountDetails
+                = await _bankAccountService.GetBankAccountDetailsById(userId);
+
+            if (bankAccountDetails == null)
+            {
+                return Ok($"You account has been charged with {chargeAmount}\nAdditionally something went wrong while getting you bank account details");
+            }
+
+            chargeAmount = 0;
+            return Ok(new
+            {
+                paymentIntent.Status,
+                BankAccountDetails = bankAccountDetails
+            });
         }
+
+
         catch (StripeException e)
         {
             return BadRequest(new { Error = e.StripeError.Message });

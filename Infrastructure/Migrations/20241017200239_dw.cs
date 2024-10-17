@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDbStructure : Migration
+    public partial class dw : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -52,22 +52,6 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ReceiverClients",
-                columns: table => new
-                {
-                    OperationId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ReceivedAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ReceiverId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    ReceiverAccountNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false),
-                    FullName = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ReceiverClients", x => x.OperationId);
                 });
 
             migrationBuilder.CreateTable(
@@ -245,11 +229,6 @@ namespace Infrastructure.Migrations
                         column: x => x.BankAccountAccountNumber,
                         principalTable: "BankAccounts",
                         principalColumn: "AccountNumber");
-                    table.ForeignKey(
-                        name: "FK_Operations_ReceiverClients_OperationId",
-                        column: x => x.OperationId,
-                        principalTable: "ReceiverClients",
-                        principalColumn: "OperationId");
                 });
 
             migrationBuilder.CreateTable(
@@ -271,6 +250,26 @@ namespace Infrastructure.Migrations
                         principalTable: "Cards",
                         principalColumn: "CardId",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReceiverClients",
+                columns: table => new
+                {
+                    OperationId = table.Column<int>(type: "int", nullable: false),
+                    ReceivedAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ReceiverId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ReceiverAccountNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false),
+                    FullName = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReceiverClients", x => x.OperationId);
+                    table.ForeignKey(
+                        name: "FK_ReceiverClients_Operations_OperationId",
+                        column: x => x.OperationId,
+                        principalTable: "Operations",
+                        principalColumn: "OperationId");
                 });
 
             migrationBuilder.CreateIndex(
@@ -357,8 +356,7 @@ namespace Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Operations_OperationId",
                 table: "Operations",
-                column: "OperationId",
-                unique: true);
+                column: "OperationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_CardId",
@@ -405,19 +403,19 @@ namespace Infrastructure.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Operations");
-
-            migrationBuilder.DropTable(
                 name: "Payments");
-
-            migrationBuilder.DropTable(
-                name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "ReceiverClients");
 
             migrationBuilder.DropTable(
+                name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
                 name: "Cards");
+
+            migrationBuilder.DropTable(
+                name: "Operations");
 
             migrationBuilder.DropTable(
                 name: "BankAccounts");

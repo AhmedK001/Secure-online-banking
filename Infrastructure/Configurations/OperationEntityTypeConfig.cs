@@ -43,7 +43,7 @@ public class OperationEntityTypeConfig : IEntityTypeConfiguration<Operation>
         // relationship with ReceiverClient (Nullable)
         builder.HasOne(operation => operation.Receiver)
             .WithOne(receiver => receiver.Operation)
-            .HasForeignKey<Operation>(operation => operation.OperationId)
+            .HasForeignKey<ReceiverClient>(receiver => receiver.OperationId)
             .IsRequired(false);
     }
 }

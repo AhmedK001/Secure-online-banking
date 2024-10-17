@@ -147,8 +147,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("BankAccountAccountNumber");
 
-                    b.HasIndex("OperationId")
-                        .IsUnique();
+                    b.HasIndex("OperationId");
 
                     b.ToTable("Operations");
                 });
@@ -182,10 +181,7 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Core.Entities.ReceiverClient", b =>
                 {
                     b.Property<int>("OperationId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OperationId"));
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -452,12 +448,6 @@ namespace Infrastructure.Migrations
                     b.HasOne("Core.Entities.BankAccount", null)
                         .WithMany("Operations")
                         .HasForeignKey("BankAccountAccountNumber");
-
-                    b.HasOne("Core.Entities.ReceiverClient", "Receiver")
-                        .WithOne("Operation")
-                        .HasForeignKey("Core.Entities.Operation", "OperationId");
-
-                    b.Navigation("Receiver");
                 });
 
             modelBuilder.Entity("Core.Entities.Payment", b =>
@@ -469,6 +459,15 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Card");
+                });
+
+            modelBuilder.Entity("Core.Entities.ReceiverClient", b =>
+                {
+                    b.HasOne("Core.Entities.Operation", "Operation")
+                        .WithOne("Receiver")
+                        .HasForeignKey("Core.Entities.ReceiverClient", "OperationId");
+
+                    b.Navigation("Operation");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -534,9 +533,9 @@ namespace Infrastructure.Migrations
                     b.Navigation("Payments");
                 });
 
-            modelBuilder.Entity("Core.Entities.ReceiverClient", b =>
+            modelBuilder.Entity("Core.Entities.Operation", b =>
                 {
-                    b.Navigation("Operation")
+                    b.Navigation("Receiver")
                         .IsRequired();
                 });
 

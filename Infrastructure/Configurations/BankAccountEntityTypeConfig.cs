@@ -3,7 +3,7 @@ using Core.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 
-//[Table("BankAccounts")]
+[Table("BankAccounts")]
 public class BankAccountEntityTypeConfig : IEntityTypeConfiguration<BankAccount>
 {
     public void Configure(EntityTypeBuilder<BankAccount> builder)

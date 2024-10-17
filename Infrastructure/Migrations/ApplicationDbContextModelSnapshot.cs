@@ -52,7 +52,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Accounts");
+                    b.ToTable("BankAccounts");
                 });
 
             modelBuilder.Entity("Core.Entities.BankCard", b =>
@@ -145,14 +145,6 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("OperationId");
 
-                    b.HasAlternateKey("AccountId");
-
-                    b.HasAlternateKey("AccountNumber");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("AccountNumber");
-
                     b.HasIndex("BankAccountAccountNumber");
 
                     b.HasIndex("OperationId")
@@ -195,21 +187,29 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OperationId"));
 
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<decimal>("ReceivedAmount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("ReceiverAccountNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<Guid?>("ReceiverId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("OperationId");
 
-                    b.HasIndex("AccountNumber");
-
                     b.HasIndex("OperationId");
+
+                    b.HasIndex("ReceiverAccountNumber");
+
+                    b.HasIndex("ReceiverId");
 
                     b.ToTable("ReceiverClients");
                 });

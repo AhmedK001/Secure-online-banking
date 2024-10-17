@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Core.Entities;
+using Core.Enums;
 using Core.Interfaces.IRepositories;
 
 namespace Application.Services;
@@ -8,11 +9,15 @@ public class BankAccountService : IBankAccountService
 {
     private readonly IBankAccountRepository _bankAccountRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IOperationService _operationService;
+    private readonly IOperationsRepository _operationsRepository;
 
-    public BankAccountService(IBankAccountRepository bankAccountRepository, IUserRepository userRepository)
+    public BankAccountService(IOperationsRepository operationsRepository,IBankAccountRepository bankAccountRepository, IUserRepository userRepository, IOperationService operationService)
     {
         _bankAccountRepository = bankAccountRepository;
         _userRepository = userRepository;
+        _operationService = operationService;
+        _operationsRepository = operationsRepository;
     }
 
 
@@ -75,15 +80,31 @@ public class BankAccountService : IBankAccountService
         return finalBankAccountDetails;
     }
 
-    public async Task<bool> ChargeAccount(Guid id, decimal amount)
+    public async Task<bool> ChargeAccount(Guid id, decimal amount,BankAccount bankAccount)
     {
         var chargeResult = await _bankAccountRepository.ChargeAccount(id, amount);
         if (chargeResult == false)
         {
             return false;
         }
-        return true;
 
+        // create Operation object
+        Operation operation = new Operation()
+        {
+            OperationId
+                = await _operationService
+                    .GenerateUniqueRandomOperationIdAsync(),
+            AccountNumber = bankAccount.AccountNumber,
+            Amount = amount,
+            AccountId = bankAccount.NationalId,
+            OperationType = EnumOperationType.Deposit,
+            DateTime = DateTime.UtcNow,
+            Receiver = null,
+            Description = null
+        };
+
+        await _operationService.AddOperation(operation);
+        return true;
     }
 
     public async Task<BankAccount> GetBankAccountDetailsById(Guid id)
@@ -115,4 +136,6 @@ public class BankAccountService : IBankAccountService
         // generate random 7 digits, In order to make iban numbers hardly tracked.
         return random.Next(2090209, 8607080);
     }
+
+
 }

@@ -11,7 +11,5 @@ public interface IOperation
     DateTime DateTime { get; set; }
     EnumOperationType OperationType { get; set; }
     decimal Amount { get; set; }
-    ReceiverClient Receiver { get; set; }
-    
-    IOperation GetTransactionInfo();
+    ReceiverClient? Receiver { get; set; }
 }

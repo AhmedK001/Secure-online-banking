@@ -55,27 +55,14 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "LoginDetails",
-                columns: table => new
-                {
-                    NationalId = table.Column<int>(type: "int", maxLength: 10, nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Email = table.Column<string>(type: "varchar(70)", nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "varchar(15)", maxLength: 15, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_LoginDetails", x => x.NationalId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ReceiverClients",
                 columns: table => new
                 {
                     OperationId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    AccountNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false),
+                    ReceivedAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ReceiverId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ReceiverAccountNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false),
                     FullName = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
@@ -190,7 +177,7 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Accounts",
+                name: "BankAccounts",
                 columns: table => new
                 {
                     AccountNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false),
@@ -201,18 +188,12 @@ namespace Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Accounts", x => x.AccountNumber);
+                    table.PrimaryKey("PK_BankAccounts", x => x.AccountNumber);
                     table.ForeignKey(
-                        name: "FK_Accounts_AspNetUsers_UserId",
+                        name: "FK_BankAccounts_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Accounts_LoginDetails_NationalId",
-                        column: x => x.NationalId,
-                        principalTable: "LoginDetails",
-                        principalColumn: "NationalId",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -236,9 +217,9 @@ namespace Infrastructure.Migrations
                     table.PrimaryKey("PK_Cards", x => x.CardId);
                     table.UniqueConstraint("AK_Cards_AccountNumber", x => x.AccountNumber);
                     table.ForeignKey(
-                        name: "FK_Cards_Accounts_BankAccountAccountNumber",
+                        name: "FK_Cards_BankAccounts_BankAccountAccountNumber",
                         column: x => x.BankAccountAccountNumber,
-                        principalTable: "Accounts",
+                        principalTable: "BankAccounts",
                         principalColumn: "AccountNumber",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -259,12 +240,10 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Operations", x => x.OperationId);
-                    table.UniqueConstraint("AK_Operations_AccountId", x => x.AccountId);
-                    table.UniqueConstraint("AK_Operations_AccountNumber", x => x.AccountNumber);
                     table.ForeignKey(
-                        name: "FK_Operations_Accounts_BankAccountAccountNumber",
+                        name: "FK_Operations_BankAccounts_BankAccountAccountNumber",
                         column: x => x.BankAccountAccountNumber,
-                        principalTable: "Accounts",
+                        principalTable: "BankAccounts",
                         principalColumn: "AccountNumber");
                     table.ForeignKey(
                         name: "FK_Operations_ReceiverClients_OperationId",
@@ -293,24 +272,6 @@ namespace Infrastructure.Migrations
                         principalColumn: "CardId",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Accounts_AccountNumber",
-                table: "Accounts",
-                column: "AccountNumber",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Accounts_NationalId",
-                table: "Accounts",
-                column: "NationalId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Accounts_UserId",
-                table: "Accounts",
-                column: "UserId",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -352,6 +313,23 @@ namespace Infrastructure.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_BankAccounts_AccountNumber",
+                table: "BankAccounts",
+                column: "AccountNumber",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BankAccounts_NationalId",
+                table: "BankAccounts",
+                column: "NationalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BankAccounts_UserId",
+                table: "BankAccounts",
+                column: "UserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Cards_AccountNumber",
                 table: "Cards",
                 column: "AccountNumber");
@@ -370,33 +348,6 @@ namespace Infrastructure.Migrations
                 name: "IX_Cards_CardNumber",
                 table: "Cards",
                 column: "CardNumber");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LoginDetails_Email",
-                table: "LoginDetails",
-                column: "Email",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LoginDetails_NationalId",
-                table: "LoginDetails",
-                column: "NationalId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LoginDetails_PhoneNumber",
-                table: "LoginDetails",
-                column: "PhoneNumber",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Operations_AccountId",
-                table: "Operations",
-                column: "AccountId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Operations_AccountNumber",
-                table: "Operations",
-                column: "AccountNumber");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Operations_BankAccountAccountNumber",
@@ -420,14 +371,19 @@ namespace Infrastructure.Migrations
                 column: "PaymentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ReceiverClients_AccountNumber",
-                table: "ReceiverClients",
-                column: "AccountNumber");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ReceiverClients_OperationId",
                 table: "ReceiverClients",
                 column: "OperationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReceiverClients_ReceiverAccountNumber",
+                table: "ReceiverClients",
+                column: "ReceiverAccountNumber");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReceiverClients_ReceiverId",
+                table: "ReceiverClients",
+                column: "ReceiverId");
         }
 
         /// <inheritdoc />
@@ -464,13 +420,10 @@ namespace Infrastructure.Migrations
                 name: "Cards");
 
             migrationBuilder.DropTable(
-                name: "Accounts");
+                name: "BankAccounts");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
-                name: "LoginDetails");
         }
     }
 }

@@ -6,11 +6,13 @@ namespace Core.Entities;
 public class ReceiverClient : IReceiverClient
 {
     public int OperationId { get; set; }
-    public string AccountNumber { get; set; }
+    public decimal ReceivedAmount { get; set; }
+    public Guid? ReceiverId { get; set; }
+    public string ReceiverAccountNumber { get; set; }
     public string FullName { get; set; }
     public Operation Operation { get; set; }
-    
-    
+
+
     public void DeductBalance()
     {
         throw new NotImplementedException();

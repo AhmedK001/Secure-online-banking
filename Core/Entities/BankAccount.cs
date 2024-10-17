@@ -8,10 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Core.Entities;
-    [Table("Accounts")]
+    [Table("BankAccounts")]
     public class BankAccount : IBankAccount
     {
-       
         public int NationalId { get; set; }
         public Guid UserId { get; set; }
         public string AccountNumber { get; set; }
@@ -20,5 +19,4 @@ namespace Core.Entities;
         public List<Operation>? Operations { get; set; }
         public User User { get; set; }
         public List<BankCard> BankCards { get; set; }
-        //public LoginDetails LoginDetails { get; set; }
     }

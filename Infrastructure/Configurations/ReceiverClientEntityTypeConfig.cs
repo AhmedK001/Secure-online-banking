@@ -2,31 +2,32 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure;
+namespace Infrastructure.Configurations;
 
-public class ReceiverClientEntityTypeConfig : IEntityTypeConfiguration<ReceiverClient>
+public class
+    ReceiverClientEntityTypeConfig : IEntityTypeConfiguration<ReceiverClient>
 {
     public void Configure(EntityTypeBuilder<ReceiverClient> builder)
     {
         // Primary Key
         builder.HasKey(receiverClient => receiverClient.OperationId);
 
-        // OperationId as a foreign-key
-        builder.HasAlternateKey(client => client.OperationId);
-
-        // Indexing for OperationId, AccountNumber
-        builder.HasIndex(client => client.OperationId);
-        builder.HasIndex(client => client.AccountNumber);
+        // Indexing for OperationId, AccountNumber, ReceiverId
+        builder.HasIndex(receiverClient => receiverClient.OperationId);
+        builder.HasIndex(receiverClient => receiverClient.ReceiverAccountNumber);
+        builder.HasIndex(receiverClient => receiverClient.ReceiverId);
 
         // Required Properties
-        builder.Property(receiverClient => receiverClient.AccountNumber)
-            .IsRequired()
-            .HasMaxLength(20)
-            .HasColumnType("varchar(20)");
-            
-        builder.Property(receiverClient => receiverClient.FullName)
-            .IsRequired()
-            .HasMaxLength(100)
-            .HasColumnType("varchar(100)");
+        builder.Property(receiverClient => receiverClient.OperationId)
+            .IsRequired();
+
+        builder.Property(receiverClient => receiverClient.ReceiverAccountNumber)
+            .IsRequired().HasMaxLength(20).HasColumnType("varchar(20)");
+
+        builder.Property(receiver => receiver.ReceivedAmount).IsRequired()
+            .HasColumnType("decimal(18, 2)");
+
+        builder.Property(receiverClient => receiverClient.FullName).IsRequired()
+            .HasMaxLength(100).HasColumnType("varchar(100)");
     }
 }

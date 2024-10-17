@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240928154820_InitialDbStructure")]
+    [Migration("20241017130920_InitialDbStructure")]
     partial class InitialDbStructure
     {
         /// <inheritdoc />
@@ -50,13 +50,12 @@ namespace Infrastructure.Migrations
                     b.HasIndex("AccountNumber")
                         .IsUnique();
 
-                    b.HasIndex("NationalId")
-                        .IsUnique();
+                    b.HasIndex("NationalId");
 
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Accounts");
+                    b.ToTable("BankAccounts");
                 });
 
             modelBuilder.Entity("Core.Entities.BankCard", b =>
@@ -117,41 +116,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Cards");
                 });
 
-            modelBuilder.Entity("Core.Entities.LoginDetails", b =>
-                {
-                    b.Property<int>("NationalId")
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(10)
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NationalId"));
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("varchar(70)");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("varchar(15)");
-
-                    b.HasKey("NationalId");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("NationalId");
-
-                    b.HasIndex("PhoneNumber")
-                        .IsUnique();
-
-                    b.ToTable("LoginDetails");
-                });
-
             modelBuilder.Entity("Core.Entities.Operation", b =>
                 {
                     b.Property<int>("OperationId")
@@ -183,14 +147,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.HasKey("OperationId");
-
-                    b.HasAlternateKey("AccountId");
-
-                    b.HasAlternateKey("AccountNumber");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("AccountNumber");
 
                     b.HasIndex("BankAccountAccountNumber");
 
@@ -234,21 +190,29 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OperationId"));
 
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
-
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<decimal>("ReceivedAmount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("ReceiverAccountNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<Guid?>("ReceiverId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("OperationId");
 
-                    b.HasIndex("AccountNumber");
-
                     b.HasIndex("OperationId");
+
+                    b.HasIndex("ReceiverAccountNumber");
+
+                    b.HasIndex("ReceiverId");
 
                     b.ToTable("ReceiverClients");
                 });
@@ -468,17 +432,9 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Core.Entities.BankAccount", b =>
                 {
-                    b.HasOne("Core.Entities.LoginDetails", "LoginDetails")
-                        .WithOne("BankAccount")
-                        .HasForeignKey("Core.Entities.BankAccount", "NationalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Core.Entities.User", "User")
                         .WithOne("Account")
                         .HasForeignKey("Core.Entities.BankAccount", "UserId");
-
-                    b.Navigation("LoginDetails");
 
                     b.Navigation("User");
                 });
@@ -579,12 +535,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Core.Entities.BankCard", b =>
                 {
                     b.Navigation("Payments");
-                });
-
-            modelBuilder.Entity("Core.Entities.LoginDetails", b =>
-                {
-                    b.Navigation("BankAccount")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Core.Entities.ReceiverClient", b =>

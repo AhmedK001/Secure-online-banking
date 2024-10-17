@@ -1,9 +1,11 @@
-﻿using Core.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configurations;
 
+[Table("Cards")]
 public class BankCardEntityTypeConfig : IEntityTypeConfiguration<BankCard>
 {
     public void Configure(EntityTypeBuilder<BankCard> builder)

@@ -14,9 +14,4 @@ public class Operation : IOperation
     public decimal Amount { get; set; }
     public string? Description { get; set; }
     public ReceiverClient Receiver { get; set; }
-
-    public IOperation GetTransactionInfo()
-    {
-        throw new NotImplementedException();
-    }
 }

@@ -99,20 +99,20 @@ public class PaymentsController : ControllerBase
                     "You must create a bank account to be able to use these services");
             }
 
-
-            var chargeBankResult = await _bankAccountService.ChargeAccount(userId, chargeAmount);
-
-            if (chargeBankResult == false)
-            {
-                return BadRequest("Something went wrong.");
-            }
-
             var bankAccountDetails
                 = await _bankAccountService.GetBankAccountDetailsById(userId);
 
             if (bankAccountDetails == null)
             {
                 return Ok($"You account has been charged with {chargeAmount}\nAdditionally something went wrong while getting you bank account details");
+            }
+
+
+            var chargeBankResult = await _bankAccountService.ChargeAccount(userId, chargeAmount, bankAccountDetails);
+
+            if (chargeBankResult == false)
+            {
+                return BadRequest("Something went wrong.");
             }
 
             chargeAmount = 0;

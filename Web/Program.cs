@@ -38,6 +38,9 @@ builder.Services.AddScoped<IUpdatePassword, UpdatePasswordService>();
 builder.Services.AddScoped<IBankAccountService, BankAccountService>();
 builder.Services.AddScoped<IBankAccountRepository, BankAccountRepository>();
 builder.Services.AddScoped<ICurrencyService, CurrencyService>();
+builder.Services.AddScoped<IOperationsRepository, OperationsRepository>();
+builder.Services.AddScoped<IOperationService, OperationService>();
+
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 builder.Services.AddHttpContextAccessor();

@@ -13,4 +13,5 @@ public interface IBankAccountRepository
     Task<decimal> GetBankAccountBalance(int nationalId);
     Task<bool> ChargeAccount(Guid id, decimal amount);
 
+
 }

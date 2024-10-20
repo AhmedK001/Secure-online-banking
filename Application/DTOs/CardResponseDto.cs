@@ -1,9 +1,8 @@
-﻿using Core.Entities;
 using Core.Enums;
 
-namespace Core.Interfaces;
+namespace Application.DTOs;
 
-public interface ICard
+public class CardResponseDto
 {
     public int CardId { get; set; }
     public int Cvv { get; set; }
@@ -13,6 +12,4 @@ public interface ICard
     public bool OpenedForInternalOperations { get; set; }
     public bool IsActivated { get; set; }
     public decimal Balance { get; set; }
-    public BankAccount BankAccount { get; set; }
-    public List<Payment>? Payments { get; set; }
 }

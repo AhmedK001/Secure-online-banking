@@ -6,61 +6,45 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace Infrastructure.Configurations;
 
 [Table("Cards")]
-public class BankCardEntityTypeConfig : IEntityTypeConfiguration<BankCard>
+public class BankCardEntityTypeConfig : IEntityTypeConfiguration<Card>
 {
-    public void Configure(EntityTypeBuilder<BankCard> builder)
+    public void Configure(EntityTypeBuilder<Card> builder)
     {
         // Primary Key
         builder.HasKey(bankCard => bankCard.CardId);
-        
-        // AccountNumber as a foreign-key
-        builder.HasAlternateKey(card => card.AccountNumber);
-        
-        // Indexing for cardId, cardNumber, accountNumber
-        builder.HasIndex(card => card.CardId);
-        builder.HasIndex(card => card.CardNumber);
-        builder.HasIndex(card => card.AccountNumber);
-        
+
+        // Foreign key to BankAccount (BankAccount is now linked by navigation property)
+        builder.HasOne(card => card.BankAccount)
+            .WithMany(account => account.BankCards)
+            .HasForeignKey("AccountNumber")
+            .OnDelete(DeleteBehavior.Cascade); // Delete cards if the bank account is deleted
+
         // Required Properties
         builder.Property(bankCard => bankCard.CardId)
             .IsRequired()
-            .HasColumnType("int");
+            .ValueGeneratedNever(); // Specify if you're handling CardId manually
 
-        builder.Property(bankCard => bankCard.AccountNumber)
-            .IsRequired()
-            .HasMaxLength(20)
-            .HasColumnType("varchar(20)"); 
-            
-        builder.Property(bankCard => bankCard.CardNumber)
-            .IsRequired()
-            .HasMaxLength(16) 
-            .HasColumnType("varchar(16)"); 
+        builder.Property(bankCard => bankCard.Cvv)
+            .IsRequired();
 
-        builder.Property(bankCard => bankCard.CVV)
-            .IsRequired()
-            .HasMaxLength(4)
-            .HasColumnType("varchar(4)");
-            
         builder.Property(bankCard => bankCard.ExpiryDate)
             .IsRequired()
-            .HasColumnType("date"); 
+            .HasColumnType("date");
 
+        // Enum mapping properly (int or string)
         builder.Property(bankCard => bankCard.CardType)
             .IsRequired()
-            .HasColumnType("varchar(10)"); 
+            .HasConversion<string>() // Storing as string in DB
+            .HasMaxLength(20);
 
         builder.Property(bankCard => bankCard.Balance)
             .IsRequired()
             .HasColumnType("decimal(18, 2)");
-        
-        // Relations With other tables
 
-        // One-to-many relationship with Payments
+        // Relationships with Payments
         builder.HasMany(bankCard => bankCard.Payments)
             .WithOne(payment => payment.Card)
-            //.HasForeignKey(payment => payment.CardId)
+            .HasForeignKey(payment => payment.CardId)
             .OnDelete(DeleteBehavior.Cascade);
-        
-
     }
 }

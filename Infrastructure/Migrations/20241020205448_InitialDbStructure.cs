@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class dw : Migration
+    public partial class InitialDbStructure : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -184,25 +184,22 @@ namespace Infrastructure.Migrations
                 name: "Cards",
                 columns: table => new
                 {
-                    CardId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    AccountNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false),
-                    CardNumber = table.Column<string>(type: "varchar(16)", maxLength: 16, nullable: false),
-                    CVV = table.Column<string>(type: "varchar(4)", maxLength: 4, nullable: false),
+                    CardId = table.Column<int>(type: "int", nullable: false),
+                    Cvv = table.Column<int>(type: "int", nullable: false),
                     ExpiryDate = table.Column<DateTime>(type: "date", nullable: false),
-                    CardType = table.Column<string>(type: "varchar(10)", nullable: false),
+                    CardType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     OpenedForOnlinePurchase = table.Column<bool>(type: "bit", nullable: false),
-                    OpenedForPhysicalOperations = table.Column<bool>(type: "bit", nullable: false),
+                    OpenedForInternalOperations = table.Column<bool>(type: "bit", nullable: false),
+                    IsActivated = table.Column<bool>(type: "bit", nullable: false),
                     Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    BankAccountAccountNumber = table.Column<string>(type: "varchar(20)", nullable: false)
+                    AccountNumber = table.Column<string>(type: "varchar(20)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Cards", x => x.CardId);
-                    table.UniqueConstraint("AK_Cards_AccountNumber", x => x.AccountNumber);
                     table.ForeignKey(
-                        name: "FK_Cards_BankAccounts_BankAccountAccountNumber",
-                        column: x => x.BankAccountAccountNumber,
+                        name: "FK_Cards_BankAccounts_AccountNumber",
+                        column: x => x.AccountNumber,
                         principalTable: "BankAccounts",
                         principalColumn: "AccountNumber",
                         onDelete: ReferentialAction.Cascade);
@@ -332,21 +329,6 @@ namespace Infrastructure.Migrations
                 name: "IX_Cards_AccountNumber",
                 table: "Cards",
                 column: "AccountNumber");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Cards_BankAccountAccountNumber",
-                table: "Cards",
-                column: "BankAccountAccountNumber");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Cards_CardId",
-                table: "Cards",
-                column: "CardId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Cards_CardNumber",
-                table: "Cards",
-                column: "CardNumber");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Operations_BankAccountAccountNumber",

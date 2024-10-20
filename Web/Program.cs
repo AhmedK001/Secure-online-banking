@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Application.Interfaces;
 using Application.Services;
 using Core.Entities;
@@ -15,13 +16,14 @@ using Stripe;
 using Stripe.BillingPortal;
 using BankAccountService = Application.Services.BankAccountService;
 
-
-// read from Db make sure data is not doublicated //
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers(); // Add this line to register controllers
+builder.Services.AddControllers().AddJsonOptions(o =>
+{
+    o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -40,6 +42,10 @@ builder.Services.AddScoped<IBankAccountRepository, BankAccountRepository>();
 builder.Services.AddScoped<ICurrencyService, CurrencyService>();
 builder.Services.AddScoped<IOperationsRepository, OperationsRepository>();
 builder.Services.AddScoped<IOperationService, OperationService>();
+builder.Services.AddScoped<ICardsService, CardsService>();
+builder.Services.AddScoped<IClaimsService, ClaimsService>();
+builder.Services.AddScoped<ICardRepository, CardRepository>();
+builder.Services.AddScoped<IGenerateService, GenerateService>();
 
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 

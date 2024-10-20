@@ -8,5 +8,5 @@ public class Payment : IPayment
     public int CardId { get; set; }
     public decimal Amount { get; set; }
     public DateTime DateTime { get; set; }
-    public BankCard Card { get; set; }
+    public Card Card { get; set; }
 }

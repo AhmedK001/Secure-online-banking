@@ -18,5 +18,5 @@ namespace Core.Entities;
         public decimal Balance { get; set; }
         public List<Operation>? Operations { get; set; }
         public User User { get; set; }
-        public List<BankCard> BankCards { get; set; }
+        public List<Card> BankCards { get; set; }
     }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241017200239_dw")]
-    partial class dw
+    [Migration("20241020205448_InitialDbStructure")]
+    partial class InitialDbStructure
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -58,60 +58,40 @@ namespace Infrastructure.Migrations
                     b.ToTable("BankAccounts");
                 });
 
-            modelBuilder.Entity("Core.Entities.BankCard", b =>
+            modelBuilder.Entity("Core.Entities.Card", b =>
                 {
                     b.Property<int>("CardId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CardId"));
-
                     b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
                     b.Property<decimal>("Balance")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<string>("BankAccountAccountNumber")
-                        .IsRequired()
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<string>("CVV")
-                        .IsRequired()
-                        .HasMaxLength(4)
-                        .HasColumnType("varchar(4)");
-
-                    b.Property<string>("CardNumber")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("varchar(16)");
-
                     b.Property<string>("CardType")
                         .IsRequired()
-                        .HasColumnType("varchar(10)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("Cvv")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("ExpiryDate")
                         .HasColumnType("date");
 
-                    b.Property<bool>("OpenedForOnlinePurchase")
+                    b.Property<bool>("IsActivated")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("OpenedForPhysicalOperations")
+                    b.Property<bool>("OpenedForInternalOperations")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("OpenedForOnlinePurchase")
                         .HasColumnType("bit");
 
                     b.HasKey("CardId");
 
-                    b.HasAlternateKey("AccountNumber");
-
                     b.HasIndex("AccountNumber");
-
-                    b.HasIndex("BankAccountAccountNumber");
-
-                    b.HasIndex("CardId");
-
-                    b.HasIndex("CardNumber");
 
                     b.ToTable("Cards");
                 });
@@ -435,13 +415,12 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Core.Entities.BankCard", b =>
+            modelBuilder.Entity("Core.Entities.Card", b =>
                 {
                     b.HasOne("Core.Entities.BankAccount", "BankAccount")
                         .WithMany("BankCards")
-                        .HasForeignKey("BankAccountAccountNumber")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AccountNumber")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("BankAccount");
                 });
@@ -455,7 +434,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Core.Entities.Payment", b =>
                 {
-                    b.HasOne("Core.Entities.BankCard", "Card")
+                    b.HasOne("Core.Entities.Card", "Card")
                         .WithMany("Payments")
                         .HasForeignKey("CardId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -531,7 +510,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("Operations");
                 });
 
-            modelBuilder.Entity("Core.Entities.BankCard", b =>
+            modelBuilder.Entity("Core.Entities.Card", b =>
                 {
                     b.Navigation("Payments");
                 });

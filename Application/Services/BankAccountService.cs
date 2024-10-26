@@ -58,7 +58,7 @@ public class BankAccountService : IBankAccountService
             throw new KeyNotFoundException();
         }
 
-        var bankAccountDetails = GenerateBankAccountDetails(user);
+        var bankAccountDetails = GenerateDetails(user);
 
         var result
             = _bankAccountRepository.CreateBankAccount(bankAccountDetails);
@@ -66,7 +66,7 @@ public class BankAccountService : IBankAccountService
         return await result;
     }
 
-    public BankAccount GenerateBankAccountDetails(User user)
+    public BankAccount GenerateDetails(User user)
     {
         BankAccount finalBankAccountDetails = new BankAccount()
         {
@@ -107,26 +107,40 @@ public class BankAccountService : IBankAccountService
         return true;
     }
 
-    public async Task<BankAccount> GetBankAccountDetailsById(Guid id)
+    public async Task<BankAccount> GetDetailsById(Guid id)
     {
         var getDeatilsResult
             = await _bankAccountRepository.GetBankAccountDetailsById(id);
 
         return getDeatilsResult;
     }
-    public Task<BankAccount> GetBankAccountDetailsByNationalId(int nationalId)
+    public Task<BankAccount> GetDetailsByNationalId(int nationalId)
     {
         throw new NotImplementedException();
     }
 
-    public Task<BankAccount> GetBankAccountDetailsByAccountNumber(string accountNumber)
+    public Task<BankAccount> GetDetailsByAccountNumber(string accountNumber)
     {
         throw new NotImplementedException();
     }
 
-    public Task<decimal> GetBankAccountBalance(int nationalId)
+    public Task<decimal> GetBalance(int nationalId)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<bool> DeductAccountBalance(string accountNumber, decimal amount)
+    {
+        try
+        {
+            await _bankAccountRepository.DeductAccountBalance(accountNumber, amount);
+            return true;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     private int GeneratedRandom7DigitsNumber()

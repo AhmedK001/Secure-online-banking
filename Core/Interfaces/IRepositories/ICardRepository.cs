@@ -9,11 +9,11 @@ public interface ICardRepository
     Task<bool> IsUserHasCardWithInTypeAsync(string accountNumber, EnumCardType cardType);
     Task<bool> CreateCardAsync(Card card,BankAccount bankAccount);
     Task<Card> GetCardDetails(string accountNumber, int cardNumber);
-    Task<bool> UpdateCardBalanceAsync(string accountNumber, int cardNumber, decimal amount);
+    Task<bool> ChargeCardBalanceAsync(string accountNumber, int cardNumber, decimal amount);
     Task<bool> IsOpenedForOnlinePurchase(string accountNumber, int cardNumber);
     Task<bool> IsOpenedForInternalOperations(string accountNumber,
         int cardNumber);
-    Task<bool> IsActivated(string accountNumber, int cardNumber);
+    Task<bool> IsActivated(string accountNumber, int cardId);
     Task<bool> IsCardIdUnique(int cardId);
 
 }

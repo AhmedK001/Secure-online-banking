@@ -116,7 +116,7 @@ public class AccountController : ControllerBase
         // Check if user was found
         if (user == null)
         {
-            return BadRequest("Email or password is incorrect.");
+            return Unauthorized("Email or password is incorrect.");
         }
 
         // Attempt to sign the user in using email and password
@@ -144,8 +144,8 @@ public class AccountController : ControllerBase
 
             return Ok(new
             {
-                token = token,
-                expiration = DateTime.UtcNow.AddMinutes(10),
+                token.Token,
+                token.ExpirationTime,
                 Message = "Successfully signed in.",
                 PhoneNumber = userPhoneNumberFromDb?.PhoneNumber,
             });
@@ -195,6 +195,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet("logout")]
+    [Authorize]
     public async Task<IActionResult> Logout()
     {
         if (User.Identity == null || !User.Identity.IsAuthenticated)

@@ -30,7 +30,7 @@ public class CardsController : ControllerBase
         try
         {
             var userId = await _claimsService.GetUserIdAsync(User);
-            var bankAccountDetails = await _bankAccountService.GetBankAccountDetailsById(Guid.Parse(userId));
+            var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
             var createCardResult = await _cardsService.CreateCardAsync(bankAccountDetails.AccountNumber,
                 cardType,bankAccountDetails);
 

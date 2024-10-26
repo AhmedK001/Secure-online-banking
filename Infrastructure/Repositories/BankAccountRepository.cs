@@ -109,9 +109,23 @@ public class BankAccountRepository : IBankAccountRepository
         }
         catch (Exception e)
         {
-            return false;
-            throw new Exception();
+            throw new Exception("", e);
         }
-        return true;
+    }
+
+    public async Task<bool> DeductAccountBalance(string accountNumber, decimal amount)
+    {
+        try
+        {
+            var bankAccount = await _dbContext.Accounts.FirstAsync(a => a.AccountNumber == accountNumber);
+
+            bankAccount.Balance -= amount;
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("", e);
+        }
     }
 }

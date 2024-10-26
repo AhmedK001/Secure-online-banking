@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
 using BankAccount = Core.Entities.BankAccount;
+using Card = Core.Entities.Card;
 
 namespace Web.Controllers;
 
@@ -13,13 +14,18 @@ namespace Web.Controllers;
 public class PaymentsController : ControllerBase
 {
     private readonly IConfiguration _configuration;
-    private static decimal chargeAmount;
+    private static decimal _chargeAmount;
     private readonly IBankAccountService _bankAccountService;
+    private readonly ICardsService _cardsService;
+    private readonly IClaimsService _claimsService;
 
-    public PaymentsController(IConfiguration configuration, IBankAccountService bankAccountService)
+    public PaymentsController(IConfiguration configuration, IBankAccountService bankAccountService,
+        IClaimsService claimsService, ICardsService cardsService)
     {
         _configuration = configuration;
         _bankAccountService = bankAccountService;
+        _claimsService = claimsService;
+        _cardsService = cardsService;
     }
 
 
@@ -27,18 +33,15 @@ public class PaymentsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Charge([FromBody] ChargeRequestDto chargeRequestDto)
     {
-
         // get user claims
-        if (!Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                out Guid userId))
+        if (!Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid userId))
         {
             return Unauthorized("User ID not found.");
         }
 
         if (!await _bankAccountService.IsUserHasBankAccount(userId))
         {
-            return NotFound(
-                "You must create a bank account to be able to use these services");
+            return NotFound("You must create a bank account to be able to use these services");
         }
 
         var options = new PaymentIntentCreateOptions
@@ -48,8 +51,7 @@ public class PaymentsController : ControllerBase
             PaymentMethod = chargeRequestDto.PaymentMethodId,
             AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
             {
-                Enabled = true,
-                AllowRedirects = "never"
+                Enabled = true, AllowRedirects = "never"
             },
             Confirm = false
         };
@@ -61,12 +63,8 @@ public class PaymentsController : ControllerBase
             var paymentIntent = await service.CreateAsync(options);
 
             // Return the PaymentIntentId
-            chargeAmount = chargeRequestDto.Amount;
-            return Ok(new
-            {
-                PaymentIntentId = paymentIntent.Id,
-                Status = paymentIntent.Status
-            });
+            _chargeAmount = chargeRequestDto.Amount;
+            return Ok(new { PaymentIntentId = paymentIntent.Id, Status = paymentIntent.Status });
         }
         catch (StripeException e)
         {
@@ -83,44 +81,39 @@ public class PaymentsController : ControllerBase
         try
         {
             // Confirm the Payment
-            var paymentIntent
-                = await service.ConfirmAsync(confirmRequestDto.PaymentIntentId, new PaymentIntentConfirmOptions());
+            var paymentIntent = await service.ConfirmAsync(confirmRequestDto.PaymentIntentId,
+                new PaymentIntentConfirmOptions());
 
             // get user claims
-            if (!Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                    out Guid userId))
+            if (!Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid userId))
             {
                 return Unauthorized("User ID not found.");
             }
 
             if (!await _bankAccountService.IsUserHasBankAccount(userId))
             {
-                return NotFound(
-                    "You must create a bank account to be able to use these services");
+                return NotFound("You must create a bank account to be able to use these services");
             }
 
-            var bankAccountDetails
-                = await _bankAccountService.GetBankAccountDetailsById(userId);
+            var bankAccountDetails = await _bankAccountService.GetDetailsById(userId);
 
             if (bankAccountDetails == null)
             {
-                return Ok($"You account has been charged with {chargeAmount}\nAdditionally something went wrong while getting you bank account details");
+                return Ok(
+                    $"You account has been charged with {_chargeAmount}\nAdditionally something went wrong while getting you bank account details");
             }
 
 
-            var chargeBankResult = await _bankAccountService.ChargeAccount(userId, chargeAmount, bankAccountDetails);
+            var chargeBankResult
+                = await _bankAccountService.ChargeAccount(userId, _chargeAmount, bankAccountDetails);
 
             if (chargeBankResult == false)
             {
                 return BadRequest("Something went wrong.");
             }
 
-            chargeAmount = 0;
-            return Ok(new
-            {
-                paymentIntent.Status,
-                BankAccountDetails = bankAccountDetails
-            });
+            _chargeAmount = 0;
+            return Ok(new { paymentIntent.Status, BankAccountDetails = bankAccountDetails });
         }
 
 
@@ -133,5 +126,78 @@ public class PaymentsController : ControllerBase
     private long ConvertDollarsToCents(decimal dollars)
     {
         return (long)(dollars * 100);
+    }
+
+    [HttpPost("transfer-to-card")]
+    [Authorize]
+    public async Task<IActionResult> TransferToCard([FromBody] TransferToCardDto cardDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var userId = await _claimsService.GetUserIdAsync(User);
+
+        if (!await _bankAccountService.IsUserHasBankAccount(Guid.Parse(userId)))
+        {
+            return BadRequest("You must create Bank Account in order to use this service.");
+        }
+
+        var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+        var cardDetails = await _cardsService.GetAllCards(bankAccountDetails.AccountNumber);
+
+        Card? aimedCard = cardDetails.Find(c => c.CardId == cardDto.CardId);
+
+        if (aimedCard == null)
+        {
+            return NotFound("No cards found under this ID number.");
+        }
+
+        if (!aimedCard.OpenedForInternalOperations || !aimedCard.IsActivated)
+        {
+            return BadRequest("You card not activated for this operation.");
+        }
+
+        if (bankAccountDetails.Balance < cardDto.Amount)
+        {
+            return BadRequest(
+                $"No enough balance. Your Bank Account balance is: {bankAccountDetails.Balance}");
+        }
+
+        try
+        {
+            await _bankAccountService.DeductAccountBalance(bankAccountDetails.AccountNumber, cardDto.Amount);
+            if (await _cardsService.ChargeCardBalanceAsync(bankAccountDetails.AccountNumber, aimedCard.CardId,
+                    cardDto.Amount))
+            {
+                var cardAfterBalanceAdded
+                    = await _cardsService.GetCardDetails(bankAccountDetails.AccountNumber, aimedCard.CardId);
+                var bankAccountAfterBalanceDeducted
+                    = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+
+                return Ok(new
+                {
+                    Message = "Your card has been charged successfully.",
+                    Card = new
+                    {
+                        CardId = cardAfterBalanceAdded.CardId,
+                        Balance = cardAfterBalanceAdded.Balance,
+                        CardType = cardAfterBalanceAdded.CardType
+                    },
+                    BankAccount = new
+                    {
+                        AccountNumber = bankAccountDetails.AccountNumber,
+                        Balance = bankAccountAfterBalanceDeducted.Balance
+                    }
+                });
+            }
+
+            return BadRequest("Something went wrong");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { e.StackTrace, e });
+        }
     }
 }

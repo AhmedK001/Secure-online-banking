@@ -65,11 +65,11 @@ public class CardRepository : ICardRepository
         }
         catch (Exception e)
         {
-            return new Card();
+            throw new Exception("Error occurred: ", e);
         }
     }
 
-    public async Task<bool> UpdateCardBalanceAsync(string accountNumber, int cardNumber,
+    public async Task<bool> ChargeCardBalanceAsync(string accountNumber, int cardNumber,
         decimal amount)
     {
         try
@@ -82,7 +82,7 @@ public class CardRepository : ICardRepository
         }
         catch (Exception e)
         {
-            return false;
+            throw new Exception("Error occurred: ", e);
         }
     }
 
@@ -102,7 +102,7 @@ public class CardRepository : ICardRepository
         }
         catch (Exception e)
         {
-            return false;
+            throw new Exception("Error occurred: ", e);
         }
     }
 
@@ -122,13 +122,21 @@ public class CardRepository : ICardRepository
         }
         catch (Exception e)
         {
-            return false;
+            throw new Exception("Error occurred: ", e);
         }
     }
 
-    public Task<bool> IsActivated(string accountNumber, int cardNumber)
+    public async Task<bool> IsActivated(string accountNumber, int cardId)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var result = await _dbContext.BankCards.Where(c => c.CardId == cardId).FirstAsync();
+            return result.IsActivated;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Error occurred: ", e);
+        }
     }
 
     public async Task<bool> IsCardIdUnique(int cardId)

@@ -77,10 +77,18 @@ public class CardsService : ICardsService
         return result;
     }
 
-    public Task<bool> ChargeCardBalanceAsync(string accountNumber,
-        int cardNumber, decimal amount)
+    public async Task<bool> ChargeCardBalanceAsync(string accountNumber,
+        int cardId, decimal amount)
     {
-        throw new NotImplementedException();
+        try
+        {
+            await _cardRepository.ChargeCardBalanceAsync(accountNumber, cardId, amount);
+            return true;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Exception :",e);
+        }
     }
 
     public Task<bool> DeductCardBalanceAsync(string accountNumber,
@@ -89,21 +97,45 @@ public class CardsService : ICardsService
         throw new NotImplementedException();
     }
 
-    public Task<bool> IsOpenedForOnlinePurchase(string accountNumber,
-        int cardNumber)
+    public async Task<bool> IsOpenedForOnlinePurchase(string accountNumber,
+        int cardId)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var result = await _cardRepository.IsOpenedForOnlinePurchase(accountNumber, cardId);
+            return result;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Error occurred: ", e);
+        }
     }
 
-    public Task<bool> IsOpenedForInternalOperations(string accountNumber,
-        int cardNumber)
+    public async Task<bool> IsOpenedForInternalOperations(string accountNumber,
+        int cardId)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var result = await _cardRepository.IsOpenedForInternalOperations(accountNumber, cardId);
+            return result;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Error occurred: ", e);
+        }
     }
 
-    public Task<bool> IsActivated(string accountNumber, int cardNumber)
+    public async Task<bool> IsActivated(string accountNumber, int cardId)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var result = await _cardRepository.IsActivated(accountNumber, cardId);
+            return result;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Error occurred: ", e);
+        }
     }
 
     public async Task<int> GenerateCardId()

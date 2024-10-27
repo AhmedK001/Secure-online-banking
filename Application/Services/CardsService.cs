@@ -72,9 +72,15 @@ public class CardsService : ICardsService
 
     public async Task<List<Card>> GetAllCards(string accountNumber)
     {
-        var result = await _cardRepository.GetAllCards(accountNumber);
-
-        return result;
+        try
+        {
+            var result = await _cardRepository.GetAllCards(accountNumber);
+            return result;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("", e);
+        }
     }
 
     public async Task<bool> ChargeCardBalanceAsync(string accountNumber,
@@ -148,5 +154,18 @@ public class CardsService : ICardsService
         } while (await _cardRepository.IsCardIdUnique(cardId) != true);
 
         return cardId;
+    }
+
+    public async Task<bool> DeleteCard(int cardId)
+    {
+        try
+        {
+            await _cardRepository.DeleteCard(cardId);
+            return true;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("",e);
+        }
     }
 }

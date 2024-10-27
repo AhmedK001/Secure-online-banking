@@ -15,5 +15,5 @@ public interface ICardRepository
         int cardNumber);
     Task<bool> IsActivated(string accountNumber, int cardId);
     Task<bool> IsCardIdUnique(int cardId);
-
+    Task<bool> DeleteCard(int cardId);
 }

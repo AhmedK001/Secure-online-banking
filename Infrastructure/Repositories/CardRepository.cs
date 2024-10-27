@@ -26,7 +26,7 @@ public class CardRepository : ICardRepository
         }
         catch (Exception e)
         {
-            return new List<Card>();
+            throw new Exception("", e);
         }
     }
 
@@ -142,5 +142,20 @@ public class CardRepository : ICardRepository
     public async Task<bool> IsCardIdUnique(int cardId)
     {
         return !await _dbContext.BankCards.AnyAsync(c => c.CardId == cardId);
+    }
+
+    public async Task<bool> DeleteCard(int cardId)
+    {
+        try
+        {
+            var aimedCard = await _dbContext.BankCards.FirstAsync(c => c.CardId == cardId);
+            _dbContext.BankCards.Remove(aimedCard);
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("", e);
+        }
     }
 }

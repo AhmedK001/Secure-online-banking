@@ -42,7 +42,7 @@ public class RegisterUserDto
     
     [Required]
     [DataType(DataType.Password)]
-    [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters long.")]
+    [StringLength(30, MinimumLength = 6, ErrorMessage = "Password must be at least 6 up to 30 characters long.")]
     [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$", 
         ErrorMessage = "Password must have at least one uppercase letter, one lowercase letter, and one number.")]
     public string Password { get; set; }

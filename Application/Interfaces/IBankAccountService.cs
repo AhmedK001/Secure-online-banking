@@ -13,5 +13,4 @@ public interface IBankAccountService : IIbanGeneratorService
     Task<BankAccount> GetDetailsByAccountNumber(string accountNumber);
     Task<decimal> GetBalance(int nationalId);
     Task<bool> DeductAccountBalance(string accountNumber, decimal amount);
-
 }

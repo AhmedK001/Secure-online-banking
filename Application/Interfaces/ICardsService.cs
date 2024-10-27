@@ -18,4 +18,5 @@ public interface ICardsService
     Task<bool> IsActivated(string accountNumber, int cardId);
 
     Task<int> GenerateCardId();
+    Task<bool> DeleteCard(int cardId);
 }

@@ -3,5 +3,6 @@
 public enum EnumCardType
 {
     PrePaidCard,
-    CreditCard
+    CreditCard,
+    DebitCard
 }

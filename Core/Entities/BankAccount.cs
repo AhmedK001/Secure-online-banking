@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Core.Enums;
 
 namespace Core.Entities;
     [Table("BankAccounts")]
@@ -14,6 +15,7 @@ namespace Core.Entities;
         public int NationalId { get; set; }
         public Guid UserId { get; set; }
         public string AccountNumber { get; set; }
+        public EnumCurrency Currency { get; set; }
         public DateTime CreationDate { get; set; }
         public decimal Balance { get; set; }
         public List<Operation>? Operations { get; set; }

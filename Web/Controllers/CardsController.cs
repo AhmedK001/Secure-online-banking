@@ -69,6 +69,52 @@ public class CardsController : ControllerBase
         }
     }
 
+    [HttpPut("change-currency")]
+    [Authorize]
+    public async Task<IActionResult> ChangeCurrency([FromBody] ChangeCurrencyCardDto currencyCardDto)
+    {
+        try
+        {
+            var userId = await _claimsService.GetUserIdAsync(User);
+            var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+            var aimedCard = await _cardsService.GetCardDetails(bankAccountDetails.AccountNumber, currencyCardDto.CardId);
+
+            // make sure if aimed card is its own card.
+            if (aimedCard.BankAccount.AccountNumber != bankAccountDetails.AccountNumber)
+            {
+                return BadRequest("You do not have any cards with in this ID number.");
+            }
+
+            if (!Enum.TryParse(currencyCardDto.AimedCurrencySymbol, out EnumCurrency currencySymbol))
+            {
+                var availableSymbols = string.Join(", ", Enum.GetNames(typeof(EnumCurrency)));
+                return BadRequest(
+                    $"Currency symbol not found. Available currencies to use are: {availableSymbols}");
+            }
+            await _cardsService.ChangeCurrencyAsync(currencySymbol, currencyCardDto.CardId,
+                bankAccountDetails.AccountNumber);
+
+            var cardAfterCurrencyChanged
+                = await _cardsService.GetCardDetails(bankAccountDetails.AccountNumber, currencyCardDto.CardId);
+
+            return Ok(new
+            {
+                Card = new
+                {
+                    cardAfterCurrencyChanged.CardId,
+                    CardType = Enum.GetName(typeof(EnumCardType),cardAfterCurrencyChanged.CardType),
+                    cardAfterCurrencyChanged.IsActivated,
+                    Currency = Enum.GetName(typeof(EnumCurrency), cardAfterCurrencyChanged.Currency),
+                    cardAfterCurrencyChanged.Balance
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
+    }
+
     [HttpGet("all-cards")]
     [Authorize]
     public async Task<IActionResult> GetAllCards()
@@ -89,7 +135,8 @@ public class CardsController : ControllerBase
                 CardId = card.CardId,
                 CVV = card.Cvv,
                 ExpiryDate = card.ExpiryDate.ToString("dd-MM-yyyy"),
-                CardType = card.CardType,
+                CardType = Enum.GetName(typeof(EnumCardType), card.CardType),
+                Currency = Enum.GetName(typeof(EnumCurrency), card.Currency),
                 Balance = card.Balance,
                 IsActivated = card.IsActivated,
                 OpenedForOnlinePurchase = card.OpenedForOnlinePurchase,

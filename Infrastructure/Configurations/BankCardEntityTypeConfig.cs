@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Core.Entities;
+using Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -40,6 +41,9 @@ public class BankCardEntityTypeConfig : IEntityTypeConfiguration<Card>
         builder.Property(bankCard => bankCard.Balance)
             .IsRequired()
             .HasColumnType("decimal(18, 2)");
+
+        // initialize card currency as SAR if not selected.
+        builder.Property(c => c.Currency).HasDefaultValue(EnumCurrency.SAR).HasConversion<int>();
 
         // Relationships with Payments
         builder.HasMany(bankCard => bankCard.Payments)

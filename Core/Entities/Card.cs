@@ -17,6 +17,7 @@ public class Card : ICard
     public bool OpenedForInternalOperations { get; set; }
     public bool IsActivated { get; set; }
     public decimal Balance { get; set; }
+    public EnumCurrency Currency { get; set; }
 
     // navigation props
     [JsonIgnore]

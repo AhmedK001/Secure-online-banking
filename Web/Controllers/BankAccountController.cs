@@ -1,7 +1,10 @@
 ﻿using System.Security.Claims;
+using Application.DTOs;
 using Application.Interfaces;
 using Core.Entities;
+using Core.Enums;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,54 +17,117 @@ public class BankAccountController : ControllerBase
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly IBankAccountService _bankAccountService;
+    private readonly IClaimsService _claimsService;
 
-    public BankAccountController(UserManager<User> userManager,
-        SignInManager<User> signInManager, IBankAccountService bankAccountService)
+    public BankAccountController(UserManager<User> userManager, SignInManager<User> signInManager,
+        IBankAccountService bankAccountService, IClaimsService claimsService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _bankAccountService = bankAccountService;
+        _claimsService = claimsService;
     }
 
     [HttpPost("bank-account")]
     [Authorize]
     public async Task<IActionResult> CreateBankAccount()
     {
-        if (User.Identity == null || !User.Identity.IsAuthenticated)
+        try
         {
-            return Unauthorized("You are not logged in.");
+            var userId = await _claimsService.GetUserIdAsync(User);
+
+            if (await _bankAccountService.IsUserHasBankAccount(Guid.Parse(userId)))
+            {
+                return Conflict("Only one bank account is allowed for you");
+            }
+
+            var bankAccount = await _bankAccountService.CreateBankAccount(Guid.Parse(userId));
+
+            if (bankAccount == null)
+            {
+                return BadRequest("Something went wrong.");
+            }
+
+            return Ok(new
+            {
+                Message = "Your bank account has been created successfully.",
+                bankAccount.AccountNumber,
+                bankAccount.Balance,
+                bankAccount.CreationDate,
+                bankAccount.UserId
+            });
         }
-
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
-        if (userIdClaim == null)
+        catch (Exception e)
         {
-            return Unauthorized("You are not logged in");
+            return BadRequest(e);
         }
+    }
 
-        if (!Guid.TryParse(userIdClaim.Value, out var userId))
+    [HttpGet("bank-account")]
+    public async Task<IActionResult> GetBankAccountDetails()
+    {
+        try
         {
-            return BadRequest("Invalid user ID.");
+            var userId = await _claimsService.GetUserIdAsync(User);
+            var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+            return Ok(new
+            {
+                BankAccount = new
+                {
+                    bankAccountDetails.AccountNumber,
+                    bankAccountDetails.CreationDate,
+                    Currency = Enum.GetName(typeof(EnumCurrency), bankAccountDetails.Currency),
+                    bankAccountDetails.Balance,
+                }
+            });
         }
-
-        if (await _bankAccountService.IsUserHasBankAccount(userId))
+        catch (Exception e)
         {
-            return Conflict("Only one bank account is allowed for you");
+            return BadRequest(e);
         }
+    }
 
-        var bankAccount = await _bankAccountService.CreateBankAccount(userId);
-
-        if (bankAccount == null)
+    [HttpPut("change-currency")]
+    [Authorize]
+    public async Task<IActionResult> ChangeCurrency([FromBody] string currencySymbolDto)
+    {
+        try
         {
-            return BadRequest("Something went wrong.");
+            var userId = await _claimsService.GetUserIdAsync(User);
+            var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+
+            if (!Enum.TryParse(currencySymbolDto, out EnumCurrency currencySymbol))
+            {
+                var availableSymbols = string.Join(", ", Enum.GetNames(typeof(EnumCurrency)));
+                return BadRequest(
+                    $"Currency symbol not found. Available currencies to use are: {availableSymbols}");
+            }
+
+            await _bankAccountService.ChangeCurrencyAsync(currencySymbol, bankAccountDetails.AccountNumber);
+
+            var accountAfterCurrencyChanged
+                = await _bankAccountService.GetDetailsByAccountNumber(bankAccountDetails.AccountNumber);
+
+            return Ok(new
+            {
+                Message = "Your Bank Account currency changed successfully.",
+                BankAccount = new
+                {
+                    accountAfterCurrencyChanged.AccountNumber,
+                    accountAfterCurrencyChanged.CreationDate,
+                    Currency = Enum.GetName(typeof(EnumCurrency), accountAfterCurrencyChanged.Currency),
+                    accountAfterCurrencyChanged.Balance
+                }
+            });
         }
-
-        return Ok(new
+        catch (Exception e)
         {
-            Message = "Your bank account has been created successfully.",
-            bankAccount.AccountNumber,
-            bankAccount.Balance,
-            bankAccount.CreationDate,
-            bankAccount.UserId
-        });
+            var errorMessage = e.InnerException?.Message ?? e.Message;
+
+            return BadRequest(new
+            {
+                Message = errorMessage
+            });
+        }
     }
 }

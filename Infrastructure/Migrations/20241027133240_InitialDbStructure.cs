@@ -167,6 +167,7 @@ namespace Infrastructure.Migrations
                     AccountNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false),
                     NationalId = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Currency = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     CreationDate = table.Column<DateTime>(type: "datetime", nullable: false),
                     Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: false, defaultValue: 0m)
                 },
@@ -192,6 +193,7 @@ namespace Infrastructure.Migrations
                     OpenedForInternalOperations = table.Column<bool>(type: "bit", nullable: false),
                     IsActivated = table.Column<bool>(type: "bit", nullable: false),
                     Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Currency = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     AccountNumber = table.Column<string>(type: "varchar(20)", nullable: true)
                 },
                 constraints: table =>

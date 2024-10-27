@@ -1,5 +1,6 @@
 ﻿    using System.ComponentModel.DataAnnotations.Schema;
     using Core.Entities;
+    using Core.Enums;
     using Microsoft.EntityFrameworkCore.Metadata.Builders;
     using Microsoft.EntityFrameworkCore;
 
@@ -33,6 +34,9 @@
                 .IsRequired()
                 .HasDefaultValue(0)
                 .HasColumnType("decimal(18, 2)");
+
+            // initialize bank account currency as SAR if not selected.
+            builder.Property(b => b.Currency).HasDefaultValue(EnumCurrency.SAR).HasConversion<int>();
 
             // Relations with other tables
             builder.HasOne(account => account.User)

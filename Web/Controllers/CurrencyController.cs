@@ -33,16 +33,16 @@ public class CurrencyController : ControllerBase
         try
         {
             var exchangeRateResult = await _currencyService.GetExchangeRate(currentCurrency, aimedCurrency);
-            if (exchangeRateResult == null)
+            if (exchangeRateResult.data.IsNullOrEmpty())
             {
                 return NotFound("Exchange rate not found.");
             }
 
-            return Ok(exchangeRateResult);
+            return Ok(exchangeRateResult.data);
         }
         catch (Exception e)
         {
-            return StatusCode(500, "An error occurred while fetching the exchange rate. Please try again later.");
+            return StatusCode(500, $"An error occurred while fetching the exchange rate. Please try again later.\n{e}");
         }
     }
 

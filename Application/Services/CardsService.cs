@@ -10,26 +10,23 @@ public class CardsService : ICardsService
     private readonly ICardRepository _cardRepository;
     private readonly IGenerateService _generateService;
 
-    public CardsService(ICardRepository cardRepository,
-        IGenerateService generateService)
+    public CardsService(ICardRepository cardRepository, IGenerateService generateService)
     {
         _cardRepository = cardRepository;
         _generateService = generateService;
     }
 
-    public Task<bool> IsUserHasCardWithInTypeAsync(string accountNumber,
-        EnumCardType cardType)
+    public Task<bool> IsUserHasCardWithInTypeAsync(string accountNumber, EnumCardType cardType)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<(bool , int)> CreateCardAsync(string accountNumber,
-        string cardType,BankAccount bankAccount)
+    public async Task<(bool, int)> CreateCardAsync(string accountNumber, string cardType,
+        BankAccount bankAccount)
     {
         if (!EnumCardType.TryParse(cardType, out EnumCardType enumCardType))
         {
-            throw new ArgumentException(
-                "Card type not available on our system");
+            throw new ArgumentException("Card type not available on our system");
         }
 
         Card card = new Card()
@@ -42,15 +39,14 @@ public class CardsService : ICardsService
             OpenedForOnlinePurchase = false,
             Payments = new List<Payment>(),
             BankAccount = bankAccount,
-            Cvv = _generateService.GenerateRandomNumbers(
-                Tuple.Create(100, 999)),
+            Cvv = _generateService.GenerateRandomNumbers(Tuple.Create(100, 999)),
             CardId = await GenerateCardId()
         };
 
         try
         {
-            await _cardRepository.CreateCardAsync(card,bankAccount);
-            return (true,card.CardId);
+            await _cardRepository.CreateCardAsync(card, bankAccount);
+            return (true, card.CardId);
         }
         catch (Exception e)
         {
@@ -66,7 +62,7 @@ public class CardsService : ICardsService
         }
         catch (Exception e)
         {
-            throw new Exception("Error occurred: ",e);
+            throw new Exception("Error occurred: ", e);
         }
     }
 
@@ -83,8 +79,7 @@ public class CardsService : ICardsService
         }
     }
 
-    public async Task<bool> ChargeCardBalanceAsync(string accountNumber,
-        int cardId, decimal amount)
+    public async Task<bool> ChargeCardBalanceAsync(string accountNumber, int cardId, decimal amount)
     {
         try
         {
@@ -93,18 +88,16 @@ public class CardsService : ICardsService
         }
         catch (Exception e)
         {
-            throw new Exception("Exception :",e);
+            throw new Exception("Exception :", e);
         }
     }
 
-    public Task<bool> DeductCardBalanceAsync(string accountNumber,
-        int cardNumber, decimal amount)
+    public Task<bool> DeductCardBalanceAsync(string accountNumber, int cardNumber, decimal amount)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<bool> IsOpenedForOnlinePurchase(string accountNumber,
-        int cardId)
+    public async Task<bool> IsOpenedForOnlinePurchase(string accountNumber, int cardId)
     {
         try
         {
@@ -117,8 +110,7 @@ public class CardsService : ICardsService
         }
     }
 
-    public async Task<bool> IsOpenedForInternalOperations(string accountNumber,
-        int cardId)
+    public async Task<bool> IsOpenedForInternalOperations(string accountNumber, int cardId)
     {
         try
         {
@@ -149,8 +141,7 @@ public class CardsService : ICardsService
         int cardId;
         do
         {
-            cardId = _generateService.GenerateRandomNumbers(
-                Tuple.Create(10000000, 99999999));
+            cardId = _generateService.GenerateRandomNumbers(Tuple.Create(10000000, 99999999));
         } while (await _cardRepository.IsCardIdUnique(cardId) != true);
 
         return cardId;
@@ -165,7 +156,32 @@ public class CardsService : ICardsService
         }
         catch (Exception e)
         {
-            throw new Exception("",e);
+            throw new Exception("", e);
+        }
+    }
+
+    public async Task<bool> ChangeCurrencyAsync(EnumCurrency currency, int cardId,string accountNumber)
+    {
+        try
+        {
+            var cardDetails = await _cardRepository.GetCardDetails(accountNumber,cardId);
+            
+            if (cardDetails.Balance != 0)
+            {
+                throw new NotImplementedException("Your card must be be empty in order to use this service");
+            }
+
+            if (cardDetails.Currency == currency)
+            {
+                throw new Exception("Your card already has the same currency.");
+            }
+
+            await _cardRepository.ChangeCurrencyAsync(currency, cardId);
+            return true;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("", e);
         }
     }
 }

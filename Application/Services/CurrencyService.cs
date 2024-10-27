@@ -1,8 +1,10 @@
-﻿using System.Text.Json;
+﻿using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Application.DTOs.ExternalModels.Currency;
 using Application.Interfaces;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Application.Services;
 
@@ -18,7 +20,7 @@ public class CurrencyService : ICurrencyService
         _httpClient = httpClient;
     }
 
-    public async Task<JsonObject> GetExchangeRate(string currentCurrency, string aimedCurrency)
+    public async Task<JsonObject?> FetchExchangeRate(string currentCurrency, string aimedCurrency)
     {
         var apiKey = _configuration["AlphaVantageApi:ApiKey"];
 
@@ -28,7 +30,7 @@ public class CurrencyService : ICurrencyService
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpRequestException();
+            return null;
         }
 
         var streamResponse = await response.Content.ReadAsStreamAsync();
@@ -36,11 +38,44 @@ public class CurrencyService : ICurrencyService
 
         if (jsonNode is JsonObject jsonObject)
         {
+            if (jsonObject.TryGetPropertyValue("Error Message", out var errorMessageNode) && errorMessageNode != null)
+            {
+                // string errorMessage = errorMessageNode.ToString();
+                // throw new Exception($"Alpha Vantage API error: {errorMessage}");
+                return null;
+            }
             // return if successes
             return jsonObject;
         }
 
         throw new JsonException();
+    }
+
+    public async Task<(bool isFirstChance, JsonObject data)> GetExchangeRate(string currentCurrency, string aimedCurrency)
+    {
+        try
+        {
+            var exchangeRate = await FetchExchangeRate(currentCurrency, aimedCurrency);
+
+            if (!exchangeRate.IsNullOrEmpty())
+            {
+                return (true,exchangeRate);
+            }
+
+            // changed order of current & aimed currencies because it is one way API
+            exchangeRate = await FetchExchangeRate(aimedCurrency, currentCurrency);
+
+            if (!exchangeRate.IsNullOrEmpty())
+            {
+                return (false,exchangeRate);
+            }
+
+            throw new Exception("Could not get response from the External Api service.");
+        }
+        catch (Exception e)
+        {
+            throw new Exception("",e);
+        }
     }
 
     private async Task<ExchangeRateDto> DeserializeExchangeRate(JsonObject jsonString)

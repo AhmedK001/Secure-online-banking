@@ -1,4 +1,5 @@
 ﻿using Core.Entities;
+using Core.Enums;
 
 namespace Application.Interfaces;
 
@@ -13,4 +14,5 @@ public interface IBankAccountService : IIbanGeneratorService
     Task<BankAccount> GetDetailsByAccountNumber(string accountNumber);
     Task<decimal> GetBalance(int nationalId);
     Task<bool> DeductAccountBalance(string accountNumber, decimal amount);
+    Task<bool> ChangeCurrencyAsync(EnumCurrency currency, string accountNumber);
 }

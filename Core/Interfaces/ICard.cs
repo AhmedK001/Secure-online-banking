@@ -13,6 +13,7 @@ public interface ICard
     public bool OpenedForInternalOperations { get; set; }
     public bool IsActivated { get; set; }
     public decimal Balance { get; set; }
+    public EnumCurrency Currency { get; set; }
     public BankAccount BankAccount { get; set; }
     public List<Payment>? Payments { get; set; }
 }

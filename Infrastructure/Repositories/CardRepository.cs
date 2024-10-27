@@ -158,4 +158,19 @@ public class CardRepository : ICardRepository
             throw new Exception("", e);
         }
     }
+
+    public async Task<bool> ChangeCurrencyAsync(EnumCurrency currency, int cardId)
+    {
+        try
+        {
+            var aimedCard = await _dbContext.BankCards.FirstAsync(c => c.CardId == cardId);
+            aimedCard.Currency = currency;
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("", e);
+        }
+    }
 }

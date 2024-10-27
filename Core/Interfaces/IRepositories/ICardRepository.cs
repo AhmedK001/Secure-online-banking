@@ -16,4 +16,5 @@ public interface ICardRepository
     Task<bool> IsActivated(string accountNumber, int cardId);
     Task<bool> IsCardIdUnique(int cardId);
     Task<bool> DeleteCard(int cardId);
+    Task<bool> ChangeCurrencyAsync(EnumCurrency currency, int cardId);
 }

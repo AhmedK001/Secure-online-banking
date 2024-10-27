@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Application.DTOs;
 using Application.Interfaces;
+using Core.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
@@ -183,7 +184,7 @@ public class PaymentsController : ControllerBase
                     {
                         CardId = cardAfterBalanceAdded.CardId,
                         Balance = cardAfterBalanceAdded.Balance,
-                        CardType = cardAfterBalanceAdded.CardType
+                        CardType = Enum.GetName(typeof(EnumCardType),cardAfterBalanceAdded.CardType)
                     },
                     BankAccount = new
                     {

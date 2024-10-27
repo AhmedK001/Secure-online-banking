@@ -2,6 +2,7 @@
 using Core.Entities;
 using Core.Enums;
 using Core.Interfaces.IRepositories;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Application.Services;
 
@@ -119,9 +120,18 @@ public class BankAccountService : IBankAccountService
         throw new NotImplementedException();
     }
 
-    public Task<BankAccount> GetDetailsByAccountNumber(string accountNumber)
+    public async Task<BankAccount> GetDetailsByAccountNumber(string accountNumber)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var getDeatilsResult = await _bankAccountRepository.GetBankAccountDetailsByAccountNumber(accountNumber);
+
+            return getDeatilsResult;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("",e);
+        }
     }
 
     public Task<decimal> GetBalance(int nationalId)
@@ -140,6 +150,26 @@ public class BankAccountService : IBankAccountService
         {
             Console.WriteLine(e);
             throw;
+        }
+    }
+
+    public async Task<bool> ChangeCurrencyAsync(EnumCurrency currency, string accountNumber)
+    {
+        try
+        {
+            var bankAccountDetails
+                = await _bankAccountRepository.GetBankAccountDetailsByAccountNumber(accountNumber);
+            if (bankAccountDetails.Currency == currency)
+            {
+                throw new InvalidOperationException("The bank account already uses this currency.");
+            }
+
+            await _bankAccountRepository.ChangeCurrencyAsync(currency, accountNumber);
+            return true;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("", e);
         }
     }
 

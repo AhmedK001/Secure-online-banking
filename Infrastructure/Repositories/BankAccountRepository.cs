@@ -1,4 +1,5 @@
 ﻿using Core.Entities;
+using Core.Enums;
 using Core.Interfaces.IRepositories;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -120,6 +121,21 @@ public class BankAccountRepository : IBankAccountRepository
             var bankAccount = await _dbContext.Accounts.FirstAsync(a => a.AccountNumber == accountNumber);
 
             bankAccount.Balance -= amount;
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("", e);
+        }
+    }
+
+    public async Task<bool> ChangeCurrencyAsync(EnumCurrency currency, string accountNumber)
+    {
+        try
+        {
+            var bankAccountDetails = await GetBankAccountDetailsByAccountNumber(accountNumber);
+            bankAccountDetails.Currency = currency;
             await _dbContext.SaveChangesAsync();
             return true;
         }

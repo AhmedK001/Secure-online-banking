@@ -19,4 +19,6 @@ public interface ICardsService
 
     Task<int> GenerateCardId();
     Task<bool> DeleteCard(int cardId);
+    Task<bool> ChangeCurrencyAsync(EnumCurrency currency, int cardId, string accountNumber);
+
 }

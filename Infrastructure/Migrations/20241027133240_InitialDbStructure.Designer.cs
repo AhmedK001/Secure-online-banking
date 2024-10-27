@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241020205448_InitialDbStructure")]
+    [Migration("20241027133240_InitialDbStructure")]
     partial class InitialDbStructure
     {
         /// <inheritdoc />
@@ -38,6 +38,11 @@ namespace Infrastructure.Migrations
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime");
+
+                    b.Property<int>("Currency")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<int>("NationalId")
                         .HasColumnType("int");
@@ -73,6 +78,11 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("Currency")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<int>("Cvv")
                         .HasColumnType("int");

@@ -1,4 +1,5 @@
 ﻿using Core.Entities;
+using Core.Enums;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Core.Interfaces.IRepositories;
@@ -13,4 +14,6 @@ public interface IBankAccountRepository
     Task<decimal> GetBankAccountBalance(int nationalId);
     Task<bool> ChargeAccount(Guid id, decimal amount);
     Task<bool> DeductAccountBalance(string accountNumber, decimal amount);
+    Task<bool> ChangeCurrencyAsync(EnumCurrency currency, string accountNumber);
+
 }

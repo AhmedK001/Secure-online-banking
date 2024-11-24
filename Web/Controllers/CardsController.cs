@@ -61,10 +61,7 @@ public class CardsController : ControllerBase
             return StatusCode(500,
                 new
                 {
-                    Message = "Some error occurred",
-                    ErrorType = e.GetType().Name,
-                    ErrorMessage = e.Message,
-                    StackTrace = e.StackTrace
+                    ErrorMessage = e.Message
                 });
         }
     }

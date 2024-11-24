@@ -26,7 +26,8 @@ public class CardsService : ICardsService
     {
         if (!EnumCardType.TryParse(cardType, out EnumCardType enumCardType))
         {
-            throw new ArgumentException("Card type not available on our system");
+            string cardTypes = string.Join(", ", Enum.GetNames(typeof(EnumCardType)));
+            throw new ArgumentException($"Card type not available on our system. Available types are: {cardTypes}");
         }
 
         Card card = new Card()

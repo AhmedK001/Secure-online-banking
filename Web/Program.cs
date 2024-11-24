@@ -75,6 +75,7 @@ builder.Services.AddScoped<ICardsService, CardsService>();
 builder.Services.AddScoped<IClaimsService, ClaimsService>();
 builder.Services.AddScoped<ICardRepository, CardRepository>();
 builder.Services.AddScoped<IGenerateService, GenerateService>();
+builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
 
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 

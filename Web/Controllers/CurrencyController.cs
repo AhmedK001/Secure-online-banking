@@ -4,6 +4,7 @@ using Application.DTOs.ExternalModels.Currency;
 using Application.DTOs.ExternalModels.StocksApiResponse.GetTopGainers_Losers_Actice;
 using Application.Interfaces;
 using Application.Services;
+using Core.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -32,7 +33,11 @@ public class CurrencyController : ControllerBase
 
         try
         {
-            var exchangeRateResult = await _currencyService.GetExchangeRate(currentCurrency, aimedCurrency);
+            EnumCurrency.TryParse(currentCurrency,out EnumCurrency fromCurrencye);
+            EnumCurrency.TryParse(aimedCurrency,out EnumCurrency toCurrency);
+
+
+            var exchangeRateResult = await _currencyService.GetExchangeRate(fromCurrencye, toCurrency);
             if (exchangeRateResult.data.IsNullOrEmpty())
             {
                 return NotFound("Exchange rate not found.");
@@ -56,8 +61,12 @@ public class CurrencyController : ControllerBase
 
         try
         {
+            EnumCurrency.TryParse(currentCurrency,out EnumCurrency fromCurrencye);
+            EnumCurrency.TryParse(aimedCurrency,out EnumCurrency toCurrency);
+
+
             var historicalExchangeRateResult
-                = await _currencyService.GetHistoricalExchangeRate(currentCurrency, aimedCurrency, timeSeries);
+                = await _currencyService.GetHistoricalExchangeRate(fromCurrencye, toCurrency, timeSeries);
 
             if (historicalExchangeRateResult == null)
             {

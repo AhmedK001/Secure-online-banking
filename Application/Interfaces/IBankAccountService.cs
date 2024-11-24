@@ -15,4 +15,5 @@ public interface IBankAccountService : IIbanGeneratorService
     Task<decimal> GetBalance(int nationalId);
     Task<bool> DeductAccountBalance(string accountNumber, decimal amount);
     Task<bool> ChangeCurrencyAsync(EnumCurrency currency, string accountNumber);
+    Task<bool> ExchangeMoney(EnumCurrency fromCurrency, EnumCurrency toCurrency, string accountNumber);
 }

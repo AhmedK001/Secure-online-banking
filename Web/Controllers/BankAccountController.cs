@@ -64,6 +64,7 @@ public class BankAccountController : ControllerBase
     }
 
     [HttpGet("bank-account")]
+    [Authorize]
     public async Task<IActionResult> GetBankAccountDetails()
     {
         try
@@ -93,6 +94,9 @@ public class BankAccountController : ControllerBase
     {
         try
         {
+            // User cannot exchange directly from, or to EGP, TRY, SAR, AED until convert to USD or EUR, then convert to the target
+
+            // IF ACCOUNT GOT MONEY SO ASK FOR EXCHANGE BEFORE CHANGING CURRENCY
             var userId = await _claimsService.GetUserIdAsync(User);
             var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
 
@@ -102,6 +106,26 @@ public class BankAccountController : ControllerBase
                 return BadRequest(
                     $"Currency symbol not found. Available currencies to use are: {availableSymbols}");
             }
+
+            if (bankAccountDetails.Currency == currencySymbol)
+            {
+                return BadRequest("Your account uses the same currency already.");
+            }
+
+            // If current currency is AED or SAR and target is AED or SAR, so it can be converted directly
+            bool letThemPass = ((Enum.GetName(typeof(EnumCurrency), bankAccountDetails.Currency) == "SAR") ||
+                                Enum.GetName(typeof(EnumCurrency), bankAccountDetails.Currency) == "AED") &&
+                               (currencySymbolDto == "AED" || currencySymbolDto == "SAR");
+
+            // Any else must contain USD or EUR as current account currency or USD or EUR as a target
+            if (letThemPass == false &&
+                !(bankAccountDetails.Currency == EnumCurrency.USD ||
+                 bankAccountDetails.Currency == EnumCurrency.EUR || currencySymbol == EnumCurrency.USD ||
+                                                                      currencySymbol == EnumCurrency.EUR))
+            {
+                return BadRequest($"You must exchange to USD or AED then exchange to {currencySymbolDto}");
+            }
+
 
             await _bankAccountService.ChangeCurrencyAsync(currencySymbol, bankAccountDetails.AccountNumber);
 
@@ -115,7 +139,8 @@ public class BankAccountController : ControllerBase
                 {
                     accountAfterCurrencyChanged.AccountNumber,
                     accountAfterCurrencyChanged.CreationDate,
-                    Currency = Enum.GetName(typeof(EnumCurrency), accountAfterCurrencyChanged.Currency),
+                    Currency = Enum.GetName(typeof(EnumCurrency),
+                        accountAfterCurrencyChanged.Currency),
                     accountAfterCurrencyChanged.Balance
                 }
             });
@@ -124,10 +149,7 @@ public class BankAccountController : ControllerBase
         {
             var errorMessage = e.InnerException?.Message ?? e.Message;
 
-            return BadRequest(new
-            {
-                Message = errorMessage
-            });
+            return BadRequest(new { Message = errorMessage, E = e });
         }
     }
 }

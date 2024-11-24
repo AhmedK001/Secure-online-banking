@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Application.DTOs.ExternalModels.Currency;
 using Application.Interfaces;
+using Core.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -14,13 +15,15 @@ public class CurrencyService : ICurrencyService
     private readonly HttpClient _httpClient;
 
 
+
     public CurrencyService(IConfiguration configuration, HttpClient httpClient)
     {
         _configuration = configuration;
         _httpClient = httpClient;
+
     }
 
-    public async Task<JsonObject?> FetchExchangeRate(string currentCurrency, string aimedCurrency)
+    public async Task<JsonObject?> FetchExchangeRate(EnumCurrency currentCurrency, EnumCurrency aimedCurrency)
     {
         var apiKey = _configuration["AlphaVantageApi:ApiKey"];
 
@@ -51,7 +54,7 @@ public class CurrencyService : ICurrencyService
         throw new JsonException();
     }
 
-    public async Task<(bool isFirstChance, JsonObject data)> GetExchangeRate(string currentCurrency, string aimedCurrency)
+    public async Task<(bool isFirstChance, JsonObject data)> GetExchangeRate(EnumCurrency currentCurrency, EnumCurrency aimedCurrency)
     {
         try
         {
@@ -80,21 +83,21 @@ public class CurrencyService : ICurrencyService
 
     private async Task<ExchangeRateDto> DeserializeExchangeRate(JsonObject jsonString)
     {
-        var jsonResponse = jsonString.ToJsonString();
+        var jsonResponse = jsonString.ToString();
 
         Console.WriteLine(jsonResponse);
 
-        ExchangeRateDto? exchangeRateDto = JsonSerializer.Deserialize<ExchangeRateDto>(jsonResponse);
+        var response = JsonSerializer.Deserialize<CurrencyExchangeRateResponse>(jsonResponse);
 
-        if (exchangeRateDto == null)
+        if (string.IsNullOrEmpty(response.ToString()))
         {
             throw new JsonException();
         }
 
-        return exchangeRateDto;
+        return response.ExchangeRateDto;
     }
 
-    public async Task<JsonObject> GetHistoricalExchangeRate(string currentCurrency, string aimedCurrency,
+    public async Task<JsonObject> GetHistoricalExchangeRate(EnumCurrency currentCurrency, EnumCurrency aimedCurrency,
         string timeSeries)
     {
         var requestUri = await GetRequestUriForHistoricalExchangeRate(currentCurrency, aimedCurrency, timeSeries);
@@ -117,7 +120,46 @@ public class CurrencyService : ICurrencyService
         throw new JsonException();
     }
 
-    private async Task<string> GetRequestUriForHistoricalExchangeRate(string currentCurrency, string aimedCurrency,
+    public async Task<ExchangeRateDto> GetExchangeForm(EnumCurrency fromCurrency, EnumCurrency toCurrency)
+    {
+        try
+        {
+            ExchangeRateDto exchangeRateDto;
+            var exchangeRateResult = await GetExchangeRate(fromCurrency, toCurrency);
+
+            // Handles one way exchange.
+            if (exchangeRateResult.isFirstChance != true)
+            {
+                exchangeRateDto = await GetOppositeExchangeRate(exchangeRateResult.data);
+            }
+            else
+            {
+                exchangeRateDto = await DeserializeExchangeRate(exchangeRateResult.data);
+            }
+
+            return exchangeRateDto;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("", e);
+        }
+    }
+
+    public async Task<ExchangeRateDto> GetOppositeExchangeRate(JsonObject exchangeRateResult)
+    {
+        var exchangeRateObject = await DeserializeExchangeRate(exchangeRateResult);
+        (exchangeRateObject.FromCurrencyCode, exchangeRateObject.ToCurrencyCode) = (
+            exchangeRateObject.ToCurrencyCode, exchangeRateObject.FromCurrencyCode);
+        (exchangeRateObject.FromCurrencyName, exchangeRateObject.ToCurrencyName) = (
+            exchangeRateObject.ToCurrencyName, exchangeRateObject.FromCurrencyName);
+
+        exchangeRateObject.AskPrice = (1 / decimal.Parse(exchangeRateObject.AskPrice)).ToString();
+        exchangeRateObject.BidPrice = (1 / decimal.Parse(exchangeRateObject.BidPrice)).ToString();
+
+        return (exchangeRateObject);
+    }
+
+    private async Task<string> GetRequestUriForHistoricalExchangeRate(EnumCurrency currentCurrency, EnumCurrency aimedCurrency,
         string timeSeries)
     {
         var apiKey = _configuration["AlphaVantageApi:ApiKey"];

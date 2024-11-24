@@ -144,4 +144,28 @@ public class BankAccountRepository : IBankAccountRepository
             throw new Exception("", e);
         }
     }
+
+    public async Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(decimal newBalance, string accountNumber)
+    {
+        try
+        {
+            var bankAccountDetails = await _dbContext.Accounts.FirstAsync(a => a.AccountNumber == accountNumber);
+
+            if (bankAccountDetails.Balance == 0)
+            {
+                throw new Exception("No balance to exchange.");
+            }
+
+            bankAccountDetails.Balance = newBalance;
+
+            await _dbContext.SaveChangesAsync();
+            return (true, bankAccountDetails.Balance);
+        }
+            
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }

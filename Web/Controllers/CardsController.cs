@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Web.Controllers;
 
 [ApiController]
-[Route("cards")]
+[Route("api/cards")]
 public class CardsController : ControllerBase
 {
     private readonly IClaimsService _claimsService;
@@ -72,6 +72,9 @@ public class CardsController : ControllerBase
     {
         try
         {
+            // User cannot exchange directly from, or to EGP, TRY, SAR, AED until convert to USD or EUR, then convert to the target
+
+            // IF ACCOUNT GOT MONEY SO ASK FOR EXCHANGE BEFORE CHANGING CURRENCY
             var userId = await _claimsService.GetUserIdAsync(User);
             var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
             var aimedCard = await _cardsService.GetCardDetails(bankAccountDetails.AccountNumber, currencyCardDto.CardId);
@@ -88,6 +91,26 @@ public class CardsController : ControllerBase
                 return BadRequest(
                     $"Currency symbol not found. Available currencies to use are: {availableSymbols}");
             }
+
+            if (aimedCard.Currency == currencySymbol)
+            {
+                return BadRequest("Your account uses the same currency already.");
+            }
+
+            // If current currency is AED or SAR and target is AED or SAR, so it can be converted directly
+            bool letThemPass = ((Enum.GetName(typeof(EnumCurrency), aimedCard.Currency) == "SAR") ||
+                                Enum.GetName(typeof(EnumCurrency), aimedCard.Currency) == "AED") &&
+                               (currencySymbol == EnumCurrency.SAR || currencySymbol == EnumCurrency.AED);
+
+            // Any else must contain USD or EUR as current account currency or USD or EUR as a target
+            if (letThemPass == false &&
+                !(aimedCard.Currency == EnumCurrency.USD ||
+                  aimedCard.Currency == EnumCurrency.EUR || currencySymbol == EnumCurrency.USD ||
+                  currencySymbol == EnumCurrency.EUR))
+            {
+                return BadRequest($"You must exchange to USD or AED then exchange to {currencySymbol.ToString()}");
+            }
+
             await _cardsService.ChangeCurrencyAsync(currencySymbol, currencyCardDto.CardId,
                 bankAccountDetails.AccountNumber);
 

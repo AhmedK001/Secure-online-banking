@@ -173,4 +173,28 @@ public class CardRepository : ICardRepository
             throw new Exception("", e);
         }
     }
+
+    public async Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(decimal newBalance, int cardId)
+    {
+        try
+        {
+            var cardDetails = await _dbContext.BankCards.FirstAsync(a => a.CardId == cardId);
+
+            if (cardDetails.Balance == 0)
+            {
+                throw new Exception("No balance to exchange.");
+            }
+
+            cardDetails.Balance = newBalance;
+
+            await _dbContext.SaveChangesAsync();
+            return (true, cardDetails.Balance);
+        }
+
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }

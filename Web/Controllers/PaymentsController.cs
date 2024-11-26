@@ -96,9 +96,9 @@ public class PaymentsController : ControllerBase
                 return NotFound("You must create a bank account to be able to use these services");
             }
 
-            var bankAccountDetails = await _bankAccountService.GetDetailsById(userId);
+            var bankAccount = await _bankAccountService.GetDetailsById(userId);
 
-            if (bankAccountDetails == null)
+            if (bankAccount == null)
             {
                 return Ok(
                     $"You account has been charged with {_chargeAmount}\nAdditionally something went wrong while getting you bank account details");
@@ -106,7 +106,7 @@ public class PaymentsController : ControllerBase
 
 
             var chargeBankResult
-                = await _bankAccountService.ChargeAccount(userId, _chargeAmount, bankAccountDetails);
+                = await _bankAccountService.ChargeAccount(userId, _chargeAmount, bankAccount);
 
             if (chargeBankResult == false)
             {
@@ -114,7 +114,14 @@ public class PaymentsController : ControllerBase
             }
 
             _chargeAmount = 0;
-            return Ok(new { paymentIntent.Status, BankAccountDetails = bankAccountDetails });
+            return Ok(new
+            {
+                paymentIntent.Status,
+                bankAccount.AccountNumber,
+                Currency = Enum.GetName(typeof(EnumCurrency), bankAccount.Currency),
+                bankAccount.Balance,
+                bankAccount.UserId
+            });
         }
 
 
@@ -160,6 +167,11 @@ public class PaymentsController : ControllerBase
             return BadRequest("You card not activated for this operation.");
         }
 
+        if (aimedCard.Currency != bankAccountDetails.Currency)
+        {
+            return BadRequest("Card and Bank Account has different currencies.");
+        }
+
         if (bankAccountDetails.Balance < cardDto.Amount)
         {
             return BadRequest(
@@ -183,12 +195,14 @@ public class PaymentsController : ControllerBase
                     Card = new
                     {
                         CardId = cardAfterBalanceAdded.CardId,
+                        Currency = Enum.GetName(typeof(EnumCurrency), cardAfterBalanceAdded.Currency),
                         Balance = cardAfterBalanceAdded.Balance,
                         CardType = Enum.GetName(typeof(EnumCardType),cardAfterBalanceAdded.CardType)
                     },
                     BankAccount = new
                     {
                         AccountNumber = bankAccountDetails.AccountNumber,
+                        Currency = Enum.GetName(typeof(EnumCurrency), bankAccountAfterBalanceDeducted.Currency),
                         Balance = bankAccountAfterBalanceDeducted.Balance
                     }
                 });

@@ -9,11 +9,13 @@ public class CardsService : ICardsService
 {
     private readonly ICardRepository _cardRepository;
     private readonly IGenerateService _generateService;
+    private readonly ICurrencyService _currencyService;
 
-    public CardsService(ICardRepository cardRepository, IGenerateService generateService)
+    public CardsService(ICardRepository cardRepository, IGenerateService generateService, ICurrencyService currencyService)
     {
         _cardRepository = cardRepository;
         _generateService = generateService;
+        _currencyService = currencyService;
     }
 
     public Task<bool> IsUserHasCardWithInTypeAsync(string accountNumber, EnumCardType cardType)
@@ -26,7 +28,13 @@ public class CardsService : ICardsService
     {
         if (!EnumCardType.TryParse(cardType, out EnumCardType enumCardType))
         {
-            throw new ArgumentException("Card type not available on our system");
+            string cardTypes = string.Join(", ", Enum.GetNames(typeof(EnumCardType)));
+            throw new ArgumentException($"Card type not available on our system. Available types are: {cardTypes}");
+        }
+
+        if (await _cardRepository.HasThreeCards(accountNumber))
+        {
+            throw new Exception("You has the maximum allowed number of Cards.");
         }
 
         Card card = new Card()
@@ -58,11 +66,13 @@ public class CardsService : ICardsService
     {
         try
         {
-            return await _cardRepository.GetCardDetails(accountNumber, cardId);
+            var cardDetails = await _cardRepository.GetCardDetails(accountNumber, cardId);
+
+            return cardDetails;
         }
         catch (Exception e)
         {
-            throw new Exception("Error occurred: ", e);
+            throw new Exception(e.Message);
         }
     }
 
@@ -165,23 +175,53 @@ public class CardsService : ICardsService
         try
         {
             var cardDetails = await _cardRepository.GetCardDetails(accountNumber,cardId);
-            
-            if (cardDetails.Balance != 0)
-            {
-                throw new NotImplementedException("Your card must be be empty in order to use this service");
-            }
 
             if (cardDetails.Currency == currency)
             {
                 throw new Exception("Your card already has the same currency.");
             }
 
-            await _cardRepository.ChangeCurrencyAsync(currency, cardId);
+            if (cardDetails.Balance == 0)
+            {
+                await _cardRepository.ChangeCurrencyAsync(currency, cardId);
+                return true;
+            }
+
+            await ExchangeMoney(cardDetails.Currency, currency, cardId,accountNumber);
             return true;
+
         }
         catch (Exception e)
         {
             throw new Exception("", e);
+        }
+    }
+
+    public async Task<bool> ExchangeMoney(EnumCurrency fromCurrency, EnumCurrency toCurrency, int cardId,string accountNumber)
+    {
+        try
+        {
+            // make sure of null
+            var exchangeForm = await _currencyService.GetExchangeForm(fromCurrency, toCurrency);
+            var cardDetails = await _cardRepository.GetCardDetails(accountNumber,cardId);
+            if (cardDetails.Currency != fromCurrency)
+            {
+                throw new Exception("Your card already uses the same currency.");
+            }
+
+            await _cardRepository.ChangeCurrencyAsync(toCurrency,cardId);
+            var amountAfterExchange = (decimal.Parse(exchangeForm.BidPrice) * cardDetails.Balance);
+            var result = await _cardRepository.ChangeBalance(amountAfterExchange, cardId);
+            if (!result.isSuccess)
+            {
+                throw new Exception("Something went wrong.");
+            }
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Something went wrong.",e);
         }
     }
 }

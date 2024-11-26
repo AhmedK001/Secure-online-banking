@@ -1,3 +1,4 @@
+using System.Net;
 using Core.Entities;
 using Core.Enums;
 using Core.Interfaces.IRepositories;
@@ -19,8 +20,8 @@ public class CardRepository : ICardRepository
     {
         try
         {
-            List<Card> cards = await _dbContext.BankCards.Where(c => c.BankAccount.AccountNumber == accountNumber)
-                .ToListAsync();
+            List<Card> cards = await _dbContext.BankCards
+                .Where(c => c.BankAccount.AccountNumber == accountNumber).ToListAsync();
 
             return cards;
         }
@@ -53,7 +54,7 @@ public class CardRepository : ICardRepository
         }
         catch (Exception e)
         {
-            throw new Exception("Some error occurred: " +e.StackTrace);
+            throw new Exception("Some error occurred: " + e.StackTrace);
         }
     }
 
@@ -61,20 +62,29 @@ public class CardRepository : ICardRepository
     {
         try
         {
-            return await _dbContext.BankCards.Where(c =>c.CardId == cardId && c.BankAccount.AccountNumber == accountNumber).FirstAsync();
+            var cardDetails = await _dbContext.BankCards
+                .Where(c => c.CardId == cardId && c.BankAccount.AccountNumber == accountNumber)
+                .FirstOrDefaultAsync();
+
+            if (cardDetails == null)
+            {
+                throw new Exception($"Card with ID {cardId} not found for account {accountNumber}.");
+
+            }
+
+            return cardDetails;
         }
         catch (Exception e)
         {
-            throw new Exception("Error occurred: ", e);
+            throw new Exception($"No cards under this ID number available for account {accountNumber}.");
         }
     }
 
-    public async Task<bool> ChargeCardBalanceAsync(string accountNumber, int cardNumber,
-        decimal amount)
+    public async Task<bool> ChargeCardBalanceAsync(string accountNumber, int cardNumber, decimal amount)
     {
         try
         {
-            var cardDetails = await GetCardDetails(accountNumber,cardNumber);
+            var cardDetails = await GetCardDetails(accountNumber, cardNumber);
             cardDetails.Balance += amount;
 
             await _dbContext.SaveChangesAsync();
@@ -171,6 +181,44 @@ public class CardRepository : ICardRepository
         catch (Exception e)
         {
             throw new Exception("", e);
+        }
+    }
+
+    public async Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(decimal newBalance,
+        int cardId)
+    {
+        try
+        {
+            var cardDetails = await _dbContext.BankCards.FirstAsync(a => a.CardId == cardId);
+
+            if (cardDetails.Balance == 0)
+            {
+                throw new Exception("No balance to exchange.");
+            }
+
+            cardDetails.Balance = newBalance;
+
+            await _dbContext.SaveChangesAsync();
+            return (true, cardDetails.Balance);
+        }
+
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<bool> HasThreeCards(string accountNumber)
+    {
+        try
+        {
+            return await _dbContext.BankCards
+                .Where(c => c.BankAccount.AccountNumber == accountNumber).Take(3).CountAsync() == 3;
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message);
         }
     }
 }

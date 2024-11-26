@@ -15,5 +15,6 @@ public interface IBankAccountRepository
     Task<bool> ChargeAccount(Guid id, decimal amount);
     Task<bool> DeductAccountBalance(string accountNumber, decimal amount);
     Task<bool> ChangeCurrencyAsync(EnumCurrency currency, string accountNumber);
-
+    Task<(bool isSuccess, decimal amountAfterExchange )> ChangeBalance(decimal newBalance,
+        string accountNumber);
 }

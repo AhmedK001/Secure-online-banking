@@ -12,13 +12,15 @@ public class BankAccountService : IBankAccountService
     private readonly IUserRepository _userRepository;
     private readonly IOperationService _operationService;
     private readonly IOperationsRepository _operationsRepository;
+    private readonly ICurrencyService _currencyService;
 
-    public BankAccountService(IOperationsRepository operationsRepository,IBankAccountRepository bankAccountRepository, IUserRepository userRepository, IOperationService operationService)
+    public BankAccountService(IOperationsRepository operationsRepository,IBankAccountRepository bankAccountRepository, IUserRepository userRepository, IOperationService operationService,ICurrencyService currencyService)
     {
         _bankAccountRepository = bankAccountRepository;
         _userRepository = userRepository;
         _operationService = operationService;
         _operationsRepository = operationsRepository;
+        _currencyService = currencyService;
     }
 
 
@@ -110,10 +112,17 @@ public class BankAccountService : IBankAccountService
 
     public async Task<BankAccount> GetDetailsById(Guid id)
     {
-        var getDeatilsResult
-            = await _bankAccountRepository.GetBankAccountDetailsById(id);
+        try
+        {
+            var getDeatilsResult
+                = await _bankAccountRepository.GetBankAccountDetailsById(id);
 
-        return getDeatilsResult;
+            return getDeatilsResult;
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message);
+        }
     }
     public Task<BankAccount> GetDetailsByNationalId(int nationalId)
     {
@@ -130,7 +139,7 @@ public class BankAccountService : IBankAccountService
         }
         catch (Exception e)
         {
-            throw new Exception("",e);
+            throw new Exception(e.Message);
         }
     }
 
@@ -148,8 +157,7 @@ public class BankAccountService : IBankAccountService
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw;
+            throw new Exception(e.Message);
         }
     }
 
@@ -169,7 +177,35 @@ public class BankAccountService : IBankAccountService
         }
         catch (Exception e)
         {
-            throw new Exception("", e);
+            throw new Exception(e.Message);
+        }
+    }
+
+    public async Task<bool> ExchangeMoney(EnumCurrency fromCurrency, EnumCurrency toCurrency, string accountNumber)
+    {
+        try
+        {
+            // make sure of null
+            var exchangeForm = await _currencyService.GetExchangeForm(fromCurrency, toCurrency);
+            var bankAccountDetails = await _bankAccountRepository.GetBankAccountDetailsByAccountNumber(accountNumber);
+            if (bankAccountDetails.Currency != fromCurrency)
+            {
+                throw new Exception("You already uses the same currency.");
+            }
+
+            await _bankAccountRepository.ChangeCurrencyAsync(toCurrency, accountNumber);
+            var amountAfterExchange = (decimal.Parse(exchangeForm.BidPrice) * bankAccountDetails.Balance);
+            var result = await _bankAccountRepository.ChangeBalance(amountAfterExchange, accountNumber);
+            if (!result.isSuccess)
+            {
+                throw new Exception("Something went wrong.");
+            }
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Something went wrong.",e);
         }
     }
 
@@ -180,6 +216,4 @@ public class BankAccountService : IBankAccountService
         // generate random 7 digits, In order to make iban numbers hardly tracked.
         return random.Next(2090209, 8607080);
     }
-
-
 }

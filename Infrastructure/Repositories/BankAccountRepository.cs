@@ -39,45 +39,62 @@ public class BankAccountRepository : IBankAccountRepository
 
     public async Task<BankAccount> GetBankAccountDetailsById(Guid id)
     {
-        var accountDetailsResult
-            = await _dbContext.Accounts.FirstOrDefaultAsync(a =>
-                a.UserId == id);
-
-        if (accountDetailsResult is null)
+        try
         {
-            throw new KeyNotFoundException("Bank account not found.");
-        }
+            var accountDetailsResult = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.UserId == id);
 
-        return accountDetailsResult;
+            if (accountDetailsResult is null)
+            {
+                throw new KeyNotFoundException("No bank account found.");
+            }
+
+            return accountDetailsResult;
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message,e);
+        }
     }
 
     public async Task<BankAccount> GetBankAccountDetailsByNationalId(int nationalId)
     {
-        var accountDetailsResult
-            = await _dbContext.Accounts.FirstOrDefaultAsync(a =>
-                a.NationalId == nationalId);
-
-        if (accountDetailsResult is null)
+        try
         {
-            throw new KeyNotFoundException("Bank account not found.");
-        }
+            var accountDetailsResult
+                = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.NationalId == nationalId);
 
-        return accountDetailsResult;
+            if (accountDetailsResult is null)
+            {
+                throw new KeyNotFoundException("No bank account found.");
+            }
+
+            return accountDetailsResult;
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message);
+        }
     }
 
     public async Task<BankAccount> GetBankAccountDetailsByAccountNumber(
         string accountNumber)
     {
-        var accountDetailsResult
-            = await _dbContext.Accounts.FirstOrDefaultAsync(a =>
-                a.AccountNumber == accountNumber);
-
-        if (accountDetailsResult is null)
+        try
         {
-            throw new KeyNotFoundException("Bank account not found.");
-        }
+            var accountDetailsResult
+                = await _dbContext.Accounts.FirstOrDefaultAsync(a => a.AccountNumber == accountNumber);
 
-        return accountDetailsResult;
+            if (accountDetailsResult is null)
+            {
+                throw new KeyNotFoundException("No bank account found.");
+            }
+
+            return accountDetailsResult;
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message);
+        }
     }
 
     public async Task<Decimal> GetBankAccountBalance(int nationalId)
@@ -110,7 +127,7 @@ public class BankAccountRepository : IBankAccountRepository
         }
         catch (Exception e)
         {
-            throw new Exception("", e);
+            throw new Exception(e.Message);
         }
     }
 
@@ -126,7 +143,7 @@ public class BankAccountRepository : IBankAccountRepository
         }
         catch (Exception e)
         {
-            throw new Exception("", e);
+            throw new Exception(e.Message);
         }
     }
 
@@ -141,7 +158,31 @@ public class BankAccountRepository : IBankAccountRepository
         }
         catch (Exception e)
         {
-            throw new Exception("", e);
+            throw new Exception(e.Message);
+        }
+    }
+
+    public async Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(decimal newBalance, string accountNumber)
+    {
+        try
+        {
+            var bankAccountDetails = await _dbContext.Accounts.FirstAsync(a => a.AccountNumber == accountNumber);
+
+            if (bankAccountDetails.Balance == 0)
+            {
+                throw new Exception("No balance to exchange.");
+            }
+
+            bankAccountDetails.Balance = newBalance;
+
+            await _dbContext.SaveChangesAsync();
+            return (true, bankAccountDetails.Balance);
+        }
+
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
         }
     }
 }

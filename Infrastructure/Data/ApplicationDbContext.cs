@@ -31,13 +31,13 @@ public class ApplicationDbContext : IdentityDbContext<User,Role,Guid>
         new BankAccountEntityTypeConfig().Configure(modelBuilder.Entity<BankAccount>());
         new OperationEntityTypeConfig().Configure(modelBuilder.Entity<Operation>());
         new ReceiverClientEntityTypeConfig().Configure(modelBuilder.Entity<ReceiverClient>());
-        new BankCardEntityTypeConfig().Configure(modelBuilder.Entity<BankCard>());
+        new BankCardEntityTypeConfig().Configure(modelBuilder.Entity<Card>());
         new PaymentEntityTypeConfig().Configure(modelBuilder.Entity<Payment>());
     }
 
     public DbSet<BankAccount> Accounts { get; set; }
     public DbSet<Operation> Operations { get; set; }
-    public DbSet<BankCard> BankCards { get; set; }
+    public DbSet<Card> BankCards { get; set; }
     public DbSet<ReceiverClient> ReceiverClients { get; set; }
     public DbSet<Payment> Payments { get; set; }
 }

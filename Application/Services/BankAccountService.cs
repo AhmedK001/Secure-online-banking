@@ -172,7 +172,13 @@ public class BankAccountService : IBankAccountService
                 throw new InvalidOperationException("The bank account already uses this currency.");
             }
 
-            await _bankAccountRepository.ChangeCurrencyAsync(currency, accountNumber);
+            if (bankAccountDetails.Balance == 0)
+            {
+                await _bankAccountRepository.ChangeCurrencyAsync(currency, accountNumber);
+                return true;
+            }
+
+            await ExchangeMoney(Enum.GetName(typeof(EnumCurrency),bankAccountDetails.Currency), Enum.GetName(typeof(EnumCurrency),currency), accountNumber);
             return true;
         }
         catch (Exception e)
@@ -181,19 +187,21 @@ public class BankAccountService : IBankAccountService
         }
     }
 
-    public async Task<bool> ExchangeMoney(EnumCurrency fromCurrency, EnumCurrency toCurrency, string accountNumber)
+    public async Task<bool> ExchangeMoney(string fromCurrency, string toCurrency, string accountNumber)
     {
         try
         {
             // make sure of null
             var exchangeForm = await _currencyService.GetExchangeForm(fromCurrency, toCurrency);
             var bankAccountDetails = await _bankAccountRepository.GetBankAccountDetailsByAccountNumber(accountNumber);
-            if (bankAccountDetails.Currency != fromCurrency)
+            if (Enum.GetName(typeof(EnumCurrency), bankAccountDetails.Currency) == toCurrency)
             {
                 throw new Exception("You already uses the same currency.");
             }
 
-            await _bankAccountRepository.ChangeCurrencyAsync(toCurrency, accountNumber);
+            EnumCurrency.TryParse(toCurrency,out EnumCurrency currency);
+
+            await _bankAccountRepository.ChangeCurrencyAsync(currency, accountNumber);
             var amountAfterExchange = (decimal.Parse(exchangeForm.BidPrice) * bankAccountDetails.Balance);
             var result = await _bankAccountRepository.ChangeBalance(amountAfterExchange, accountNumber);
             if (!result.isSuccess)

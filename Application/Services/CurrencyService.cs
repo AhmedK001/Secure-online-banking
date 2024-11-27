@@ -23,7 +23,7 @@ public class CurrencyService : ICurrencyService
 
     }
 
-    public async Task<JsonObject?> FetchExchangeRate(EnumCurrency currentCurrency, EnumCurrency aimedCurrency)
+    public async Task<JsonObject?> FetchExchangeRate(string currentCurrency, string aimedCurrency)
     {
         var apiKey = _configuration["AlphaVantageApi:ApiKey"];
 
@@ -54,7 +54,7 @@ public class CurrencyService : ICurrencyService
         throw new JsonException();
     }
 
-    public async Task<(bool isFirstChance, JsonObject data)> GetExchangeRate(EnumCurrency currentCurrency, EnumCurrency aimedCurrency)
+    public async Task<(bool isFirstChance, JsonObject data)> GetExchangeRate(string currentCurrency, string aimedCurrency)
     {
         try
         {
@@ -120,7 +120,7 @@ public class CurrencyService : ICurrencyService
         throw new JsonException();
     }
 
-    public async Task<ExchangeRateDto> GetExchangeForm(EnumCurrency fromCurrency, EnumCurrency toCurrency)
+    public async Task<ExchangeRateDto> GetExchangeForm(string fromCurrency, string toCurrency)
     {
         try
         {

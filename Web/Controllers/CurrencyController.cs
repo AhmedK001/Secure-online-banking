@@ -38,31 +38,30 @@ public class CurrencyController : ControllerBase
 
         try
         {
-            EnumCurrency.TryParse(currentCurrency, out EnumCurrency fromCurrencye);
-            EnumCurrency.TryParse(aimedCurrency, out EnumCurrency toCurrency);
-
-
-            // If current currency is AED or SAR and target is AED or SAR, so it can be converted directly
-            bool letThemPass = (fromCurrencye == EnumCurrency.SAR || fromCurrencye == EnumCurrency.AED) &&
-                               (toCurrency == EnumCurrency.SAR || toCurrency == EnumCurrency.AED);
-
-            // Any else must contain USD or EUR as current account currency or USD or EUR as a target
-            if (letThemPass == false && !(toCurrency == EnumCurrency.USD || toCurrency == EnumCurrency.EUR ||
-                                          fromCurrencye == EnumCurrency.USD ||
-                                          fromCurrencye == EnumCurrency.EUR))
-                // Validate if given are real currencies or not before executing
-            {
-                return BadRequest(new
-                {
-                    ErrorMessage
-                        = $"Exchange rate not directly available between {fromCurrencye} and {toCurrency}.",
-                    Solution
-                        = $"Try between {fromCurrencye} and USD or EUR or Between {toCurrency} and USD or EUR."
-                });
-
-            }
-
-            var exchangeRateResult = await _currencyService.GetExchangeRate(fromCurrencye, toCurrency);
+            // EnumCurrency.TryParse(currentCurrency, out EnumCurrency fromCurrencye);
+            // EnumCurrency.TryParse(aimedCurrency, out EnumCurrency toCurrency);
+            //
+            //
+            // // If current currency is AED or SAR and target is AED or SAR, so it can be converted directly
+            // bool letThemPass = (fromCurrencye == EnumCurrency.SAR || fromCurrencye == EnumCurrency.AED) &&
+            //                    (toCurrency == EnumCurrency.SAR || toCurrency == EnumCurrency.AED);
+            //
+            // // Any else must contain USD or EUR as current account currency or USD or EUR as a target
+            // if (letThemPass == false && !(toCurrency == EnumCurrency.USD || toCurrency == EnumCurrency.EUR ||
+            //                               fromCurrencye == EnumCurrency.USD ||
+            //                               fromCurrencye == EnumCurrency.EUR))
+            //     // Validate if given are real currencies or not before executing
+            // {
+            //     return BadRequest(new
+            //     {
+            //         ErrorMessage
+            //             = $"Exchange rate not directly available between {fromCurrencye} and {toCurrency}.",
+            //         Solution
+            //             = $"Try between {fromCurrencye} and USD or EUR or Between {toCurrency} and USD or EUR."
+            //     });
+            //
+            // }
+            var exchangeRateResult = await _currencyService.GetExchangeRate(currentCurrency, aimedCurrency);
             if (exchangeRateResult.data.IsNullOrEmpty())
             {
                 return NotFound("Exchange rate not found.");
@@ -72,8 +71,7 @@ public class CurrencyController : ControllerBase
         }
         catch (Exception e)
         {
-            return StatusCode(500,
-                $"An error occurred while fetching the exchange rate. Please try again later.\n{e}");
+            return StatusCode(500, $"An error occurred while fetching the exchange rate. Please try again later.\n{e}");
         }
     }
 
@@ -129,4 +127,5 @@ public class CurrencyController : ControllerBase
                 "An error occurred while fetching the exchange rate. Please try again later.");
         }
     }
+
 }

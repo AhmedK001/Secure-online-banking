@@ -66,9 +66,7 @@ public class CardsService : ICardsService
     {
         try
         {
-            var cardDetails = await _cardRepository.GetCardDetails(accountNumber, cardId);
-
-            return cardDetails;
+            return await _cardRepository.GetCardDetails(accountNumber, cardId);
         }
         catch (Exception e)
         {
@@ -187,7 +185,7 @@ public class CardsService : ICardsService
                 return true;
             }
 
-            await ExchangeMoney(cardDetails.Currency, currency, cardId,accountNumber);
+            await ExchangeMoney(Enum.GetName(typeof(EnumCurrency),cardDetails.Currency), Enum.GetName(typeof(EnumCurrency),currency), cardId, accountNumber);
             return true;
 
         }
@@ -197,19 +195,20 @@ public class CardsService : ICardsService
         }
     }
 
-    public async Task<bool> ExchangeMoney(EnumCurrency fromCurrency, EnumCurrency toCurrency, int cardId,string accountNumber)
+    public async Task<bool> ExchangeMoney(string fromCurrency, string toCurrency, int cardId,string accountNumber)
     {
         try
         {
             // make sure of null
             var exchangeForm = await _currencyService.GetExchangeForm(fromCurrency, toCurrency);
             var cardDetails = await _cardRepository.GetCardDetails(accountNumber,cardId);
-            if (cardDetails.Currency != fromCurrency)
+            if (Enum.GetName(typeof(EnumCurrency), cardDetails.Currency) != fromCurrency)
             {
                 throw new Exception("Your card already uses the same currency.");
             }
+            EnumCurrency.TryParse(toCurrency,out EnumCurrency currency);
 
-            await _cardRepository.ChangeCurrencyAsync(toCurrency,cardId);
+            await _cardRepository.ChangeCurrencyAsync(currency,cardId);
             var amountAfterExchange = (decimal.Parse(exchangeForm.BidPrice) * cardDetails.Balance);
             var result = await _cardRepository.ChangeBalance(amountAfterExchange, cardId);
             if (!result.isSuccess)

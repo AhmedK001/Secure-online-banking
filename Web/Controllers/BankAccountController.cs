@@ -129,7 +129,7 @@ public class BankAccountController : ControllerBase
 
 
             //await _bankAccountService.ChangeCurrencyAsync(currencySymbol, bankAccountDetails.AccountNumber);
-            await _bankAccountService.ExchangeMoney(bankAccountDetails.Currency, currencySymbol,
+            await _bankAccountService.ExchangeMoney(Enum.GetName(typeof(EnumCurrency),bankAccountDetails.Currency), currencySymbolDto,
                 bankAccountDetails.AccountNumber);
 
             var accountAfterCurrencyChanged

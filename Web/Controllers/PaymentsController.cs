@@ -162,6 +162,17 @@ public class PaymentsController : ControllerBase
             return NotFound("No cards found under this ID number.");
         }
 
+        // Make sure bank account and card uses same currencies
+        if (bankAccountDetails.Currency != aimedCard.Currency)
+        {
+            return BadRequest(new
+            {
+                ErrorMessage = $"Currencies of Card and Bank Account does not match.",
+                Currencies = $"Card currency :{aimedCard.Currency}, Bank Account currency :{bankAccountDetails.Currency}",
+                Solution = "Use change currency API to change any of current currencies."
+            });
+        }
+
         if (!aimedCard.OpenedForInternalOperations || !aimedCard.IsActivated)
         {
             return BadRequest("You card not activated for this operation.");
@@ -175,7 +186,7 @@ public class PaymentsController : ControllerBase
         if (bankAccountDetails.Balance < cardDto.Amount)
         {
             return BadRequest(
-                $"No enough balance. Your Bank Account balance is: {bankAccountDetails.Balance}");
+                $"No enough balance. Your Bank Account balance is: {bankAccountDetails.Balance} {bankAccountDetails.Currency}");
         }
 
         try

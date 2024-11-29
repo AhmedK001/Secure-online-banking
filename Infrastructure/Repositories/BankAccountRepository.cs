@@ -13,7 +13,6 @@ public class BankAccountRepository : IBankAccountRepository
 {
     private readonly ApplicationDbContext _dbContext;
 
-
     public BankAccountRepository(ApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
@@ -147,13 +146,16 @@ public class BankAccountRepository : IBankAccountRepository
         }
     }
 
-    public async Task<bool> ChangeCurrencyAsync(EnumCurrency currency, string accountNumber)
+    public async Task<bool> ChangeCurrencyAsync(bool saveAsync,EnumCurrency currency, string accountNumber)
     {
         try
         {
             var bankAccountDetails = await GetBankAccountDetailsByAccountNumber(accountNumber);
             bankAccountDetails.Currency = currency;
-            await _dbContext.SaveChangesAsync();
+            if (saveAsync)
+            {
+                await _dbContext.SaveChangesAsync();
+            }
             return true;
         }
         catch (Exception e)
@@ -162,7 +164,7 @@ public class BankAccountRepository : IBankAccountRepository
         }
     }
 
-    public async Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(decimal newBalance, string accountNumber)
+    public async Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(bool saveAsync, decimal newBalance, string accountNumber)
     {
         try
         {
@@ -175,7 +177,10 @@ public class BankAccountRepository : IBankAccountRepository
 
             bankAccountDetails.Balance = newBalance;
 
-            await _dbContext.SaveChangesAsync();
+            if (saveAsync)
+            {
+                await _dbContext.SaveChangesAsync();
+            }
             return (true, bankAccountDetails.Balance);
         }
 

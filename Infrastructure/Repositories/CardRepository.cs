@@ -168,13 +168,16 @@ public class CardRepository : ICardRepository
         }
     }
 
-    public async Task<bool> ChangeCurrencyAsync(EnumCurrency currency, int cardId)
+    public async Task<bool> ChangeCurrencyAsync(bool saveAsync,EnumCurrency currency, int cardId)
     {
         try
         {
             var aimedCard = await _dbContext.BankCards.FirstAsync(c => c.CardId == cardId);
             aimedCard.Currency = currency;
-            await _dbContext.SaveChangesAsync();
+            if (saveAsync)
+            {
+                await _dbContext.SaveChangesAsync();
+            }
             return true;
         }
         catch (Exception e)
@@ -183,21 +186,18 @@ public class CardRepository : ICardRepository
         }
     }
 
-    public async Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(decimal newBalance,
+    public async Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(bool saveAsync,decimal newBalance,
         int cardId)
     {
         try
         {
             var cardDetails = await _dbContext.BankCards.FirstAsync(a => a.CardId == cardId);
 
-            if (cardDetails.Balance == 0)
-            {
-                throw new Exception("No balance to exchange.");
-            }
-
             cardDetails.Balance = newBalance;
-
-            await _dbContext.SaveChangesAsync();
+            if (saveAsync)
+            {
+                await _dbContext.SaveChangesAsync();
+            }
             return (true, cardDetails.Balance);
         }
 

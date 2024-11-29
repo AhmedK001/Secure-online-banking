@@ -60,7 +60,7 @@ public class BankAccountController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(e.Message);
         }
     }
 
@@ -129,8 +129,17 @@ public class BankAccountController : ControllerBase
 
 
             //await _bankAccountService.ChangeCurrencyAsync(currencySymbol, bankAccountDetails.AccountNumber);
-            await _bankAccountService.ExchangeMoney(Enum.GetName(typeof(EnumCurrency),bankAccountDetails.Currency), currencySymbolDto,
-                bankAccountDetails.AccountNumber);
+            if (bankAccountDetails.Balance == 0)
+            {
+                await _bankAccountService.ExchangeMoney(true,Enum.GetName(typeof(EnumCurrency),bankAccountDetails.Currency), currencySymbolDto,
+                    bankAccountDetails.AccountNumber);
+            }
+            else
+            {
+                await _bankAccountService.ExchangeMoney(false,Enum.GetName(typeof(EnumCurrency),bankAccountDetails.Currency), currencySymbolDto,
+                    bankAccountDetails.AccountNumber);
+            }
+
 
             var accountAfterCurrencyChanged
                 = await _bankAccountService.GetDetailsByAccountNumber(bankAccountDetails.AccountNumber);
@@ -150,9 +159,7 @@ public class BankAccountController : ControllerBase
         }
         catch (Exception e)
         {
-            var errorMessage = e.InnerException?.Message ?? e.Message;
-
-            return BadRequest(new { Message = errorMessage, E = e });
+            return BadRequest(e.Message);
         }
     }
 }

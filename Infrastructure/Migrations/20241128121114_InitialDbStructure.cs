@@ -212,8 +212,9 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     OperationId = table.Column<int>(type: "int", nullable: false),
-                    AccountId = table.Column<int>(type: "int", nullable: false),
                     AccountNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false),
+                    AccountId = table.Column<int>(type: "int", nullable: false),
+                    Currency = table.Column<int>(type: "int", nullable: false),
                     DateTime = table.Column<DateTime>(type: "datetime", nullable: false),
                     OperationType = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),

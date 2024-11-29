@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241027133240_InitialDbStructure")]
+    [Migration("20241128121114_InitialDbStructure")]
     partial class InitialDbStructure
     {
         /// <inheritdoc />
@@ -124,6 +124,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("BankAccountAccountNumber")
                         .HasColumnType("varchar(20)");
+
+                    b.Property<int>("Currency")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("datetime");

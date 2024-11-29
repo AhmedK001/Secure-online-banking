@@ -18,10 +18,6 @@ public class OperationEntityTypeConfig : IEntityTypeConfiguration<Operation>
             .HasColumnType("int")
             .ValueGeneratedNever();
 
-        builder.Property(operation => operation.AccountId)
-            .IsRequired()
-            .HasColumnType("int");
-
         builder.Property(operation => operation.AccountNumber)
             .IsRequired()
             .HasMaxLength(20)

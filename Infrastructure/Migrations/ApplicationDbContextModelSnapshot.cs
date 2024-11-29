@@ -122,6 +122,9 @@ namespace Infrastructure.Migrations
                     b.Property<string>("BankAccountAccountNumber")
                         .HasColumnType("varchar(20)");
 
+                    b.Property<int>("Currency")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("datetime");
 

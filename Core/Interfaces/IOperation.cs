@@ -5,11 +5,12 @@ namespace Core.Interfaces;
 
 public interface IOperation
 {
-    int AccountId { get; set; }
     string AccountNumber { get; set; }
+    int AccountId { get; set; }
     int OperationId { get; set; }
-    DateTime DateTime { get; set; }
     EnumOperationType OperationType { get; set; }
     decimal Amount { get; set; }
+    EnumCurrency Currency { get; set; }
+    DateTime DateTime { get; set; }
     ReceiverClient? Receiver { get; set; }
 }

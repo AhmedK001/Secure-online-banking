@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Application.DTOs.ExternalModels.Currency;
+using Application.Interfaces;
 using Core.Entities;
 using Core.Enums;
 using Core.Interfaces.IRepositories;
@@ -13,14 +14,16 @@ public class BankAccountService : IBankAccountService
     private readonly IOperationService _operationService;
     private readonly IOperationsRepository _operationsRepository;
     private readonly ICurrencyService _currencyService;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public BankAccountService(IOperationsRepository operationsRepository,IBankAccountRepository bankAccountRepository, IUserRepository userRepository, IOperationService operationService,ICurrencyService currencyService)
+    public BankAccountService(IOperationsRepository operationsRepository,IBankAccountRepository bankAccountRepository, IUserRepository userRepository, IOperationService operationService,ICurrencyService currencyService,IUnitOfWork unitOfWork)
     {
         _bankAccountRepository = bankAccountRepository;
         _userRepository = userRepository;
         _operationService = operationService;
         _operationsRepository = operationsRepository;
         _currencyService = currencyService;
+        _unitOfWork = unitOfWork;
     }
 
 
@@ -58,7 +61,7 @@ public class BankAccountService : IBankAccountService
 
         if (user is null)
         {
-            throw new KeyNotFoundException();
+            throw new KeyNotFoundException("User not logged in.");
         }
 
         var bankAccountDetails = GenerateDetails(user);
@@ -94,19 +97,20 @@ public class BankAccountService : IBankAccountService
         // create Operation object
         Operation operation = new Operation()
         {
+            AccountNumber = bankAccount.AccountNumber,
+            AccountId = bankAccount.NationalId,
             OperationId
                 = await _operationService
                     .GenerateUniqueRandomOperationIdAsync(),
-            AccountNumber = bankAccount.AccountNumber,
-            Amount = amount,
-            AccountId = bankAccount.NationalId,
             OperationType = EnumOperationType.Deposit,
+            Amount = amount,
+            Currency = bankAccount.Currency,
             DateTime = DateTime.UtcNow,
-            Receiver = null,
-            Description = null
+            Description = null,
+            Receiver = null!
         };
 
-        await _operationService.AddOperation(operation);
+        await _operationService.LogOperation(true,operation);
         return true;
     }
 
@@ -143,11 +147,6 @@ public class BankAccountService : IBankAccountService
         }
     }
 
-    public Task<decimal> GetBalance(int nationalId)
-    {
-        throw new NotImplementedException();
-    }
-
     public async Task<bool> DeductAccountBalance(string accountNumber, decimal amount)
     {
         try
@@ -165,6 +164,7 @@ public class BankAccountService : IBankAccountService
     {
         try
         {
+            bool zeroBalance = false;
             var bankAccountDetails
                 = await _bankAccountRepository.GetBankAccountDetailsByAccountNumber(accountNumber);
             if (bankAccountDetails.Currency == currency)
@@ -172,13 +172,10 @@ public class BankAccountService : IBankAccountService
                 throw new InvalidOperationException("The bank account already uses this currency.");
             }
 
-            if (bankAccountDetails.Balance == 0)
-            {
-                await _bankAccountRepository.ChangeCurrencyAsync(currency, accountNumber);
-                return true;
-            }
+            if (bankAccountDetails.Balance == 0) zeroBalance = true;
 
-            await ExchangeMoney(Enum.GetName(typeof(EnumCurrency),bankAccountDetails.Currency), Enum.GetName(typeof(EnumCurrency),currency), accountNumber);
+            await ExchangeMoney(zeroBalance,Enum.GetName(typeof(EnumCurrency),bankAccountDetails.Currency), Enum.GetName(typeof(EnumCurrency),currency), accountNumber);
+
             return true;
         }
         catch (Exception e)
@@ -187,13 +184,26 @@ public class BankAccountService : IBankAccountService
         }
     }
 
-    public async Task<bool> ExchangeMoney(string fromCurrency, string toCurrency, string accountNumber)
+    public async Task<bool> ExchangeMoney(bool zeroBalance,string fromCurrency, string toCurrency, string accountNumber)
     {
         try
         {
-            // make sure of null
-            var exchangeForm = await _currencyService.GetExchangeForm(fromCurrency, toCurrency);
+            await _unitOfWork.BeginTransactionAsync();
+
+            ExchangeRateDto exchangeForm = null;
+            decimal amountAfterExchange;
             var bankAccountDetails = await _bankAccountRepository.GetBankAccountDetailsByAccountNumber(accountNumber);
+            var balanceBeforeExchange = bankAccountDetails.Balance;
+
+            if (!zeroBalance)
+            {
+                exchangeForm = await _currencyService.GetExchangeForm(fromCurrency, toCurrency);
+                amountAfterExchange = (decimal.Parse(exchangeForm.BidPrice) * bankAccountDetails.Balance);
+            }
+            else
+            {
+                amountAfterExchange = 0;
+            }
             if (Enum.GetName(typeof(EnumCurrency), bankAccountDetails.Currency) == toCurrency)
             {
                 throw new Exception("You already uses the same currency.");
@@ -201,19 +211,35 @@ public class BankAccountService : IBankAccountService
 
             EnumCurrency.TryParse(toCurrency,out EnumCurrency currency);
 
-            await _bankAccountRepository.ChangeCurrencyAsync(currency, accountNumber);
-            var amountAfterExchange = (decimal.Parse(exchangeForm.BidPrice) * bankAccountDetails.Balance);
-            var result = await _bankAccountRepository.ChangeBalance(amountAfterExchange, accountNumber);
-            if (!result.isSuccess)
-            {
-                throw new Exception("Something went wrong.");
-            }
 
+            Operation operation = new Operation()
+            {
+                AccountNumber = bankAccountDetails.AccountNumber,
+                AccountId = bankAccountDetails.NationalId,
+                OperationId
+                    = await _operationService
+                        .GenerateUniqueRandomOperationIdAsync(),
+                OperationType = EnumOperationType.CurrencyChange,
+                Description
+                    = $"Bank Account Currency Change. " +
+                      $"From {fromCurrency} To {toCurrency}," +
+                      $" Balance before exchange: {balanceBeforeExchange:F2}{fromCurrency}," +
+                      $" Balance After exchange: {amountAfterExchange:F2}{toCurrency}.",
+                DateTime = DateTime.UtcNow,
+                Currency = currency,
+                Amount = bankAccountDetails.Balance,
+            };
+
+            await _operationService.LogOperation(true,operation);
+            await _bankAccountRepository.ChangeCurrencyAsync(true,currency, accountNumber);
+            await _bankAccountRepository.ChangeBalance(true,amountAfterExchange, accountNumber);
+            await _unitOfWork.CommitTransactionAsync();
             return true;
         }
         catch (Exception e)
         {
-            throw new Exception("Something went wrong.",e);
+            await _unitOfWork.RollbackTransactionAsync();
+            throw new Exception(e.Message);
         }
     }
 

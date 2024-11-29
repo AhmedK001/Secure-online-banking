@@ -63,19 +63,20 @@ builder.Services.AddHttpClient<IStockService, StockService>();
 //builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-//builder.Services.AddScoped<IIbanGeneratorService, BankAccountService>();
 builder.Services.AddScoped<ISearchUserService, SearchUserService>();
 builder.Services.AddScoped<IUpdatePassword, UpdatePasswordService>();
 builder.Services.AddScoped<IBankAccountService, BankAccountService>();
 builder.Services.AddScoped<IBankAccountRepository, BankAccountRepository>();
 builder.Services.AddScoped<ICurrencyService, CurrencyService>();
 builder.Services.AddScoped<IOperationsRepository, OperationsRepository>();
-builder.Services.AddScoped<IOperationService, OperationService>();
+builder.Services.AddScoped<IOperationService, OperationServices>();
 builder.Services.AddScoped<ICardsService, CardsService>();
 builder.Services.AddScoped<IClaimsService, ClaimsService>();
 builder.Services.AddScoped<ICardRepository, CardRepository>();
 builder.Services.AddScoped<IGenerateService, GenerateService>();
 builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IPaymentsService, PaymentsService>();
 
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 

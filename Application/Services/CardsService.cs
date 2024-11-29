@@ -1,3 +1,4 @@
+using Application.DTOs.ExternalModels.Currency;
 using Application.Interfaces;
 using Core.Entities;
 using Core.Enums;
@@ -10,12 +11,17 @@ public class CardsService : ICardsService
     private readonly ICardRepository _cardRepository;
     private readonly IGenerateService _generateService;
     private readonly ICurrencyService _currencyService;
+    private readonly IOperationService _operationService;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CardsService(ICardRepository cardRepository, IGenerateService generateService, ICurrencyService currencyService)
+    public CardsService(ICardRepository cardRepository, IGenerateService generateService,
+        ICurrencyService currencyService, IOperationService operationService, IUnitOfWork unitOfWork)
     {
         _cardRepository = cardRepository;
         _generateService = generateService;
         _currencyService = currencyService;
+        _operationService = operationService;
+        _unitOfWork = unitOfWork;
     }
 
     public Task<bool> IsUserHasCardWithInTypeAsync(string accountNumber, EnumCardType cardType)
@@ -23,8 +29,7 @@ public class CardsService : ICardsService
         throw new NotImplementedException();
     }
 
-    public async Task<(bool, int)> CreateCardAsync(string accountNumber, string cardType,
-        BankAccount bankAccount)
+    public async Task<(bool, int)> CreateCardAsync(string accountNumber, string cardType, BankAccount bankAccount)
     {
         if (!EnumCardType.TryParse(cardType, out EnumCardType enumCardType))
         {
@@ -168,11 +173,11 @@ public class CardsService : ICardsService
         }
     }
 
-    public async Task<bool> ChangeCurrencyAsync(EnumCurrency currency, int cardId,string accountNumber)
+    public async Task<bool> ChangeCurrencyAsync(EnumCurrency currency, int cardId, string accountNumber)
     {
         try
         {
-            var cardDetails = await _cardRepository.GetCardDetails(accountNumber,cardId);
+            var cardDetails = await _cardRepository.GetCardDetails(accountNumber, cardId);
 
             if (cardDetails.Currency == currency)
             {
@@ -181,46 +186,80 @@ public class CardsService : ICardsService
 
             if (cardDetails.Balance == 0)
             {
-                await _cardRepository.ChangeCurrencyAsync(currency, cardId);
-                return true;
+                await ExchangeMoney(true, Enum.GetName(typeof(EnumCurrency), cardDetails.Currency),
+                    Enum.GetName(typeof(EnumCurrency), currency), cardId, accountNumber);
+            }
+            else
+            {
+                await ExchangeMoney(false, Enum.GetName(typeof(EnumCurrency), cardDetails.Currency),
+                    Enum.GetName(typeof(EnumCurrency), currency), cardId, accountNumber);
             }
 
-            await ExchangeMoney(Enum.GetName(typeof(EnumCurrency),cardDetails.Currency), Enum.GetName(typeof(EnumCurrency),currency), cardId, accountNumber);
             return true;
-
         }
         catch (Exception e)
         {
-            throw new Exception("", e);
+            throw new Exception(e.Message);
         }
     }
 
-    public async Task<bool> ExchangeMoney(string fromCurrency, string toCurrency, int cardId,string accountNumber)
+    public async Task<bool> ExchangeMoney(bool zeroBalance, string fromCurrency, string toCurrency, int cardId,
+        string accountNumber)
     {
         try
         {
-            // make sure of null
-            var exchangeForm = await _currencyService.GetExchangeForm(fromCurrency, toCurrency);
-            var cardDetails = await _cardRepository.GetCardDetails(accountNumber,cardId);
+            await _unitOfWork.BeginTransactionAsync(); // start saving data process
+
+            // Make operations get saved if balance = 0
+            ExchangeRateDto exchangeForm = null;
+            decimal amountAfterExchange;
+            var cardDetails = await _cardRepository.GetCardDetails(accountNumber, cardId);
+            var balanceBeforeExchange = cardDetails.Balance;
+            var bankAccountDetails = cardDetails.BankAccount;
+
+            if (!zeroBalance)
+            {
+                exchangeForm = await _currencyService.GetExchangeForm(fromCurrency, toCurrency);
+                amountAfterExchange = (decimal.Parse(exchangeForm.BidPrice) * cardDetails.Balance);
+            }
+            else
+            {
+                amountAfterExchange = 0;
+            }
+
             if (Enum.GetName(typeof(EnumCurrency), cardDetails.Currency) != fromCurrency)
             {
                 throw new Exception("Your card already uses the same currency.");
             }
-            EnumCurrency.TryParse(toCurrency,out EnumCurrency currency);
 
-            await _cardRepository.ChangeCurrencyAsync(currency,cardId);
-            var amountAfterExchange = (decimal.Parse(exchangeForm.BidPrice) * cardDetails.Balance);
-            var result = await _cardRepository.ChangeBalance(amountAfterExchange, cardId);
-            if (!result.isSuccess)
+            EnumCurrency.TryParse(toCurrency, out EnumCurrency currency);
+
+
+            // Create Operation LogObject
+            Operation operation = new Operation()
             {
-                throw new Exception("Something went wrong.");
-            }
+                AccountNumber = bankAccountDetails.AccountNumber,
+                AccountId = bankAccountDetails.NationalId,
+                OperationId = await _operationService.GenerateUniqueRandomOperationIdAsync(),
+                OperationType = EnumOperationType.CurrencyChange,
+                Description = $"CARD Currency Change. " + $"From {fromCurrency} To {toCurrency}," +
+                              $" Balance before exchange: {balanceBeforeExchange:F2}{fromCurrency}," +
+                              $" Balance After exchange: {amountAfterExchange:F2}{toCurrency}.",
+                DateTime = DateTime.UtcNow,
+                Currency = currency,
+                Amount = bankAccountDetails.Balance,
+            };
 
+            await _operationService.LogOperation(true, operation);
+            await _cardRepository.ChangeCurrencyAsync(true, currency, cardId);
+            await _cardRepository.ChangeBalance(true, amountAfterExchange, cardId);
+            await _unitOfWork.CommitTransactionAsync(); // save data
             return true;
         }
         catch (Exception e)
         {
-            throw new Exception("Something went wrong.",e);
+            await _unitOfWork.RollbackTransactionAsync(); // if failed, roll back all commits
+            throw new Exception("Something went wrong.", e);
         }
     }
 }

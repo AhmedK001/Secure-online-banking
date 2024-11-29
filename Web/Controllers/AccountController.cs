@@ -25,6 +25,7 @@ public class AccountController : ControllerBase
     private readonly IJwtService _jwtService;
     private readonly IUpdatePassword _updatePassword;
 
+
     public AccountController(IUpdatePassword updatePassword,
         IJwtService jwtService, UserManager<User> userManager,
         SignInManager<User> signInManager,

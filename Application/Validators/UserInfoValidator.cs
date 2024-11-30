@@ -62,32 +62,30 @@ public class UserInfoValidator
         {
             return new ValidationResult("National ID cannot be empty.");
         }
-        
+
         string nationalIdAsString = nationalId.ToString();
-        
+
         string pattern = @"^[1-9]\d{9}$";
         Regex regex = new Regex(pattern);
         char firstNationalIdDigit = nationalIdAsString[0];
-        
-        
+
+
         if (firstNationalIdDigit == 0)
         {
-            return new ValidationResult(
-                "National ID number cannot start with 0.");
+            return new ValidationResult("National ID number cannot start with 0.");
         }
 
         if (nationalIdAsString.Length != 10)
         {
-            return new ValidationResult(
-                "National ID number must be 10 digits.");
+            return new ValidationResult("National ID number must be 10 digits.");
         }
-        
+
         // Make sure of all conditions using regex.
         if (!regex.IsMatch(nationalIdAsString))
         {
             return new ValidationResult("Invalid National ID number.");
         }
-        
+
         return ValidationResult.Success;
     }
 
@@ -102,7 +100,7 @@ public class UserInfoValidator
         {
             return new ValidationResult("Invalid name.");
         }
-        
+
         return ValidationResult.Success;
     }
 
@@ -140,7 +138,8 @@ public class UserInfoValidator
         }
 
         // Check if the format is correct
-        if (!DateTime.TryParseExact(birthDateString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime birthDate))
+        if (!DateTime.TryParseExact(birthDateString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None,
+                out DateTime birthDate))
         {
             return new ValidationResult("Invalid birth date format. Please use yyyy-MM-dd.");
         }
@@ -164,6 +163,4 @@ public class UserInfoValidator
         // Validation passed
         return ValidationResult.Success;
     }
-
-
 }

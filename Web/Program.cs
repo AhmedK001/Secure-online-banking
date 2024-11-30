@@ -32,31 +32,27 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Your API", Version = "v1" });
 
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        In = ParameterLocation.Header,
-        Description = "Please enter a valid token",
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "Bearer"
-    });
+    c.AddSecurityDefinition("Bearer",
+        new OpenApiSecurityScheme
+        {
+            In = ParameterLocation.Header,
+            Description = "Please enter a valid token",
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "Bearer"
+        });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
-            new string[] {}
+            new string[] { }
         }
     });
 });
-
 
 
 builder.Services.AddHttpClient<IStockService, StockService>();
@@ -77,6 +73,8 @@ builder.Services.AddScoped<IGenerateService, GenerateService>();
 builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPaymentsService, PaymentsService>();
+builder.Services.AddScoped<IStockRepository, StockRepository>();
+
 
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
@@ -86,11 +84,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
-builder.Services.AddIdentity<User, Role>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders()
-    .AddUserStore<UserStore<User,Role,ApplicationDbContext,Guid>>()
-    .AddRoleStore<RoleStore<Role,ApplicationDbContext,Guid>>();
+builder.Services.AddIdentity<User, Role>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders()
+    .AddUserStore<UserStore<User, Role, ApplicationDbContext, Guid>>()
+    .AddRoleStore<RoleStore<Role, ApplicationDbContext, Guid>>();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -103,25 +99,22 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 builder.Services.AddTransient<IJwtService, JwtService>();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:KEY"] ?? string.Empty)),
-
-            ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["Jwt:ISSUER"],
-
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration["Jwt:AUDIENCE"],
-
-            ValidateLifetime = true,
-
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey
+            = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:KEY"] ?? string.Empty)),
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["Jwt:ISSUER"],
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Jwt:AUDIENCE"],
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
 
 var app = builder.Build();
 
@@ -130,10 +123,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-    });
+    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"); });
 }
 
 app.UseHttpsRedirection();

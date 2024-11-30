@@ -239,7 +239,7 @@ public class BankAccountService : IBankAccountService
         catch (Exception e)
         {
             await _unitOfWork.RollbackTransactionAsync();
-            throw new Exception(e.Message);
+            throw new Exception();
         }
     }
 

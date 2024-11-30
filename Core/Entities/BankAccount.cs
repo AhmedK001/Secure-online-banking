@@ -19,6 +19,7 @@ namespace Core.Entities;
         public DateTime CreationDate { get; set; }
         public decimal Balance { get; set; }
         public List<Operation>? Operations { get; set; }
+        public List<Stock> Stocks { get; set; }
         public User User { get; set; }
         public List<Card> BankCards { get; set; }
     }

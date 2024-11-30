@@ -33,6 +33,7 @@ public class ApplicationDbContext : IdentityDbContext<User,Role,Guid>
         new ReceiverClientEntityTypeConfig().Configure(modelBuilder.Entity<ReceiverClient>());
         new BankCardEntityTypeConfig().Configure(modelBuilder.Entity<Card>());
         new PaymentEntityTypeConfig().Configure(modelBuilder.Entity<Payment>());
+        new StockEntityTypeConfiguration().Configure(modelBuilder.Entity<Stock>());
     }
 
     public DbSet<BankAccount> Accounts { get; set; }
@@ -40,4 +41,5 @@ public class ApplicationDbContext : IdentityDbContext<User,Role,Guid>
     public DbSet<Card> BankCards { get; set; }
     public DbSet<ReceiverClient> ReceiverClients { get; set; }
     public DbSet<Payment> Payments { get; set; }
+    public DbSet<Stock> Stocks { get; set; }
 }

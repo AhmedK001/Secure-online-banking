@@ -52,7 +52,6 @@ public class BankAccountController : ControllerBase
             {
                 Message = "Your bank account has been created successfully.",
                 bankAccount.AccountNumber,
-                Currency = Enum.GetName(typeof(EnumCurrency), bankAccount.Currency),
                 bankAccount.Balance,
                 bankAccount.CreationDate,
                 bankAccount.UserId
@@ -60,7 +59,7 @@ public class BankAccountController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(e);
         }
     }
 
@@ -85,7 +84,7 @@ public class BankAccountController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(e);
         }
     }
 
@@ -128,18 +127,7 @@ public class BankAccountController : ControllerBase
             }
 
 
-            //await _bankAccountService.ChangeCurrencyAsync(currencySymbol, bankAccountDetails.AccountNumber);
-            if (bankAccountDetails.Balance == 0)
-            {
-                await _bankAccountService.ExchangeMoney(true,Enum.GetName(typeof(EnumCurrency),bankAccountDetails.Currency), currencySymbolDto,
-                    bankAccountDetails.AccountNumber);
-            }
-            else
-            {
-                await _bankAccountService.ExchangeMoney(false,Enum.GetName(typeof(EnumCurrency),bankAccountDetails.Currency), currencySymbolDto,
-                    bankAccountDetails.AccountNumber);
-            }
-
+            await _bankAccountService.ChangeCurrencyAsync(currencySymbol, bankAccountDetails.AccountNumber);
 
             var accountAfterCurrencyChanged
                 = await _bankAccountService.GetDetailsByAccountNumber(bankAccountDetails.AccountNumber);
@@ -150,7 +138,7 @@ public class BankAccountController : ControllerBase
                 BankAccount = new
                 {
                     accountAfterCurrencyChanged.AccountNumber,
-                    accountAfterCurrencyChanged.CreationDate,
+                    CreationDate = accountAfterCurrencyChanged.CreationDate.ToString("dd-MM-yyyy"),
                     Currency = Enum.GetName(typeof(EnumCurrency),
                         accountAfterCurrencyChanged.Currency),
                     accountAfterCurrencyChanged.Balance
@@ -159,7 +147,9 @@ public class BankAccountController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e.Message);
+            var errorMessage = e.InnerException?.Message ?? e.Message;
+
+            return BadRequest(new { Message = errorMessage, E = e });
         }
     }
 }

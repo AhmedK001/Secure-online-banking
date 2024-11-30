@@ -39,10 +39,10 @@ public class CardsController : ControllerBase
                 = await _cardsService.GetCardDetails(bankAccountDetails.AccountNumber,
                     createCardResult.Item2);
 
-            var cardResponse = new
+            CardResponseDto cardResponseDto = new CardResponseDto()
             {
                 Balance = createdCardDetails.Balance,
-                ExpiryDate = createdCardDetails.ExpiryDate.ToString("dd-MM-yyyy"),
+                ExpiryDate = createdCardDetails.ExpiryDate,
                 IsActivated = createdCardDetails.IsActivated,
                 OpenedForInternalOperations = createdCardDetails.OpenedForInternalOperations,
                 OpenedForOnlinePurchase = createdCardDetails.OpenedForOnlinePurchase,
@@ -53,7 +53,7 @@ public class CardsController : ControllerBase
 
             return Ok(new
             {
-                Message = "You card has been created successfully.", CreatedCardDetails = cardResponse
+                Message = "You card has been created successfully.", CreatedCardDetails = cardResponseDto
             });
         }
         catch (Exception e)

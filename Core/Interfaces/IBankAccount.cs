@@ -12,5 +12,5 @@ public interface IBankAccount
      decimal Balance { get; set; }
      DateTime CreationDate { get; set; }
      List<Operation> Operations { get; set; }
-     
+     List<Stock> Stocks { get; set; }
 }

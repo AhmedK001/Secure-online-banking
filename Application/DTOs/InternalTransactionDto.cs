@@ -2,7 +2,7 @@
 
 namespace Application.DTOs;
 
-public class TransferToCardDto
+public class InternalTransactionDto
 {
     [Required]
     public int CardId { get; set; }

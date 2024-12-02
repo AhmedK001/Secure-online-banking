@@ -19,6 +19,5 @@ public interface ICardRepository
     Task<bool> ChangeCurrencyAsync(bool saveAsync, EnumCurrency currency, int cardId);
     Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(bool saveAsync,decimal newBalance,
         int cardId);
-
     Task<bool> HasThreeCards(string accountNumber);
 }

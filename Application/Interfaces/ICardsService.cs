@@ -1,3 +1,4 @@
+using Application.DTOs;
 using Core.Entities;
 using Core.Enums;
 
@@ -20,8 +21,11 @@ public interface ICardsService
     Task<int> GenerateCardId();
     Task<bool> DeleteCard(int cardId);
     Task<bool> ChangeCurrencyAsync(EnumCurrency currency, int cardId, string accountNumber);
-
+    Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(bool saveAsync, decimal newBalance,
+        int cardId);
     Task<bool> ExchangeMoney(bool zeroBalance,string fromCurrency, string toCurrency,
         int cardId,string accountNumber);
 
+    Task<(bool, string)> TransferToBankAccount(InternalTransactionDto transactionDto, BankAccount bankAccount, Card card);
+    Task<(bool, string)> CardToCardExchange(ExchangeMoneyDtoCardToCard dtoCardToCard, Card baseCard, Card targetCard);
 }

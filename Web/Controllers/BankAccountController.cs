@@ -52,6 +52,7 @@ public class BankAccountController : ControllerBase
             {
                 Message = "Your bank account has been created successfully.",
                 bankAccount.AccountNumber,
+                Currency = Enum.GetName(typeof(EnumCurrency), bankAccount.Currency),
                 bankAccount.Balance,
                 bankAccount.CreationDate,
                 bankAccount.UserId

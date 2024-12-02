@@ -1,7 +1,10 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
+using Application.DTOs;
 using Application.DTOs.ExternalModels.Currency;
 using Application.DTOs.ExternalModels.StocksApiResponse.GetTopGainers_Losers_Actice;
+using Application.DTOs.ResponseDto;
 using Application.Interfaces;
 using Application.Services;
 using Core.Enums;
@@ -16,15 +19,23 @@ namespace Web.Controllers;
 public class CurrencyController : ControllerBase
 {
     private readonly ICurrencyService _currencyService;
+    private readonly IClaimsService _claimsService;
+    private readonly ICardsService _cardsService;
+    private readonly IBankAccountService _bankAccountService;
+    private readonly IValidate _validate;
 
-    public CurrencyController(ICurrencyService currencyService)
+    public CurrencyController(IValidate validate, ICurrencyService currencyService, IClaimsService claimsService,
+        ICardsService cardsService, IBankAccountService bankAccountService)
     {
         _currencyService = currencyService;
+        _claimsService = claimsService;
+        _cardsService = cardsService;
+        _bankAccountService = bankAccountService;
+        _validate = validate;
     }
 
     [HttpGet("exchange-rate")]
     [Authorize]
-
     public async Task<IActionResult> GetExchangeRate([FromQuery] string currentCurrency,
         [FromQuery] string aimedCurrency)
     {
@@ -75,6 +86,116 @@ public class CurrencyController : ControllerBase
         }
     }
 
+    [HttpPost("card-to-card-exchange")]
+    [Authorize]
+    public async Task<IActionResult> CardToCardExchangeMoney(ExchangeMoneyDtoCardToCard dtoCardToCard)
+    {
+        try
+        {
+            if (dtoCardToCard.BaseCardId == dtoCardToCard.TargetCardId)
+                return BadRequest(new { ErrorMessage = "Base and Target cards must be different" });
+
+            var userId = await _claimsService.GetUserIdAsync(User);
+            var bankAccount = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+            var baseCard = await _cardsService.GetCardDetails(bankAccount.AccountNumber, dtoCardToCard.BaseCardId);
+
+            if (dtoCardToCard.Amount < 5)
+                return BadRequest(new { Message = $"The minimum amount must be 5 {bankAccount.Currency}" });
+
+            if (dtoCardToCard.Amount > baseCard.Balance)
+                return BadRequest(new
+                {
+                    ErrorMessage = $"Balance is not enough, Your balance is: {baseCard.Balance}{baseCard.Currency}"
+                });
+            var targetCard = await _cardsService.GetCardDetails(bankAccount.AccountNumber, dtoCardToCard.TargetCardId);
+            var result = await _cardsService.CardToCardExchange(dtoCardToCard, baseCard, targetCard);
+
+            if (!result.Item1) return BadRequest(new { ErrorMessage = result.Item2 });
+
+
+            var baseCardAfterTransaction
+                = await _cardsService.GetCardDetails(bankAccount.AccountNumber, dtoCardToCard.BaseCardId);
+            var targetCardAfterTransaction
+                = await _cardsService.GetCardDetails(bankAccount.AccountNumber, dtoCardToCard.TargetCardId);
+            return Ok(new SuccessResponseDto() { Status = "Success", Message = $"Exchanged successfully." });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost("bank-to-card-exchange")]
+    [Authorize]
+    public async Task<IActionResult> BankToCardExchangeMoney(ExchangeMoneyDtoBankAndCard exchangeDto)
+    {
+        try
+        {
+            var userId = await _claimsService.GetUserIdAsync(User);
+            var bankAccount = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+            var card = await _cardsService.GetCardDetails(bankAccount.AccountNumber, exchangeDto.CardId);
+
+            if (bankAccount.Currency == card.Currency)
+                return BadRequest(new { ErrorMessage = "Bank account and Card currencies must be different." });
+            if (exchangeDto.Amount < 5)
+                return BadRequest(new { Message = $"The minimum amount must be 5 {bankAccount.Currency}" });
+            if (exchangeDto.Amount > bankAccount.Balance)
+                return BadRequest(new
+                {
+                    ErrorMessage = $"Balance is not enough, Your balance is: {bankAccount.Balance}{bankAccount.Currency}"
+                });
+            var result = await _bankAccountService.BankWithCardExchange(true,exchangeDto,card,bankAccount);
+
+            if (!result.Item1) return BadRequest(new { ErrorMessage = result.Item2 });
+
+
+            var bankAccountAfterTransaction
+                = await _bankAccountService.GetDetailsByAccountNumber(bankAccount.AccountNumber);
+            var cardAfterTransaction
+                = await _cardsService.GetCardDetails(bankAccount.AccountNumber, exchangeDto.CardId);
+            return Ok(new SuccessResponseDto() { Status = "Success", Message = $"Exchanged successfully." });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost("card-to-bank-exchange")]
+    [Authorize]
+    public async Task<IActionResult> CardToBankExchangeMoney(ExchangeMoneyDtoBankAndCard exchangeDto)
+    {
+        try
+        {
+            var userId = await _claimsService.GetUserIdAsync(User);
+            var bankAccount = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+            var card = await _cardsService.GetCardDetails(bankAccount.AccountNumber, exchangeDto.CardId);
+
+            if (bankAccount.Currency == card.Currency)
+                return BadRequest(new { ErrorMessage = "Bank account and Card currencies must be different." });
+            if (exchangeDto.Amount < 5)
+                return BadRequest(new { Message = $"The minimum amount must be 5 {card.Currency}" });
+            if (exchangeDto.Amount > card.Balance)
+                return BadRequest(new
+                {
+                    ErrorMessage = $"Balance is not enough, Your balance is: {card.Balance}{card.Currency}"
+                });
+            var result = await _bankAccountService.BankWithCardExchange(false,exchangeDto,card,bankAccount);
+
+            if (!result.Item1) return BadRequest(new { ErrorMessage = result.Item2 });
+
+            var bankAccountAfterTransaction
+                = await _bankAccountService.GetDetailsByAccountNumber(bankAccount.AccountNumber);
+            var cardAfterTransaction
+                = await _cardsService.GetCardDetails(bankAccount.AccountNumber, exchangeDto.CardId);
+            return Ok(new SuccessResponseDto() { Status = "Success", Message = $"Exchanged successfully." });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
     [HttpGet("historical-exchange-rate")]
     public async Task<IActionResult> GetHistoricalExchangeRate([FromQuery] string baseCurrency,
         [FromQuery] string targetCurrency, [FromQuery] string timeSeries)
@@ -97,17 +218,14 @@ public class CurrencyController : ControllerBase
 
             // Any else must contain USD or EUR as current account currency or USD or EUR as a target
             if (letThemPass == false && !(toCurrency == EnumCurrency.USD || toCurrency == EnumCurrency.EUR ||
-                                          fromCurrencye == EnumCurrency.USD ||
-                                          fromCurrencye == EnumCurrency.EUR))
+                                          fromCurrencye == EnumCurrency.USD || fromCurrencye == EnumCurrency.EUR))
             {
                 return BadRequest(new
                 {
                     ErrorMessage
                         = $"Exchange rate not directly available between {fromCurrencye} and {toCurrency}.",
-                    Solution
-                        = $"Search for {fromCurrencye} to USD or EUR or From USD or EUR to {toCurrency}."
+                    Solution = $"Search for {fromCurrencye} to USD or EUR or From USD or EUR to {toCurrency}."
                 });
-
             }
 
             var historicalExchangeRateResult
@@ -123,9 +241,7 @@ public class CurrencyController : ControllerBase
 
         catch (Exception e)
         {
-            return StatusCode(500,
-                "An error occurred while fetching the exchange rate. Please try again later.");
+            return StatusCode(500, "An error occurred while fetching the exchange rate. Please try again later.");
         }
     }
-
 }

@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Application.DTOs;
+using Application.DTOs.ResponseDto;
 using Application.Interfaces;
 using Core.Entities;
 using Core.Enums;
@@ -83,7 +84,7 @@ public class PaymentsController : ControllerBase
     }
 
 
-    [HttpPost("confirm")]
+    [HttpPut("confirm")]
     [Authorize]
     public async Task<IActionResult> ConfirmPayment([FromBody] ConfirmRequestDto confirmRequestDto)
     {
@@ -140,7 +141,7 @@ public class PaymentsController : ControllerBase
 
     [HttpPost("transfer-to-card")]
     [Authorize]
-    public async Task<IActionResult> TransferToCard([FromBody] TransferToCardDto cardDto)
+    public async Task<IActionResult> TransferToCard([FromBody] InternalTransactionDto cardDto)
     {
         if (!ModelState.IsValid)
         {
@@ -211,6 +212,65 @@ public class PaymentsController : ControllerBase
         catch (Exception e)
         {
             await _unitOfWork.RollbackTransactionAsync();
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost("transfer-to-account")]
+    [Authorize]
+    public async Task<IActionResult> TransferToAccount(InternalTransactionDto transactionDto)
+    {
+        try
+        {
+            var userId = await _claimsService.GetUserIdAsync(User);
+            var bankAccount = await _bankAccountService.GetDetailsById(Guid.Parse(userId)); // it check if null
+            var card = await _cardsService.GetCardDetails(bankAccount.AccountNumber, transactionDto.CardId); // it check if null
+
+            if (card.Currency != bankAccount.Currency)
+                return BadRequest(new
+                {
+                    ErrorMessage = "Bank account and Card currency does not match.",
+                    Details = $"Bank account currency: {bankAccount.Currency}, Card currency: {card.Currency}"
+                });
+
+            if (card.Balance < transactionDto.Amount)
+                return BadRequest(new
+                {
+                    ErrorMessage
+                        = $"No enough balance, Your card balance is {card.Balance.ToString("F2")}{card.Currency}"
+                });
+
+            var result = await _cardsService.TransferToBankAccount(transactionDto, bankAccount, card);
+
+            if (!result.Item1)
+            {
+                return BadRequest(new { ErrorMessage = result.Item2 });
+            }
+
+            var bankAccountAfterTransaction = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+            var cardAfterTransaction
+                = await _cardsService.GetCardDetails(bankAccount.AccountNumber, transactionDto.CardId);
+
+            var bankResponse = new
+            {
+                Balance = bankAccountAfterTransaction.Balance.ToString("F2"),
+                Currency = Enum.GetName(typeof(EnumCurrency), bankAccountAfterTransaction.Currency),
+            };
+            var cardResponse = new
+            {
+                Balance = cardAfterTransaction.Balance.ToString("F2"),
+                Currency = Enum.GetName(typeof(EnumCurrency), cardAfterTransaction.Currency),
+            };
+            return Ok(new
+            {
+                Status = "Success",
+                Message = $"Transferred successfully",
+                CardResponse = cardResponse,
+                BankAccount = bankResponse
+            });
+        }
+        catch (Exception e)
+        {
             return BadRequest(e.Message);
         }
     }

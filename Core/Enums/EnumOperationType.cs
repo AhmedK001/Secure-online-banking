@@ -8,5 +8,6 @@ public enum EnumOperationType
     Transfer,
     Loan,
     CurrencyChange,
-    TransactionToCard
+    TransactionToCard,
+    TransactionToBankAccount
 }

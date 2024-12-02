@@ -1,3 +1,4 @@
+using Application.DTOs;
 using Application.DTOs.ExternalModels.Currency;
 using Application.Interfaces;
 using Core.Entities;
@@ -13,8 +14,9 @@ public class CardsService : ICardsService
     private readonly ICurrencyService _currencyService;
     private readonly IOperationService _operationService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IBankAccountService _bankAccountService;
 
-    public CardsService(ICardRepository cardRepository, IGenerateService generateService,
+    public CardsService(IBankAccountService bankAccountService,ICardRepository cardRepository, IGenerateService generateService,
         ICurrencyService currencyService, IOperationService operationService, IUnitOfWork unitOfWork)
     {
         _cardRepository = cardRepository;
@@ -22,6 +24,7 @@ public class CardsService : ICardsService
         _currencyService = currencyService;
         _operationService = operationService;
         _unitOfWork = unitOfWork;
+        _bankAccountService = bankAccountService;
     }
 
     public Task<bool> IsUserHasCardWithInTypeAsync(string accountNumber, EnumCardType cardType)
@@ -203,6 +206,21 @@ public class CardsService : ICardsService
         }
     }
 
+    public async Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(bool saveAsync, decimal newBalance, int cardId)
+    {
+        try
+        {
+            var result = await _cardRepository.ChangeBalance(saveAsync, newBalance, cardId);
+
+            return (result.isSuccess, result.amountAfterExchange);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
     public async Task<bool> ExchangeMoney(bool zeroBalance, string fromCurrency, string toCurrency, int cardId,
         string accountNumber)
     {
@@ -260,6 +278,55 @@ public class CardsService : ICardsService
         {
             await _unitOfWork.RollbackTransactionAsync(); // if failed, roll back all commits
             throw new Exception("Something went wrong.", e);
+        }
+    }
+
+    public async Task<(bool, string)> TransferToBankAccount(InternalTransactionDto transactionDto,
+        BankAccount bankAccount, Card card)
+    {
+        try
+        {
+            await _unitOfWork.BeginTransactionAsync();
+
+            var newCardBalance = card.Balance - transactionDto.Amount;
+            await _cardRepository.ChangeBalance(true, newCardBalance, card.CardId);
+            var newBankAccountBalance = bankAccount.Balance + transactionDto.Amount;
+            await _bankAccountService.ChangeBalance(true, newBankAccountBalance, bankAccount.AccountNumber);
+
+            await _unitOfWork.CommitTransactionAsync();
+
+            return (true, "");
+        }
+        catch (Exception e)
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw new Exception();
+        }
+    }
+
+    public async Task<(bool, string)> CardToCardExchange(ExchangeMoneyDtoCardToCard dtoCardToCard, Card baseCard, Card targetCard)
+    {
+        try
+        {
+            if (baseCard.BankAccount.AccountNumber != targetCard.BankAccount.AccountNumber)
+                return (false, "This service only valid for internal transactions");
+            var exchangeForm = await _currencyService.GetExchangeForm(Enum.GetName(typeof(EnumCurrency), baseCard.Currency),
+                Enum.GetName(typeof(EnumCurrency), targetCard.Currency));
+
+            var amountAfterExchange = dtoCardToCard.Amount * decimal.Parse(exchangeForm.BidPrice);
+
+            await _unitOfWork.BeginTransactionAsync();
+            // Exchange process
+            await _cardRepository.ChangeBalance(true, baseCard.Balance -= dtoCardToCard.Amount, baseCard.CardId);
+            await _cardRepository.ChangeBalance(true, targetCard.Balance += amountAfterExchange, targetCard.CardId);
+            await _unitOfWork.CommitTransactionAsync();
+
+            return (true, "");
+        }
+        catch (Exception e)
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Application.Interfaces;
 using Application.Services;
+using Application.Validators;
 using Core.Entities;
 using Core.Interfaces;
 using Core.Interfaces.IRepositories;
@@ -74,6 +75,7 @@ builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPaymentsService, PaymentsService>();
 builder.Services.AddScoped<IStockRepository, StockRepository>();
+builder.Services.AddScoped<IValidate, Validate>();
 
 
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];

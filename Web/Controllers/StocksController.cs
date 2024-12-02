@@ -24,44 +24,6 @@ public class StocksController : ControllerBase
         _bankAccountService = bankAccountService;
     }
 
-    [HttpGet("stock-live-price")]
-    [Authorize]
-    public async Task<IActionResult> GetStockLivePrice([FromQuery] CurrencySymbolDto currencySymbolDto)
-    {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            return Ok(await _stockService.GetStockLivePrice(currencySymbolDto.Symbol));
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
-    }
-
-    [HttpGet("stock-historical")]
-    [Authorize]
-    public async Task<IActionResult> GetStockPrices([FromQuery] StockPricesDto stockPricesDto)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        var stockPrices = await _stockService.GetStockPricesAsync(stockPricesDto);
-
-        if (stockPrices.IsNullOrEmpty())
-        {
-            return BadRequest("Something went wrong.");
-        }
-
-        return Ok(stockPrices);
-    }
-
     [HttpPost("buy-stock")]
     [Authorize]
     public async Task<IActionResult> BuyStock([FromQuery] BuyStockDto stockDto)
@@ -137,6 +99,44 @@ public class StocksController : ControllerBase
         {
             return BadRequest(e.Message);
         }
+    }
+
+    [HttpGet("stock-live-price")]
+    [Authorize]
+    public async Task<IActionResult> GetStockLivePrice([FromQuery] CurrencySymbolDto currencySymbolDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            return Ok(await _stockService.GetStockLivePrice(currencySymbolDto.Symbol));
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpGet("stock-historical")]
+    [Authorize]
+    public async Task<IActionResult> GetStockPrices([FromQuery] StockPricesDto stockPricesDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var stockPrices = await _stockService.GetStockPricesAsync(stockPricesDto);
+
+        if (stockPrices.IsNullOrEmpty())
+        {
+            return BadRequest("Something went wrong.");
+        }
+
+        return Ok(stockPrices);
     }
 
     [HttpGet("top-gainers")]

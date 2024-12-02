@@ -1,4 +1,5 @@
-﻿using Application.DTOs.ExternalModels.Currency;
+﻿using Application.DTOs;
+using Application.DTOs.ExternalModels.Currency;
 using Application.Interfaces;
 using Core.Entities;
 using Core.Enums;
@@ -15,8 +16,10 @@ public class BankAccountService : IBankAccountService
     private readonly IOperationsRepository _operationsRepository;
     private readonly ICurrencyService _currencyService;
     private readonly IUnitOfWork _unitOfWork;
+    //private readonly ICardsService _cardsService;
+    private readonly ICardRepository _cardRepository;
 
-    public BankAccountService(IOperationsRepository operationsRepository,IBankAccountRepository bankAccountRepository, IUserRepository userRepository, IOperationService operationService,ICurrencyService currencyService,IUnitOfWork unitOfWork)
+    public BankAccountService(ICardRepository cardRepository,IOperationsRepository operationsRepository,IBankAccountRepository bankAccountRepository, IUserRepository userRepository, IOperationService operationService,ICurrencyService currencyService,IUnitOfWork unitOfWork)
     {
         _bankAccountRepository = bankAccountRepository;
         _userRepository = userRepository;
@@ -24,6 +27,8 @@ public class BankAccountService : IBankAccountService
         _operationsRepository = operationsRepository;
         _currencyService = currencyService;
         _unitOfWork = unitOfWork;
+        //_cardsService = cardsService;
+        _cardRepository = cardRepository;
     }
 
 
@@ -232,7 +237,10 @@ public class BankAccountService : IBankAccountService
 
             await _operationService.LogOperation(true,operation);
             await _bankAccountRepository.ChangeCurrencyAsync(true,currency, accountNumber);
-            await _bankAccountRepository.ChangeBalance(true,amountAfterExchange, accountNumber);
+            if (!zeroBalance)
+            {
+                await _bankAccountRepository.ChangeBalance(true,amountAfterExchange, accountNumber);
+            }
             await _unitOfWork.CommitTransactionAsync();
             return true;
         }
@@ -240,6 +248,64 @@ public class BankAccountService : IBankAccountService
         {
             await _unitOfWork.RollbackTransactionAsync();
             throw new Exception();
+        }
+    }
+
+    public async Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(bool saveAsync, decimal newBalance, string accountNumber)
+    {
+        try
+        {
+            return await _bankAccountRepository.ChangeBalance(saveAsync, newBalance, accountNumber);
+        }
+        catch (Exception e)
+        {
+            throw new Exception();
+        }
+    }
+
+    public async Task<(bool, string)> BankWithCardExchange(bool isBankToCard,ExchangeMoneyDtoBankAndCard exchangeDto, Card card, BankAccount bankAccount)
+    {
+        try
+        {
+            if (bankAccount.AccountNumber != card.BankAccount.AccountNumber)
+                return (false, "This service only valid for internal transactions");
+
+            if (isBankToCard)
+            {
+
+                var exchangeForm = await _currencyService.GetExchangeForm(Enum.GetName(typeof(EnumCurrency), bankAccount.Currency),
+                    Enum.GetName(typeof(EnumCurrency), card.Currency));
+
+                var amountAfterExchange = exchangeDto.Amount * decimal.Parse(exchangeForm.BidPrice);
+
+                await _unitOfWork.BeginTransactionAsync();
+                // Exchange process
+                await ChangeBalance(true, bankAccount.Balance -= exchangeDto.Amount,bankAccount.AccountNumber);
+                await _cardRepository.ChangeBalance(true, card.Balance += amountAfterExchange, card.CardId);
+                await _unitOfWork.CommitTransactionAsync();
+
+                return (true, "");
+            }
+            else
+            {
+                var exchangeForm = await _currencyService.GetExchangeForm(Enum.GetName(typeof(EnumCurrency), bankAccount.Currency),
+                    Enum.GetName(typeof(EnumCurrency), card.Currency));
+
+                var amountAfterExchange = exchangeDto.Amount * decimal.Parse(exchangeForm.BidPrice);
+
+                await _unitOfWork.BeginTransactionAsync();
+                // Exchange process
+                await _cardRepository.ChangeBalance(true, card.Balance -= exchangeDto.Amount,card.CardId);
+                await ChangeBalance(true, bankAccount.Balance += amountAfterExchange, bankAccount.AccountNumber);
+                await _unitOfWork.CommitTransactionAsync();
+
+                return (true, "");
+            }
+        }
+        catch (Exception e)
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
         }
     }
 

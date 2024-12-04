@@ -91,7 +91,7 @@ public class StockService : IStockService
 
             if (bankAccount.Currency != EnumCurrency.USD)
             {
-                throw new Exception("Your bank account currency must be in Dollar.");
+                return (false, "Your bank account currency must be in Dollar.");
             }
 
             Stock stock = new Stock()

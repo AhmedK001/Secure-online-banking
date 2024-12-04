@@ -23,8 +23,11 @@ public class CurrencyController : ControllerBase
     private readonly ICardsService _cardsService;
     private readonly IBankAccountService _bankAccountService;
     private readonly IValidate _validate;
+    private readonly IEmailService _emailService;
+    private readonly IEmailBodyBuilder _emailBodyBuilder;
+    private readonly IConfiguration _configuration;
 
-    public CurrencyController(IValidate validate, ICurrencyService currencyService, IClaimsService claimsService,
+    public CurrencyController(IEmailService emailService, IEmailBodyBuilder emailBodyBuilder, IConfiguration configuration,IValidate validate, ICurrencyService currencyService, IClaimsService claimsService,
         ICardsService cardsService, IBankAccountService bankAccountService)
     {
         _currencyService = currencyService;
@@ -32,6 +35,9 @@ public class CurrencyController : ControllerBase
         _cardsService = cardsService;
         _bankAccountService = bankAccountService;
         _validate = validate;
+        _configuration = configuration;
+        _emailService = emailService;
+        _emailBodyBuilder = emailBodyBuilder;
     }
 
     [HttpGet("exchange-rate")]
@@ -117,7 +123,44 @@ public class CurrencyController : ControllerBase
                 = await _cardsService.GetCardDetails(bankAccount.AccountNumber, dtoCardToCard.BaseCardId);
             var targetCardAfterTransaction
                 = await _cardsService.GetCardDetails(bankAccount.AccountNumber, dtoCardToCard.TargetCardId);
-            return Ok(new SuccessResponseDto() { Status = "Success", Message = $"Exchanged successfully." });
+
+            var emailBody = _emailBodyBuilder.CardToCardExchange(
+                "Card-to-Card exchange completed successfully.",
+                baseCardAfterTransaction,
+                targetCardAfterTransaction,
+                dtoCardToCard.Amount
+            );
+
+            var email = _configuration["Email"];
+
+            await _emailService.SendEmailAsync(email, "Card-to-Card Exchange Completed", emailBody);
+
+            return Ok(new SuccessResponseDto
+            {
+                Status = "Success",
+                Message = "Card-to-Card exchange completed successfully.",
+                Data = new
+                {
+                    BaseCard = new
+                    {
+                        CardId = baseCardAfterTransaction.CardId,
+                        CardType = Enum.GetName(typeof(EnumCardType), baseCardAfterTransaction.CardType),
+                        Currency = Enum.GetName(typeof(EnumCurrency), baseCardAfterTransaction.Currency),
+                        Balance = baseCardAfterTransaction.Balance
+                    },
+                    TargetCard = new
+                    {
+                        CardId = targetCardAfterTransaction.CardId,
+                        CardType = Enum.GetName(typeof(EnumCardType), targetCardAfterTransaction.CardType),
+                        Currency = Enum.GetName(typeof(EnumCurrency), targetCardAfterTransaction.Currency),
+                        Balance = targetCardAfterTransaction.Balance
+                    },
+                    ExchangeDetails = new
+                    {
+                        AmountExchanged = dtoCardToCard.Amount,
+                    }
+                }
+            });
         }
         catch (Exception e)
         {
@@ -153,6 +196,17 @@ public class CurrencyController : ControllerBase
                 = await _bankAccountService.GetDetailsByAccountNumber(bankAccount.AccountNumber);
             var cardAfterTransaction
                 = await _cardsService.GetCardDetails(bankAccount.AccountNumber, exchangeDto.CardId);
+
+            var email = _configuration["Email"];
+
+            var emailBody = _emailBodyBuilder.BankToCardExchange(
+                "Bank-to-Card exchange completed successfully.",
+                bankAccountAfterTransaction,
+                cardAfterTransaction,
+                exchangeDto.Amount
+            );
+
+            await _emailService.SendEmailAsync(email, "Bank-to-Card Exchange Completed", emailBody);
             return Ok(new SuccessResponseDto() { Status = "Success", Message = $"Exchanged successfully." });
         }
         catch (Exception e)
@@ -188,6 +242,18 @@ public class CurrencyController : ControllerBase
                 = await _bankAccountService.GetDetailsByAccountNumber(bankAccount.AccountNumber);
             var cardAfterTransaction
                 = await _cardsService.GetCardDetails(bankAccount.AccountNumber, exchangeDto.CardId);
+
+            var email = _configuration["Email"];
+
+            var emailBody = _emailBodyBuilder.CardToBankExchange(
+                "Card-to-Bank exchange completed successfully.",
+                bankAccountAfterTransaction,
+                cardAfterTransaction,
+                exchangeDto.Amount
+            );
+
+            await _emailService.SendEmailAsync(email, "Card-to-Bank Exchange Completed", emailBody);
+
             return Ok(new SuccessResponseDto() { Status = "Success", Message = $"Exchanged successfully." });
         }
         catch (Exception e)

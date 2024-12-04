@@ -9,5 +9,6 @@ public class BuyStockDto
     public string Symbol { get; set; }
 
     [Required(ErrorMessage = "Number of Stock to buy required.")]
+    [RegularExpression("^(?!0$)\\d{1,8}$",ErrorMessage = "Please enter a valid amount.")]
     public int NumberOfStocks { get; set; }
 }

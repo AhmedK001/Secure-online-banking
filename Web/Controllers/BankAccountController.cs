@@ -18,14 +18,20 @@ public class BankAccountController : ControllerBase
     private readonly SignInManager<User> _signInManager;
     private readonly IBankAccountService _bankAccountService;
     private readonly IClaimsService _claimsService;
+    private readonly IConfiguration _configuration;
+    private readonly IEmailService _emailService;
+    private readonly IEmailBodyBuilder _emailBodyBuilder;
 
-    public BankAccountController(UserManager<User> userManager, SignInManager<User> signInManager,
+    public BankAccountController(IEmailBodyBuilder emailBodyBuilder,IEmailService emailService,IConfiguration configuration,UserManager<User> userManager, SignInManager<User> signInManager,
         IBankAccountService bankAccountService, IClaimsService claimsService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _bankAccountService = bankAccountService;
         _claimsService = claimsService;
+        _configuration = configuration;
+        _emailService = emailService;
+        _emailBodyBuilder = emailBodyBuilder;
     }
 
     [HttpPost("bank-account")]
@@ -133,6 +139,11 @@ public class BankAccountController : ControllerBase
             var accountAfterCurrencyChanged
                 = await _bankAccountService.GetDetailsByAccountNumber(bankAccountDetails.AccountNumber);
 
+
+            var email = _configuration["Email"];
+
+            await _emailService.SendEmailAsync(email, "Bank Account Currency Change.",
+                _emailBodyBuilder.ChangeCurrencyBank("Bank Account Currency Change.", accountAfterCurrencyChanged));
             return Ok(new
             {
                 Message = "Your Bank Account currency changed successfully.",

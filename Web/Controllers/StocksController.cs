@@ -16,12 +16,14 @@ public class StocksController : ControllerBase
     private readonly IStockService _stockService;
     private readonly IClaimsService _claimsService;
     private readonly IBankAccountService _bankAccountService;
+    private readonly IEmailService _emailService;
 
-    public StocksController(IStockService stockService, IClaimsService claimsService, IBankAccountService bankAccountService)
+    public StocksController(IEmailService emailService,IStockService stockService, IClaimsService claimsService, IBankAccountService bankAccountService)
     {
         _stockService = stockService;
         _claimsService = claimsService;
         _bankAccountService = bankAccountService;
+        _emailService = emailService;
     }
 
     [HttpPost("buy-stock")]
@@ -30,10 +32,7 @@ public class StocksController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var userId = await _claimsService.GetUserIdAsync(User);
             var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
@@ -47,6 +46,16 @@ public class StocksController : ControllerBase
                     Message = buyStockResult.Item2
                 });
             }
+
+            var response = new
+            {
+                Message = "Operation done successfully!",
+                StockName = stockDetails.Result[0].Description,
+                stockDetails.Result[0].Symbol,
+                stockPrice.CurrentPrice,
+                stockDto.NumberOfStocks
+            };
+
             return Ok(new
             {
                 Message = "Operation done successfully!",
@@ -60,6 +69,13 @@ public class StocksController : ControllerBase
         {
             return BadRequest(e.Message);
         }
+    }
+
+    [HttpPost("sell-stock")]
+    [Authorize]
+    public async Task<IActionResult> SellStock([FromQuery] BuyStockDto stockDto)
+    {
+        throw new NotImplementedException();
     }
 
     [HttpGet("owned-stocks")]

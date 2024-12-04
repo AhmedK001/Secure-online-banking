@@ -76,6 +76,8 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPaymentsService, PaymentsService>();
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IValidate, Validate>();
+builder.Services.AddScoped<IEmailService, EmailsService>();
+builder.Services.AddScoped<IEmailBodyBuilder, EmailBodyBuilder>();
 
 
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
@@ -127,6 +129,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"); });
 }
+builder.Configuration.AddJsonFile("MyEmail.json", optional: true, reloadOnChange: true);
 
 app.UseHttpsRedirection();
 

@@ -25,10 +25,13 @@ public class PaymentsController : ControllerBase
     private readonly IOperationService _operationService;
     private readonly IPaymentsService _paymentsService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmailService _emailService;
+    private readonly IEmailBodyBuilder _emailBodyBuilder;
 
-    public PaymentsController(IConfiguration configuration, IBankAccountService bankAccountService,
-        IClaimsService claimsService, ICardsService cardsService, IOperationService operationService,
-        IPaymentsService paymentsService, IUnitOfWork unitOfWork)
+    public PaymentsController(IEmailService emailService, IEmailBodyBuilder emailBodyBuilder,
+        IConfiguration configuration, IBankAccountService bankAccountService, IClaimsService claimsService,
+        ICardsService cardsService, IOperationService operationService, IPaymentsService paymentsService,
+        IUnitOfWork unitOfWork)
     {
         _configuration = configuration;
         _bankAccountService = bankAccountService;
@@ -37,6 +40,8 @@ public class PaymentsController : ControllerBase
         _operationService = operationService;
         _paymentsService = paymentsService;
         _unitOfWork = unitOfWork;
+        _emailService = emailService;
+        _emailBodyBuilder = emailBodyBuilder;
     }
 
 
@@ -122,6 +127,13 @@ public class PaymentsController : ControllerBase
                 return BadRequest("Something went wrong.");
             }
 
+            var email = _configuration["Email"];
+            string emailContent = _emailBodyBuilder.ChargeAccount("You account has been Charge Successfully!",
+                bankAccount, _chargeAmount, paymentIntent.Status);
+
+            await _emailService.SendEmailAsync(email, "You account has been Charge Successfully", emailContent);
+
+
             // add currency for operation service, make default charge currency then validate.
             _chargeAmount = 0;
             return Ok(new
@@ -191,6 +203,16 @@ public class PaymentsController : ControllerBase
             await _operationService.LogOperation(true, operation);
             await _unitOfWork.CommitTransactionAsync(); // commit changes if all succeeded
 
+            var email = _configuration["Email"];
+
+            string emailContent = _emailBodyBuilder.TransferToCard(
+                "Your transaction to the card has been completed successfully.", bankAccountDetails, aimedCard,
+                cardDto.Amount);
+
+            await _emailService.SendEmailAsync(email, "Your transaction to the card has been completed successfully.",
+                emailContent);
+
+
             return Ok(new
             {
                 Message = "Your card has been charged successfully.",
@@ -224,7 +246,8 @@ public class PaymentsController : ControllerBase
         {
             var userId = await _claimsService.GetUserIdAsync(User);
             var bankAccount = await _bankAccountService.GetDetailsById(Guid.Parse(userId)); // it check if null
-            var card = await _cardsService.GetCardDetails(bankAccount.AccountNumber, transactionDto.CardId); // it check if null
+            var card = await _cardsService.GetCardDetails(bankAccount.AccountNumber,
+                transactionDto.CardId); // it check if null
 
             if (card.Currency != bankAccount.Currency)
                 return BadRequest(new
@@ -261,6 +284,15 @@ public class PaymentsController : ControllerBase
                 Balance = cardAfterTransaction.Balance.ToString("F2"),
                 Currency = Enum.GetName(typeof(EnumCurrency), cardAfterTransaction.Currency),
             };
+            var email = _configuration["Email"];
+
+            string emailContent = _emailBodyBuilder.TransferToAccount(
+                "Your transaction to the bank account has been completed successfully.", bankAccount, card,
+                transactionDto.Amount);
+
+            await _emailService.SendEmailAsync(email,
+                "Your transaction to the bank account has been completed successfully.", emailContent);
+
             return Ok(new
             {
                 Status = "Success",

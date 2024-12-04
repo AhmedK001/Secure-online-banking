@@ -15,13 +15,19 @@ public class CardsController : ControllerBase
     private readonly IClaimsService _claimsService;
     private readonly IBankAccountService _bankAccountService;
     private readonly ICardsService _cardsService;
+    private readonly IEmailService _emailService;
+    private readonly IEmailBodyBuilder _emailBodyBuilder;
+    private readonly IConfiguration _configuration;
 
-    public CardsController(IClaimsService claimsService, IBankAccountService bankAccountService,
+    public CardsController(IConfiguration configuration, IEmailService emailService, IEmailBodyBuilder emailBodyBuilder,IClaimsService claimsService, IBankAccountService bankAccountService,
         ICardsService cardsService)
     {
         _claimsService = claimsService;
         _bankAccountService = bankAccountService;
         _cardsService = cardsService;
+        _configuration = configuration;
+        _emailService = emailService;
+        _emailBodyBuilder = emailBodyBuilder;
     }
 
     [HttpPost("card")]
@@ -120,6 +126,11 @@ public class CardsController : ControllerBase
 
             var cardAfterCurrencyChanged
                 = await _cardsService.GetCardDetails(bankAccountDetails.AccountNumber, currencyCardDto.CardId);
+
+            var email = _configuration["Email"];
+
+            await _emailService.SendEmailAsync(email, "CARD currency change.",
+                _emailBodyBuilder.ChangeCurrencyCard("CARD currency change.", cardAfterCurrencyChanged));
 
             return Ok(new
             {

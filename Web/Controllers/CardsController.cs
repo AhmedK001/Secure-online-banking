@@ -130,7 +130,7 @@ public class CardsController : ControllerBase
             var email = _configuration["Email"];
 
             await _emailService.SendEmailAsync(email, "CARD currency change.",
-                _emailBodyBuilder.ChangeCurrencyCard("CARD currency change.", cardAfterCurrencyChanged));
+                _emailBodyBuilder.ChangeCurrencyCardHtmlResponse("CARD currency change.", cardAfterCurrencyChanged));
 
             return Ok(new
             {

@@ -128,7 +128,7 @@ public class PaymentsController : ControllerBase
             }
 
             var email = _configuration["Email"];
-            string emailContent = _emailBodyBuilder.ChargeAccount("You account has been Charge Successfully!",
+            string emailContent = _emailBodyBuilder.ChargeAccountHtmlResponse("You account has been Charge Successfully!",
                 bankAccount, _chargeAmount, paymentIntent.Status);
 
             await _emailService.SendEmailAsync(email, "You account has been Charge Successfully", emailContent);
@@ -205,7 +205,7 @@ public class PaymentsController : ControllerBase
 
             var email = _configuration["Email"];
 
-            string emailContent = _emailBodyBuilder.TransferToCard(
+            string emailContent = _emailBodyBuilder.TransferToCardHtmlResponse(
                 "Your transaction to the card has been completed successfully.", bankAccountDetails, aimedCard,
                 cardDto.Amount);
 
@@ -286,7 +286,7 @@ public class PaymentsController : ControllerBase
             };
             var email = _configuration["Email"];
 
-            string emailContent = _emailBodyBuilder.TransferToAccount(
+            string emailContent = _emailBodyBuilder.TransferToAccountHtmlResponse(
                 "Your transaction to the bank account has been completed successfully.", bankAccount, card,
                 transactionDto.Amount);
 

@@ -21,6 +21,7 @@ using BankAccountService = Application.Services.BankAccountService;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddMemoryCache();
 builder.Services.AddControllers(); // Add this line to register controllers
 builder.Services.AddControllers().AddJsonOptions(o =>
 {
@@ -29,28 +30,32 @@ builder.Services.AddControllers().AddJsonOptions(o =>
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+builder.Services.AddSwaggerGen(options =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Your API", Version = "v1" });
 
-    c.AddSecurityDefinition("Bearer",
-        new OpenApiSecurityScheme
+    var jstSecScheme = new OpenApiSecurityScheme
+    {
+        BearerFormat = "JWT",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = JwtBearerDefaults.AuthenticationScheme,
+        Description = "Enter your valid token to be Authenticated.",
+        Reference = new OpenApiReference
         {
-            In = ParameterLocation.Header,
-            Description = "Please enter a valid token",
-            Name = "Authorization",
-            Type = SecuritySchemeType.Http,
-            Scheme = "Bearer"
-        });
+            Id = JwtBearerDefaults.AuthenticationScheme, Type = ReferenceType.SecurityScheme
+        }
+    };
 
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    // Add JWT Authentication to Swagger
+    options.AddSecurityDefinition("Bearer", jstSecScheme);
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-            },
-            new string[] { }
+
+            jstSecScheme,
+            Array.Empty<string>()
         }
     });
 });
@@ -78,6 +83,7 @@ builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IValidate, Validate>();
 builder.Services.AddScoped<IEmailService, EmailsService>();
 builder.Services.AddScoped<IEmailBodyBuilder, EmailBodyBuilder>();
+builder.Services.AddScoped<ITwoFactorAuthService,TwoFactorAuthService>();
 
 
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
@@ -100,25 +106,33 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 8;
 });
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.SignIn.RequireConfirmedEmail = true;
+});
 
 builder.Services.AddTransient<IJwtService, JwtService>();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+builder.Services.AddAuthentication(options =>
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey
-            = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:KEY"] ?? string.Empty)),
-        ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["Jwt:ISSUER"],
-        ValidateAudience = true,
-        ValidAudience = builder.Configuration["Jwt:AUDIENCE"],
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-});
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:ISSUER"],
+            ValidAudience = builder.Configuration["Jwt:AUDIENCE"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:KEY"]!))
+        };
+    });
 
 var app = builder.Build();
 
@@ -129,7 +143,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"); });
 }
-builder.Configuration.AddJsonFile("MyEmail.json", optional: true, reloadOnChange: true);
+
+// This is a local file, I Store data like API Keys or related on.
+builder.Configuration.AddJsonFile("SecureData.json", optional: true, reloadOnChange: true);
 
 app.UseHttpsRedirection();
 

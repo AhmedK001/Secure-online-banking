@@ -66,7 +66,7 @@ public class BankAccountController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(e.Message);
         }
     }
 
@@ -91,7 +91,7 @@ public class BankAccountController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e);
+            return BadRequest(e.Message);
         }
     }
 
@@ -143,7 +143,7 @@ public class BankAccountController : ControllerBase
             var email = _configuration["Email"];
 
             await _emailService.SendEmailAsync(email, "Bank Account Currency Change.",
-                _emailBodyBuilder.ChangeCurrencyBank("Bank Account Currency Change.", accountAfterCurrencyChanged));
+                _emailBodyBuilder.ChangeCurrencyBankHtmlResponse("Bank Account Currency Change.", accountAfterCurrencyChanged));
             return Ok(new
             {
                 Message = "Your Bank Account currency changed successfully.",

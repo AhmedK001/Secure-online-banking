@@ -17,13 +17,20 @@ public class StocksController : ControllerBase
     private readonly IClaimsService _claimsService;
     private readonly IBankAccountService _bankAccountService;
     private readonly IEmailService _emailService;
+    private readonly IEmailBodyBuilder _emailBodyBuilder;
+    private readonly IConfiguration _configuration;
+    private readonly string _sendGridApiKey;
+    private readonly string _email;
 
-    public StocksController(IEmailService emailService,IStockService stockService, IClaimsService claimsService, IBankAccountService bankAccountService)
+    public StocksController(IConfiguration configuration,IEmailBodyBuilder emailBodyBuilder,IEmailService emailService,IStockService stockService, IClaimsService claimsService, IBankAccountService bankAccountService)
     {
         _stockService = stockService;
         _claimsService = claimsService;
         _bankAccountService = bankAccountService;
         _emailService = emailService;
+        _emailBodyBuilder = emailBodyBuilder;
+        _sendGridApiKey = configuration["SendGrid:ApiKey"];
+        _email = configuration["Email"];
     }
 
     [HttpPost("buy-stock")]
@@ -56,6 +63,18 @@ public class StocksController : ControllerBase
                 stockDto.NumberOfStocks
             };
 
+            var totalPrice = stockPrice.CurrentPrice * stockDto.NumberOfStocks;
+            var responseHtml = _emailBodyBuilder.BuyStockHtmlResponse(
+                "You have successfully purchased stocks",
+                stockDetails.Result[0].Description,
+                stockDetails.Result[0].Symbol,
+                stockPrice.CurrentPrice,
+                stockDto.NumberOfStocks,
+                totalPrice
+            );
+
+            await _emailService.SendEmailAsync(_email, "You have successfully purchased stocks",
+                responseHtml);
             return Ok(new
             {
                 Message = "Operation done successfully!",

@@ -124,7 +124,7 @@ public class CurrencyController : ControllerBase
             var targetCardAfterTransaction
                 = await _cardsService.GetCardDetails(bankAccount.AccountNumber, dtoCardToCard.TargetCardId);
 
-            var emailBody = _emailBodyBuilder.CardToCardExchange(
+            var emailBody = _emailBodyBuilder.CardToCardExchangeHtmlResponse(
                 "Card-to-Card exchange completed successfully.",
                 baseCardAfterTransaction,
                 targetCardAfterTransaction,
@@ -199,7 +199,7 @@ public class CurrencyController : ControllerBase
 
             var email = _configuration["Email"];
 
-            var emailBody = _emailBodyBuilder.BankToCardExchange(
+            var emailBody = _emailBodyBuilder.BankToCardExchangeHtmlResponse(
                 "Bank-to-Card exchange completed successfully.",
                 bankAccountAfterTransaction,
                 cardAfterTransaction,
@@ -245,7 +245,7 @@ public class CurrencyController : ControllerBase
 
             var email = _configuration["Email"];
 
-            var emailBody = _emailBodyBuilder.CardToBankExchange(
+            var emailBody = _emailBodyBuilder.CardToBankExchangeHtmlResponse(
                 "Card-to-Bank exchange completed successfully.",
                 bankAccountAfterTransaction,
                 cardAfterTransaction,

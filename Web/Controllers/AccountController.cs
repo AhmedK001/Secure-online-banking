@@ -24,12 +24,14 @@ public class AccountController : ControllerBase
     private readonly ISearchUserService _searchUserService;
     private readonly IJwtService _jwtService;
     private readonly IUpdatePassword _updatePassword;
+    private readonly ITwoFactorAuthService _twoFactorAuthService;
+    private readonly IEmailService _emailService;
+    private readonly IEmailBodyBuilder _emailBodyBuilder;
 
 
-    public AccountController(IUpdatePassword updatePassword,
-        IJwtService jwtService, UserManager<User> userManager,
-        SignInManager<User> signInManager,
-        IRegistrationService registrationService,
+    public AccountController(IEmailService emailService, IEmailBodyBuilder emailBodyBuilder,
+        ITwoFactorAuthService twoFactorAuthService, IUpdatePassword updatePassword, IJwtService jwtService,
+        UserManager<User> userManager, SignInManager<User> signInManager, IRegistrationService registrationService,
         ISearchUserService searchUserService)
     {
         _userManager = userManager;
@@ -38,11 +40,13 @@ public class AccountController : ControllerBase
         _signInManager = signInManager;
         _jwtService = jwtService;
         _updatePassword = updatePassword;
+        _twoFactorAuthService = twoFactorAuthService;
+        _emailService = emailService;
+        _emailBodyBuilder = emailBodyBuilder;
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> RegisterNewUser(
-        [FromBody] RegisterUserDto? userDto)
+    public async Task<IActionResult> RegisterNewUser([FromBody] RegisterUserDto? userDto)
     {
         // Check if userDto is null
         if (userDto == null)
@@ -59,10 +63,7 @@ public class AccountController : ControllerBase
         // Check if received data is unique
         if (!_searchUserService.CheckIfNationalIdUnique(userDto.NationalId))
         {
-            return BadRequest(new
-            {
-                Message = "This National ID number is used before."
-            });
+            return BadRequest(new { Message = "National ID number is used before." });
         }
 
         if (!_searchUserService.CheckIfEmailUnique(userDto.Email))
@@ -76,8 +77,7 @@ public class AccountController : ControllerBase
         }
 
         // date of birth validation
-        var birthDateValidationResult
-            = UserInfoValidator.IsAcceptedBirthDate(userDto.DateOfBirth);
+        var birthDateValidationResult = UserInfoValidator.IsAcceptedBirthDate(userDto.DateOfBirth);
         if (birthDateValidationResult != ValidationResult.Success)
         {
             return BadRequest(birthDateValidationResult.ErrorMessage);
@@ -88,77 +88,129 @@ public class AccountController : ControllerBase
         {
             user.UserName = userDto.Email;
         }
-        ;
 
         // Register User using UserManager
-        var registrationResult
-            = await _userManager.CreateAsync(user, userDto.Password);
+        var registrationResult = await _userManager.CreateAsync(user, userDto.Password);
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-        if (registrationResult.Succeeded)
+        var confirmationLink = Url.Action(
+            "ConfirmEmail",
+            "Account",
+            new { Email = userDto.Email, token = token }, Request.Scheme);
+
+        var userName = $"{user.FirstName} {user.LastName}";
+        var body = _emailBodyBuilder.EmailConfirmationHtmlResponse("Confirm your email", userName, confirmationLink);
+        await _emailService.SendEmailAsync(user.UserName, "Confirm your email", body);
+
+        return Ok(new { message = "Registration successful. Please check your email for confirmation." });
+    }
+
+    [HttpGet("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail(string email, string token)
+    {
+        if (email == null || token == null)
         {
-            return Ok(new { Message = "User registered successfully." });
+            return BadRequest("Invalid email confirmation request.");
         }
 
-        // Return the errors if registration failed
-        return BadRequest(registrationResult.Errors);
+        var user = await _userManager.FindByNameAsync(email);
+        if (user == null)
+        {
+            return BadRequest("User not found.");
+        }
+
+        if (user.EmailConfirmed)
+        {
+            return BadRequest("Your email has been confirmed before.");
+        }
+
+        var result = await _userManager.ConfirmEmailAsync(user, token);
+
+        if (result.Succeeded)
+        {
+            return Ok("Email confirmed successfully.");
+        }
+
+        return BadRequest("Error confirming email.");
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> LoginUser([FromBody] LoginDto userLoginDto)
     {
-        // Normalize the email for comparison
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return Ok(new { Message = "You are already logged in." });
+        }
+
         var normalizedEmail = userLoginDto.EmailAddress.ToLower();
 
-        // Try to find the user by normalized email
-        var user
-            = await _userManager.Users.FirstOrDefaultAsync(u =>
-                u.Email.ToLower() == normalizedEmail);
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
 
-        // Check if user was found
         if (user == null)
         {
             return Unauthorized("Email or password is incorrect.");
         }
 
-        // Attempt to sign the user in using email and password
-        var passwordLoginResult = await _signInManager.PasswordSignInAsync(
-            user.UserName, userLoginDto.Password, isPersistent: false,
-            lockoutOnFailure: false);
-
-        if (passwordLoginResult.IsLockedOut)
+        if (!await _userManager.IsEmailConfirmedAsync(user))
         {
-            return BadRequest("Your account is locked out.");
+            return Unauthorized("Please confirm your email address before logging in.");
         }
 
-        if (passwordLoginResult.RequiresTwoFactor)
+        if (!await _userManager.CheckPasswordAsync(user,userLoginDto.Password))
         {
-            return BadRequest("Two-factor authentication is required.");
+            return Unauthorized("Email or password is incorrect.");
         }
 
-        if (passwordLoginResult.Succeeded)
-        {
-            var userPhoneNumberFromDb
-                = await _userManager.Users.FirstOrDefaultAsync(u =>
-                    u.Id == user.Id);
+        _twoFactorAuthService.RemoveCode(user.Id.ToString());
+        int expirationTimeInMinutes = 5;
+        var userName = $"{user.FirstName} {user.LastName}";
+        var code = _twoFactorAuthService.Generate2FaCode(user.Id.ToString(),expirationTimeInMinutes);
+        var body = _emailBodyBuilder.TwoFactorAuthHtmlResponse("Your Two-Factor auth code for login", userName, code,
+            expirationTimeInMinutes);
+        await _emailService.SendEmailAsync(user.UserName, "Two-Factor auth code", body);
 
+        return Unauthorized(new { status = StatusCode(401), Message = "2FA code sent to your email address." });
+    }
+
+    [HttpPost("verify-2fa-code")]
+    [AllowAnonymous]
+    public async Task<IActionResult> VerifyTwoFactorCode(TwoFactorVerificationDto verificationDto)
+    {
+        try
+        {
+            var email = verificationDto.EmailAddress.ToLower();
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+            var userId = user.Id.ToString();
+            var code = _twoFactorAuthService.GetStoredCode(userId);
+
+            if (code == null)
+            {
+                return Unauthorized(new { ErrorMessage = "Verification code is invalid." });
+            }
+
+            if (!_twoFactorAuthService.IsValidTwoFactorCode(user.Id.ToString(), verificationDto.Code))
+            {
+                return Unauthorized(new { ErrorMessage = "Email, verification code or both are invalid." });
+            }
+
+            _twoFactorAuthService.RemoveCode(userId);
             var token = _jwtService.CreateJwtToken(user);
-
             return Ok(new
             {
                 token.Token,
                 token.ExpirationTime,
                 Message = "Successfully signed in.",
-                PhoneNumber = userPhoneNumberFromDb?.PhoneNumber,
             });
         }
-
-        return BadRequest("Email or password is incorrect.");
+        catch (Exception e)
+        {
+            return BadRequest("Email, verification code or both are invalid.");
+        }
     }
 
     [HttpPut("update-password")]
     [Authorize]
-    public async Task<IActionResult> UpdatePassword(
-        [FromBody] UpdatePasswordDto _updatePasswordDto)
+    public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordDto _updatePasswordDto)
     {
         if (!ModelState.IsValid)
         {
@@ -179,8 +231,7 @@ public class AccountController : ControllerBase
         if (user == null) return NotFound("User not found.");
 
         // check old password if matches current one.
-        var callUpdatePasswordServiceMethodResult
-            = _updatePassword.UpdatePasswordAsync(user, _updatePasswordDto);
+        var callUpdatePasswordServiceMethodResult = _updatePassword.UpdatePasswordAsync(user, _updatePasswordDto);
 
         if (!callUpdatePasswordServiceMethodResult.Result.Succeeded)
         {
@@ -205,12 +256,13 @@ public class AccountController : ControllerBase
         }
 
         var logoutResult = _signInManager.SignOutAsync();
+        var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
         if (!logoutResult.IsCompletedSuccessfully)
         {
             return BadRequest("Something went wrong.");
         }
 
-        return Ok(new { Message = "You have logged out successfully." });
+        return Ok(new { Message = "You have logged out successfully. If using swagger logout manually." });
     }
 }

@@ -23,7 +23,7 @@ public class EmailBodyBuilder : IEmailBodyBuilder
         return $"{currencySymbol} {balance:F2}";
     }
 
-    public string ChangeCurrencyBank(string message, BankAccount account)
+    public string ChangeCurrencyBankHtmlResponse(string message, BankAccount account)
     {
         string htmlContent = $@"
         <html>
@@ -58,7 +58,7 @@ public class EmailBodyBuilder : IEmailBodyBuilder
                     <td>{FormatCurrency(account.Currency, account.Balance)}</td>
                 </tr>
             </table>
-            <p>If you have any questions, please feel free to contact our support team.</p>
+
             <footer>
                 <p>Thank you for using Secure Online Banking.</p>
             </footer>
@@ -68,7 +68,7 @@ public class EmailBodyBuilder : IEmailBodyBuilder
         return htmlContent;
     }
 
-    public string ChangeCurrencyCard(string message, Card card)
+    public string ChangeCurrencyCardHtmlResponse(string message, Card card)
     {
         string htmlContent = $@"
         <html>
@@ -107,7 +107,7 @@ public class EmailBodyBuilder : IEmailBodyBuilder
                     <td>{FormatCurrency(card.Currency, card.Balance)}</td>
                 </tr>
             </table>
-            <p>If you have any questions, please feel free to contact our support team.</p>
+
             <footer>
                 <p>Thank you for using Secure Online Banking.</p>
             </footer>
@@ -117,7 +117,8 @@ public class EmailBodyBuilder : IEmailBodyBuilder
         return htmlContent;
     }
 
-    public string CardToCardExchange(string message, Card baseCard, Card targetCard, decimal amountExchanged)
+    public string CardToCardExchangeHtmlResponse(string message, Card baseCard, Card targetCard,
+        decimal amountExchanged)
     {
         string htmlContent = $@"
         <html>
@@ -162,7 +163,7 @@ public class EmailBodyBuilder : IEmailBodyBuilder
                 </tr>
             </table>
             <p><strong>Amount Exchanged:</strong> {FormatCurrency(baseCard.Currency, amountExchanged)}</p>
-            <p>If you have any questions, please feel free to contact our support team.</p>
+
             <footer>
                 <p>Thank you for using Secure Online Banking.</p>
             </footer>
@@ -172,7 +173,8 @@ public class EmailBodyBuilder : IEmailBodyBuilder
         return htmlContent;
     }
 
-    public string BankToCardExchange(string message, BankAccount bankAccount, Card card, decimal amountExchanged)
+    public string BankToCardExchangeHtmlResponse(string message, BankAccount bankAccount, Card card,
+        decimal amountExchanged)
     {
         string htmlContent = $@"
         <html>
@@ -212,7 +214,7 @@ public class EmailBodyBuilder : IEmailBodyBuilder
                 </tr>
             </table>
             <p><strong>Amount Exchanged:</strong> {FormatCurrency(bankAccount.Currency, amountExchanged)}</p>
-            <p>If you have any questions, please feel free to contact our support team.</p>
+
             <footer>
                 <p>Thank you for using Secure Online Banking.</p>
             </footer>
@@ -222,7 +224,8 @@ public class EmailBodyBuilder : IEmailBodyBuilder
         return htmlContent;
     }
 
-    public string CardToBankExchange(string message, BankAccount bankAccount, Card card, decimal amountExchanged)
+    public string CardToBankExchangeHtmlResponse(string message, BankAccount bankAccount, Card card,
+        decimal amountExchanged)
     {
         string htmlContent = $@"
         <html>
@@ -262,7 +265,7 @@ public class EmailBodyBuilder : IEmailBodyBuilder
                 </tr>
             </table>
             <p><strong>Amount Exchanged:</strong> {FormatCurrency(bankAccount.Currency, amountExchanged)}</p>
-            <p>If you have any questions, please feel free to contact our support team.</p>
+
             <footer>
                 <p>Thank you for using Secure Online Banking.</p>
             </footer>
@@ -272,7 +275,8 @@ public class EmailBodyBuilder : IEmailBodyBuilder
         return htmlContent;
     }
 
-    public string ChargeAccount(string message, BankAccount bankAccount, decimal chargeAmount, string paymentStatus)
+    public string ChargeAccountHtmlResponse(string message, BankAccount bankAccount, decimal chargeAmount,
+        string paymentStatus)
     {
         string htmlContent = $@"
     <html>
@@ -322,7 +326,8 @@ public class EmailBodyBuilder : IEmailBodyBuilder
         return htmlContent;
     }
 
-    public string TransferToCard(string message, BankAccount bankAccount, Card card, decimal amountTransferred)
+    public string TransferToCardHtmlResponse(string message, BankAccount bankAccount, Card card,
+        decimal amountTransferred)
     {
         string htmlContent = $@"
     <html>
@@ -372,7 +377,8 @@ public class EmailBodyBuilder : IEmailBodyBuilder
         return htmlContent;
     }
 
-    public string TransferToAccount(string message, BankAccount bankAccount, Card card, decimal amountTransferred)
+    public string TransferToAccountHtmlResponse(string message, BankAccount bankAccount, Card card,
+        decimal amountTransferred)
     {
         string htmlContent = $@"
     <html>
@@ -419,6 +425,160 @@ public class EmailBodyBuilder : IEmailBodyBuilder
     </body>
     </html>";
 
+        return htmlContent;
+    }
+
+    public string BuyStockHtmlResponse(string message, string stockName, string stockSymbol, decimal currentPrice,
+        int numberOfStocks, decimal totalPrice)
+    {
+        string htmlContent = $@"
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; }}
+            h1 {{ color: green; }}
+            table {{ border-collapse: collapse; width: 100%; }}
+            td {{ padding: 8px; border: 1px solid #ddd; }}
+            th {{ padding: 8px; text-align: left; background-color: #f2f2f2; }}
+            footer {{ font-size: 0.8em; color: #888; }}
+        </style>
+    </head>
+    <body>
+        <h1>{message}</h1>
+        <p>Your stock purchase has been completed successfully. Details are as follows:</p>
+        <table>
+            <tr>
+                <th>Stock Name:</th>
+                <td>{stockName}</td>
+            </tr>
+            <tr>
+                <th>Stock Symbol:</th>
+                <td>{stockSymbol}</td>
+            </tr>
+            <tr>
+                <th>Stock Price (per share):</th>
+                <td>{currentPrice:C}</td>
+            </tr>
+            <tr>
+                <th>Number of Stocks Purchased:</th>
+                <td>{numberOfStocks}</td>
+            </tr>
+            <tr>
+                <th>Total Price:</th>
+                <td>{totalPrice:C}</td>
+            </tr>
+        </table>
+
+        <footer>
+            <p>Thank you for using Secure Online Banking for your investments.</p>
+        </footer>
+    </body>
+    </html>";
+
+        return htmlContent;
+    }
+
+    public string TwoFactorAuthHtmlResponse(string message, string userName, string verificationCode,
+        int expirationMinutes)
+    {
+        string htmlContent = $@"
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; }}
+            h1 {{ color: blue; }}
+            table {{ border-collapse: collapse; width: 100%; }}
+            td {{ padding: 8px; border: 1px solid #ddd; }}
+            th {{ padding: 8px; text-align: left; background-color: #f2f2f2; }}
+            .code {{ font-size: 1.2em; color: red; font-weight: bold; }}
+            footer {{ font-size: 0.8em; color: #888; }}
+        </style>
+    </head>
+    <body>
+        <h1>{message}</h1>
+        <p>Dear {userName},</p>
+        <p>Your 2FA verification code is:</p>
+        <p class='code'>{verificationCode}</p>
+        <p>Please use this code to complete your login. The code will expire in: {expirationMinutes} minutes</p>
+
+        <footer>
+            <p>Thank you for using Secure Online Banking.</p>
+        </footer>
+    </body>
+    </html>";
+
+        return htmlContent;
+    }
+
+    public string EmailConfirmationHtmlResponse(string message, string userName, string confirmationLink)
+    {
+        string htmlContent = $@"
+<html>
+<head>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }}
+        .email-container {{
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }}
+        h1 {{
+            color: #333333;
+            font-size: 24px;
+            text-align: center;
+        }}
+        p {{
+            font-size: 16px;
+            color: #666666;
+            line-height: 1.6;
+        }}
+        .button {{
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            transition: background-color 0.3s ease;
+        }}
+        .button:hover {{
+            background-color: #45a049;
+        }}
+        footer {{
+            text-align: center;
+            font-size: 12px;
+            color: #888888;
+            margin-top: 20px;
+        }}
+    </style>
+</head>
+<body>
+    <div class='email-container'>
+        <h1>{message}</h1>
+        <p>Hello {userName},</p>
+        <p>Thank you for registering with us. To complete your registration, please confirm your email address by clicking the button below:</p>
+        <a href='{confirmationLink}' class='button'>Confirm Email</a>
+        <p>If you did not register, please ignore this email.</p>
+        <footer>
+            <p>Secure Online Banking.</p>
+        </footer>
+    </div>
+</body>
+</html>
+";
         return htmlContent;
     }
 }

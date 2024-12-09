@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using Application.DTOs;
 using Application.DTOs.RegistrationDTOs;
+using Application.DTOs.ResponseDto;
 using Application.Interfaces;
 using Application.Mappers;
 using Application.Validators;
@@ -27,9 +28,10 @@ public class AccountController : ControllerBase
     private readonly ITwoFactorAuthService _twoFactorAuthService;
     private readonly IEmailService _emailService;
     private readonly IEmailBodyBuilder _emailBodyBuilder;
+    private readonly IClaimsService _claimsService;
 
 
-    public AccountController(IEmailService emailService, IEmailBodyBuilder emailBodyBuilder,
+    public AccountController(IClaimsService claimsService,IEmailService emailService, IEmailBodyBuilder emailBodyBuilder,
         ITwoFactorAuthService twoFactorAuthService, IUpdatePassword updatePassword, IJwtService jwtService,
         UserManager<User> userManager, SignInManager<User> signInManager, IRegistrationService registrationService,
         ISearchUserService searchUserService)
@@ -43,6 +45,7 @@ public class AccountController : ControllerBase
         _twoFactorAuthService = twoFactorAuthService;
         _emailService = emailService;
         _emailBodyBuilder = emailBodyBuilder;
+        _claimsService = claimsService;
     }
 
     [HttpPost("register")]
@@ -156,11 +159,25 @@ public class AccountController : ControllerBase
             return Unauthorized("Please confirm your email address before logging in.");
         }
 
-        if (!await _userManager.CheckPasswordAsync(user,userLoginDto.Password))
+        if (await _userManager.IsLockedOutAsync(user))
         {
-            return Unauthorized("Email or password is incorrect.");
+            return BadRequest(new
+            {
+                ErrorMessage = "Your account has been locked due to many invalid logins.",
+                Solution = "Reset your password."
+            });
         }
 
+        if (!await _userManager.CheckPasswordAsync(user,userLoginDto.Password))
+        {
+            await _userManager.AccessFailedAsync(user);
+            return Unauthorized("Email or password is incorrect.");
+        }
+        var passwordLoginResult = await _signInManager.PasswordSignInAsync(
+            user.UserName, userLoginDto.Password, isPersistent: false,
+            lockoutOnFailure: false);
+
+        await _userManager.ResetAccessFailedCountAsync(user);
         _twoFactorAuthService.RemoveCode(user.Id.ToString());
         int expirationTimeInMinutes = 5;
         var userName = $"{user.FirstName} {user.LastName}";
@@ -180,12 +197,22 @@ public class AccountController : ControllerBase
         {
             var email = verificationDto.EmailAddress.ToLower();
             var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+            if (user is null) return BadRequest(new{ErrorMessage = "No users found."});
             var userId = user.Id.ToString();
             var code = _twoFactorAuthService.GetStoredCode(userId);
 
             if (code == null)
             {
                 return Unauthorized(new { ErrorMessage = "Verification code is invalid." });
+            }
+
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                return BadRequest(new
+                {
+                    ErrorMessage = "Your account has been locked due to many invalid logins.",
+                    Solution = "Reset your password."
+                });
             }
 
             if (!_twoFactorAuthService.IsValidTwoFactorCode(user.Id.ToString(), verificationDto.Code))
@@ -208,6 +235,51 @@ public class AccountController : ControllerBase
         }
     }
 
+    [HttpPost("request-password-reset")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RequestResetPassword([FromBody] string email)
+    {
+        if (!ModelState.IsValid)
+        {
+            BadRequest(ModelState);
+        }
+
+        var user = await _userManager.FindByNameAsync(email);
+
+        if (user is null) return BadRequest(new{ErrorMessage = "No users found."});
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+        var resetUrl = Url.Action("ResetPassword", "Account", new { token }, Request.Scheme);
+
+        var body = _emailBodyBuilder.PasswordResetHtmlResponse("Password Reset Request.", email, resetUrl);
+
+        await _emailService.SendEmailAsync(email, "Password Reset Request.", body);
+
+        return Ok(new { Status = "Success", Message = "Reset password link sent to your email address." });
+    }
+
+    [HttpPut("reset-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto passwordDto)
+    {
+        var user = await _userManager.FindByNameAsync(passwordDto.Email);
+        if (user is null) return BadRequest(new{ErrorMessage = "No users found."});
+
+        var result = await _userManager.ResetPasswordAsync(user, passwordDto.Token, passwordDto.Password);
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        // if account locked-out => unlock it
+        if (await _userManager.IsLockedOutAsync(user))
+        {
+            await _userManager.SetLockoutEnabledAsync(user, false);
+        }
+        return Ok(new { Status = "Success", Message = "Your password has been reset successfully." });
+    }
+
     [HttpPut("update-password")]
     [Authorize]
     public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordDto _updatePasswordDto)
@@ -215,11 +287,6 @@ public class AccountController : ControllerBase
         if (!ModelState.IsValid)
         {
             BadRequest(ModelState);
-        }
-
-        if (!User.Identity.IsAuthenticated)
-        {
-            return Unauthorized("You are not logged in.");
         }
 
         // get user id

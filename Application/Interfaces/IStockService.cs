@@ -15,7 +15,11 @@ public interface IStockService
     Task<List<TopLosers>> GetTopLosers();
     Task<List<MostActivelyTraded>> GetMostActivelyStocks();
     Task<StockPriceFinnhubResponse> DeserializeStockPriceFinnhubResponse(JsonObject jsonObject);
-    Task<(bool,string)> BuyStockAsync(BankAccount bankAccount,StockPriceFinnhubResponse priceResponse,StockLookUpResponse detailsResponse, BuyStockDto buyStockDto);
+    Task<(bool,string)> BuyStockAsync(BankAccount bankAccount,StockPriceFinnhubResponse priceResponse,StockLookUpResponse detailsResponse, BuySellStockDto buyStockDto);
     Task<StockLookUpResponse> GetStockDetails(string symbol);
     Task<List<Stock>> GetAllStocks(string accountNumber);
+    Task<List<Stock>> GetStocksBySymbol(string accountNumber, string symbol);
+
+    Task<(bool, string)> SellStockAsync(BankAccount bankAccount, BuySellStockDto stockDto);
+
 }

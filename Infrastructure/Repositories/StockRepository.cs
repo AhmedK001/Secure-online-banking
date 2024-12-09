@@ -39,4 +39,60 @@ public class StockRepository : IStockRepository
             throw new Exception();
         }
     }
+
+    public async Task<List<Stock>> GetStocksBySymbol(string accountNumber, string symbol)
+    {
+        try
+        {
+            return await _dbContext.Stocks.Where(s => s.StockSymbol == symbol && s.AccountNumber == accountNumber)
+                .ToListAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<int> GetStockSumByType(string accountNumber, string symbol)
+    {
+        try
+        {
+            return await _dbContext.Stocks.Where(s => s.StockSymbol == symbol && s.AccountNumber == accountNumber)
+                .SumAsync(s => s.NumberOfStocks);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task RemoveStock(Stock stock)
+    {
+        try
+        {
+            _dbContext.Stocks.Remove(stock);
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task UpdateStock(Stock stock)
+    {
+        try
+        {
+            _dbContext.Stocks.Update(stock);
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }

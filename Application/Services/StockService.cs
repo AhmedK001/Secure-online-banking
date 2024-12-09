@@ -25,7 +25,8 @@ public class StockService : IStockService
     private readonly IBankAccountService _bankAccountService;
 
 
-    public StockService(IBankAccountService bankAccountService,IUnitOfWork unitOfWork,HttpClient httpClient,IConfiguration configuration, IOperationService operationService, IStockRepository stockRepository)
+    public StockService(IBankAccountService bankAccountService, IUnitOfWork unitOfWork, HttpClient httpClient,
+        IConfiguration configuration, IOperationService operationService, IStockRepository stockRepository)
     {
         _httpClient = httpClient;
         _configuration = configuration;
@@ -80,7 +81,8 @@ public class StockService : IStockService
         }
     }
 
-    public async Task<(bool,string)> BuyStockAsync(BankAccount bankAccount,StockPriceFinnhubResponse priceResponse, StockLookUpResponse detailsResponse, BuyStockDto buyStockDto)
+    public async Task<(bool, string)> BuyStockAsync(BankAccount bankAccount, StockPriceFinnhubResponse priceResponse,
+        StockLookUpResponse detailsResponse, BuySellStockDto buySellStockDto)
     {
         try
         {
@@ -100,18 +102,17 @@ public class StockService : IStockService
                 StockId = await _operationService.GenerateUniqueRandomOperationIdAsync(),
                 StockName = detailsResponse.Result[0].Description,
                 StockSymbol = detailsResponse.Result[0].Symbol,
-                NumberOfStocks = buyStockDto.NumberOfStocks,
+                NumberOfStocks = buySellStockDto.NumberOfStocks,
                 StockPrice = priceResponse.CurrentPrice,
                 Currency = EnumCurrency.USD,
                 DateOfPurchase = DateTime.UtcNow
             };
 
-            var totalPrice = priceResponse.CurrentPrice * buyStockDto.NumberOfStocks;
+            var totalPrice = priceResponse.CurrentPrice * buySellStockDto.NumberOfStocks;
 
             if (totalPrice > bankAccount.Balance)
             {
-                return (false,
-                    $"No enough balance, Your balance is {bankAccount.Balance}{bankAccount.Currency}");
+                return (false, $"No enough balance, Your balance is {bankAccount.Balance}{bankAccount.Currency}");
             }
 
             await _unitOfWork.BeginTransactionAsync();
@@ -120,7 +121,7 @@ public class StockService : IStockService
 
             await _unitOfWork.CommitTransactionAsync();
 
-            return (true,$"");
+            return (true, $"");
         }
         catch (Exception e)
         {
@@ -161,6 +162,67 @@ public class StockService : IStockService
         }
     }
 
+
+    public async Task<List<Stock>> GetStocksBySymbol(string accountNumber, string symbol)
+    {
+        return await _stockRepository.GetStocksBySymbol(accountNumber, symbol);
+    }
+
+    public async Task<(bool, string)> SellStockAsync(BankAccount bankAccount, BuySellStockDto stockDto)
+    {
+        var stocks = await _stockRepository.GetStocksBySymbol(bankAccount.AccountNumber, stockDto.Symbol);
+        var sum = await _stockRepository.GetStockSumByType(bankAccount.AccountNumber, stockDto.Symbol);
+        var priceFinnhubResponse = await GetStockLivePrice(stockDto.Symbol);
+
+        if (stockDto.NumberOfStocks > sum)
+        {
+            return (false, $"No enough stocks, Stocks remaining are: {sum} {stockDto.Symbol} stock.");
+        }
+
+        if (stocks == null || !stocks.Any())
+        {
+            return (false, $"No stocks available for the given symbol.");
+        }
+
+        try
+        {
+            await _unitOfWork.BeginTransactionAsync();
+            // number of stocks to sell
+            int remainingToSell = stockDto.NumberOfStocks;
+
+            for (int i = 0; i < stocks.Count; i++)
+            {
+                if (remainingToSell == 0) break;
+
+                var stock = stocks[i];
+
+                if (stock.NumberOfStocks <= remainingToSell)
+                {
+                    remainingToSell -= stock.NumberOfStocks;
+                    await _stockRepository.RemoveStock(stock);
+                }
+                else
+                {
+                    stock.NumberOfStocks -= remainingToSell;
+                    remainingToSell = 0;
+                    await _stockRepository.UpdateStock(stock);
+                }
+            }
+
+            var newBalanceAfterStocksSoled = bankAccount.Balance + (stockDto.NumberOfStocks * priceFinnhubResponse.CurrentPrice);
+            // update balance after stocks sold
+            await _bankAccountService.ChangeBalance(true, newBalanceAfterStocksSoled, bankAccount.AccountNumber);
+            await _unitOfWork.CommitTransactionAsync();
+
+            return (true, "");
+        }
+        catch (Exception e)
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
+    }
+
     public async Task<List<Stock>> GetAllStocks(string accountNumber)
     {
         try
@@ -181,7 +243,8 @@ public class StockService : IStockService
     /// <exception cref="KeyNotFoundException"></exception>
     public async Task<JsonObject> GetStockPricesAsync(StockPricesDto stockPricesDto)
     {
-        var requestUri = $"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={stockPricesDto.Symbol}&interval={stockPricesDto.Timestamp}min&apikey={_configuration["AlphaVantageApi:ApiKey"]}";
+        var requestUri
+            = $"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={stockPricesDto.Symbol}&interval={stockPricesDto.Timestamp}min&apikey={_configuration["AlphaVantageApi:ApiKey"]}";
 
         var response = await _httpClient.GetAsync(requestUri);
 
@@ -279,21 +342,24 @@ public class StockService : IStockService
 
     public async Task<List<TopGainers>> GetTopGainers()
     {
-        GainersLosersActive gainersLosersActive = await DeserializeGainersLosersActiveResponse(await GetTopGainersAndLosersAndActivityAsync());
+        GainersLosersActive gainersLosersActive
+            = await DeserializeGainersLosersActiveResponse(await GetTopGainersAndLosersAndActivityAsync());
 
         return gainersLosersActive.TopGainers;
     }
 
     public async Task<List<TopLosers>> GetTopLosers()
     {
-        GainersLosersActive gainersLosersActive = await DeserializeGainersLosersActiveResponse(GetTopGainersAndLosersAndActivityAsync().Result);
+        GainersLosersActive gainersLosersActive
+            = await DeserializeGainersLosersActiveResponse(GetTopGainersAndLosersAndActivityAsync().Result);
 
         return gainersLosersActive.TopLosers;
     }
 
     public async Task<List<MostActivelyTraded>> GetMostActivelyStocks()
     {
-        GainersLosersActive gainersLosersActive = await DeserializeGainersLosersActiveResponse(GetTopGainersAndLosersAndActivityAsync().Result);
+        GainersLosersActive gainersLosersActive
+            = await DeserializeGainersLosersActiveResponse(GetTopGainersAndLosersAndActivityAsync().Result);
 
         return gainersLosersActive.MostActivelyStocks;
     }

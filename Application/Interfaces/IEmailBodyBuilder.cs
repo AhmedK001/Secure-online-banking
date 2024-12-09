@@ -16,5 +16,5 @@ public interface IEmailBodyBuilder
         int numberOfStocks, decimal totalPrice);
     string TwoFactorAuthHtmlResponse(string message, string userName, string verificationCode, int expirationMinutes);
     string EmailConfirmationHtmlResponse(string message, string userName, string confirmationLink);
-
+    string PasswordResetHtmlResponse(string message, string userEmail, string resetLink);
 }

@@ -26,7 +26,7 @@ public class JwtService : IJwtService
         }
 
         var expirationMinutes = Convert.ToDouble(_configuration["Jwt:EXPIRATION_MINUTES"]);
-        var expirationTime = DateTime.UtcNow.AddSeconds(expirationMinutes);
+        var expirationTime = DateTime.UtcNow.AddMinutes(expirationMinutes);
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:KEY"]));
 
         // Claims section

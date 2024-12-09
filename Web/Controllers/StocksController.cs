@@ -21,8 +21,11 @@ public class StocksController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly string _sendGridApiKey;
     private readonly string _email;
+    private readonly ILogger<StocksController> _logger;
 
-    public StocksController(IConfiguration configuration,IEmailBodyBuilder emailBodyBuilder,IEmailService emailService,IStockService stockService, IClaimsService claimsService, IBankAccountService bankAccountService)
+    public StocksController(ILogger<StocksController> logger, IConfiguration configuration,
+        IEmailBodyBuilder emailBodyBuilder, IEmailService emailService, IStockService stockService,
+        IClaimsService claimsService, IBankAccountService bankAccountService)
     {
         _stockService = stockService;
         _claimsService = claimsService;
@@ -31,11 +34,12 @@ public class StocksController : ControllerBase
         _emailBodyBuilder = emailBodyBuilder;
         _sendGridApiKey = configuration["SendGrid:ApiKey"];
         _email = configuration["Email"];
+        _logger = logger;
     }
 
     [HttpPost("buy-stock")]
     [Authorize]
-    public async Task<IActionResult> BuyStock([FromQuery] BuyStockDto stockDto)
+    public async Task<IActionResult> BuyStock([FromQuery] BuySellStockDto sellStockDto)
     {
         try
         {
@@ -43,15 +47,13 @@ public class StocksController : ControllerBase
 
             var userId = await _claimsService.GetUserIdAsync(User);
             var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
-            var stockPrice = await _stockService.GetStockLivePrice(stockDto.Symbol);
-            var stockDetails = await _stockService.GetStockDetails(stockDto.Symbol);
-            var buyStockResult = await _stockService.BuyStockAsync(bankAccountDetails, stockPrice, stockDetails, stockDto);
+            var stockPrice = await _stockService.GetStockLivePrice(sellStockDto.Symbol);
+            var stockDetails = await _stockService.GetStockDetails(sellStockDto.Symbol);
+            var buyStockResult
+                = await _stockService.BuyStockAsync(bankAccountDetails, stockPrice, stockDetails, sellStockDto);
             if (!buyStockResult.Item1)
             {
-                return BadRequest(new
-                {
-                    Message = buyStockResult.Item2
-                });
+                return BadRequest(new { Message = buyStockResult.Item2 });
             }
 
             var response = new
@@ -60,28 +62,22 @@ public class StocksController : ControllerBase
                 StockName = stockDetails.Result[0].Description,
                 stockDetails.Result[0].Symbol,
                 stockPrice.CurrentPrice,
-                stockDto.NumberOfStocks
+                sellStockDto.NumberOfStocks
             };
 
-            var totalPrice = stockPrice.CurrentPrice * stockDto.NumberOfStocks;
-            var responseHtml = _emailBodyBuilder.BuyStockHtmlResponse(
-                "You have successfully purchased stocks",
-                stockDetails.Result[0].Description,
-                stockDetails.Result[0].Symbol,
-                stockPrice.CurrentPrice,
-                stockDto.NumberOfStocks,
-                totalPrice
-            );
+            var totalPrice = stockPrice.CurrentPrice * sellStockDto.NumberOfStocks;
+            var responseHtml = _emailBodyBuilder.BuyStockHtmlResponse("You have successfully purchased stocks",
+                stockDetails.Result[0].Description, stockDetails.Result[0].Symbol, stockPrice.CurrentPrice,
+                sellStockDto.NumberOfStocks, totalPrice);
 
-            await _emailService.SendEmailAsync(_email, "You have successfully purchased stocks",
-                responseHtml);
+            await _emailService.SendEmailAsync(_email, "You have successfully purchased stocks", responseHtml);
             return Ok(new
             {
                 Message = "Operation done successfully!",
                 StockName = stockDetails.Result[0].Description,
                 stockDetails.Result[0].Symbol,
                 stockPrice.CurrentPrice,
-                stockDto.NumberOfStocks
+                sellStockDto.NumberOfStocks
             });
         }
         catch (Exception e)
@@ -92,9 +88,31 @@ public class StocksController : ControllerBase
 
     [HttpPost("sell-stock")]
     [Authorize]
-    public async Task<IActionResult> SellStock([FromQuery] BuyStockDto stockDto)
+    public async Task<IActionResult> SellStock([FromQuery] BuySellStockDto sellStockDto)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var userId = await _claimsService.GetUserIdAsync(User);
+            var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+            if (bankAccountDetails.Currency != EnumCurrency.USD)
+            {
+                return BadRequest("You bank account currency must be in Dollar, in order to Sell owned Stocks");
+            }
+
+            var stocks = await _stockService.GetAllStocks(bankAccountDetails.AccountNumber);
+
+            var result = await _stockService.SellStockAsync(bankAccountDetails, sellStockDto);
+            if (!result.Item1)
+            {
+                return Ok(new { ErrorMessage = result.Item2 });
+            }
+
+            return Ok(new { Message = "Done successfully." });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new {e.Message});
+        }
     }
 
     [HttpGet("owned-stocks")]
@@ -107,28 +125,25 @@ public class StocksController : ControllerBase
             var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
             var stocks = await _stockService.GetAllStocks(bankAccountDetails.AccountNumber);
 
-            var stocksResponse
-                = stocks.Select(s => new
-                {
-                    StockName = s.StockName,
-                    StockSymbol = s.StockSymbol,
-                    StockId = s.StockId,
-                    DateOfPurchase = s.DateOfPurchase.ToString("g"),
-                    StockPrice = s.StockPrice,
-                    NumberOfStocks = s.NumberOfStocks,
-                    TotalAmountSpent = s.NumberOfStocks * s.StockPrice,
-                    Currency = Enum.GetName(typeof(EnumCurrency),s.Currency),
-                }).ToList();
+
+            var stocksResponse = stocks.Select(s => new
+            {
+                StockName = s.StockName,
+                StockSymbol = s.StockSymbol,
+                StockId = s.StockId,
+                DateOfPurchase = s.DateOfPurchase.ToString("g"),
+                StockPrice = s.StockPrice,
+                NumberOfStocks = s.NumberOfStocks,
+                TotalAmountSpent = s.NumberOfStocks * s.StockPrice,
+                Currency = Enum.GetName(typeof(EnumCurrency), s.Currency),
+            }).ToList();
 
             if (!stocksResponse.Any())
             {
                 return Ok(new { Message = "No stocks found." });
             }
 
-            return Ok(new
-            {
-                stocksResponse
-            });
+            return Ok(new { stocksResponse });
         }
         catch (Exception e)
         {

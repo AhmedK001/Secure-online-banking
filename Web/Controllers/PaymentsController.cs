@@ -84,7 +84,7 @@ public class PaymentsController : ControllerBase
         }
         catch (StripeException e)
         {
-            return BadRequest(new { Error = e.StripeError.Message });
+            return BadRequest(new { Error = e.Message });
         }
     }
 

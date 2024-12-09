@@ -20,20 +20,22 @@ using BankAccountService = Application.Services.BankAccountService;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Configuration
+builder.Configuration.AddJsonFile("SecureData.json", optional: true, reloadOnChange: true);
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
+// Services Registration
 builder.Services.AddMemoryCache();
-builder.Services.AddControllers(); // Add this line to register controllers
 builder.Services.AddControllers().AddJsonOptions(o =>
 {
     o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
 });
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-
-    var jstSecScheme = new OpenApiSecurityScheme
+    var jwtSecurityScheme = new OpenApiSecurityScheme
     {
         BearerFormat = "JWT",
         Name = "Authorization",
@@ -47,22 +49,64 @@ builder.Services.AddSwaggerGen(options =>
         }
     };
 
-    // Add JWT Authentication to Swagger
-    options.AddSecurityDefinition("Bearer", jstSecScheme);
+    options.AddSecurityDefinition("Bearer", jwtSecurityScheme);
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        {
-
-            jstSecScheme,
-            Array.Empty<string>()
-        }
+        { jwtSecurityScheme, Array.Empty<string>() }
     });
 });
 
+// Database and Identity
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddHttpClient<IStockService, StockService>();
-//builder.Services.AddScoped<IStockService, StockService>();
+builder.Services.AddIdentity<User, Role>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders()
+    .AddUserStore<UserStore<User, Role, ApplicationDbContext, Guid>>()
+    .AddRoleStore<RoleStore<Role, ApplicationDbContext, Guid>>();
+
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 8;
+    options.SignIn.RequireConfirmedEmail = true;
+});
+
+builder.Services.Configure<IdentityOptions>(o =>
+{
+    o.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    o.Lockout.MaxFailedAccessAttempts = 5;
+    o.Lockout.AllowedForNewUsers = true;
+});
+
+// Authentication and Authorization
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:ISSUER"],
+        ValidAudience = builder.Configuration["Jwt:AUDIENCE"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:KEY"]!))
+    };
+});
+
+// Dependency Injection
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISearchUserService, SearchUserService>();
@@ -75,6 +119,8 @@ builder.Services.AddScoped<IOperationService, OperationServices>();
 builder.Services.AddScoped<ICardsService, CardsService>();
 builder.Services.AddScoped<IClaimsService, ClaimsService>();
 builder.Services.AddScoped<ICardRepository, CardRepository>();
+builder.Services.AddHttpClient<IStockService, StockService>();
+builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<IGenerateService, GenerateService>();
 builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -83,79 +129,29 @@ builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IValidate, Validate>();
 builder.Services.AddScoped<IEmailService, EmailsService>();
 builder.Services.AddScoped<IEmailBodyBuilder, EmailBodyBuilder>();
-builder.Services.AddScoped<ITwoFactorAuthService,TwoFactorAuthService>();
-
-
-StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+builder.Services.AddScoped<ITwoFactorAuthService, TwoFactorAuthService>();
 
 builder.Services.AddHttpContextAccessor();
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-
-builder.Services.AddIdentity<User, Role>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders()
-    .AddUserStore<UserStore<User, Role, ApplicationDbContext, Guid>>()
-    .AddRoleStore<RoleStore<Role, ApplicationDbContext, Guid>>();
-
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequiredLength = 8;
-});
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    options.SignIn.RequireConfirmedEmail = true;
-});
-
 builder.Services.AddTransient<IJwtService, JwtService>();
-
-builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:ISSUER"],
-            ValidAudience = builder.Configuration["Jwt:AUDIENCE"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:KEY"]!))
-        };
-    });
 
 var app = builder.Build();
 
-
-// Configure the HTTP request pipeline.
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"Request Path: {context.Request.Path}");
+    await next();
+});
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"); });
 }
 
-// This is a local file, I Store data like API Keys or related on.
-builder.Configuration.AddJsonFile("SecureData.json", optional: true, reloadOnChange: true);
-
 app.UseHttpsRedirection();
-
-// Add routing for controllers
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-
-// Map controllers
-app.MapControllers(); // Add this line to map the controllers
-
+app.MapControllers();
 app.Run();

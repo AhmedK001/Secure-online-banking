@@ -581,4 +581,46 @@ public class EmailBodyBuilder : IEmailBodyBuilder
 ";
         return htmlContent;
     }
+
+    public string PasswordResetHtmlResponse(string message, string userEmail, string resetLink)
+    {
+        string htmlContent = $@"
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; }}
+            h1 {{ color: green; }}
+            table {{ border-collapse: collapse; width: 100%; }}
+            td, th {{ padding: 8px; border: 1px solid #ddd; }}
+            th {{ background-color: #f2f2f2; text-align: left; }}
+            footer {{ font-size: 0.8em; color: #888; }}
+        </style>
+    </head>
+    <body>
+        <h1>{message}</h1>
+        <p>If you requested a password reset, click the link below to reset your password:</p>
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Details</th>
+            </tr>
+            <tr>
+                <td><strong>User Email</strong></td>
+                <td>{userEmail}</td>
+            </tr>
+            <tr>
+                <td><strong>Reset Link</strong></td>
+                <td><a href='{resetLink}'>Click here to reset your password</a></td>
+            </tr>
+        </table>
+        <footer>
+            <p>If you did not request a password reset, please ignore this email.</p>
+            <p>Thank you for using Secure Online Banking.</p>
+        </footer>
+    </body>
+    </html>";
+
+        return htmlContent;
+    }
+
 }

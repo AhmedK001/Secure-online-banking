@@ -6,7 +6,9 @@ using Core.Entities;
 using Core.Enums;
 using Core.Interfaces.IRepositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Stripe;
 using BankAccount = Core.Entities.BankAccount;
 using Card = Core.Entities.Card;
@@ -27,8 +29,9 @@ public class PaymentsController : ControllerBase
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEmailService _emailService;
     private readonly IEmailBodyBuilder _emailBodyBuilder;
+    private readonly UserManager<User> _userManager;
 
-    public PaymentsController(IEmailService emailService, IEmailBodyBuilder emailBodyBuilder,
+    public PaymentsController(UserManager<User> userManager,IEmailService emailService, IEmailBodyBuilder emailBodyBuilder,
         IConfiguration configuration, IBankAccountService bankAccountService, IClaimsService claimsService,
         ICardsService cardsService, IOperationService operationService, IPaymentsService paymentsService,
         IUnitOfWork unitOfWork)
@@ -42,6 +45,7 @@ public class PaymentsController : ControllerBase
         _unitOfWork = unitOfWork;
         _emailService = emailService;
         _emailBodyBuilder = emailBodyBuilder;
+        _userManager = userManager;
     }
 
 
@@ -112,6 +116,7 @@ public class PaymentsController : ControllerBase
             }
 
             var bankAccount = await _bankAccountService.GetDetailsById(userId);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (bankAccount == null)
             {
@@ -127,11 +132,10 @@ public class PaymentsController : ControllerBase
                 return BadRequest("Something went wrong.");
             }
 
-            var email = _configuration["Email"];
             string emailContent = _emailBodyBuilder.ChargeAccountHtmlResponse("You account has been Charge Successfully!",
                 bankAccount, _chargeAmount, paymentIntent.Status);
 
-            await _emailService.SendEmailAsync(email, "You account has been Charge Successfully", emailContent);
+            await _emailService.SendEmailAsync(user.UserName, "You account has been Charge Successfully", emailContent);
 
 
             // add currency for operation service, make default charge currency then validate.
@@ -169,7 +173,7 @@ public class PaymentsController : ControllerBase
             {
                 return BadRequest("You must create Bank Account in order to use this service.");
             }
-
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
             var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
             var cardDetails = await _cardsService.GetAllCards(bankAccountDetails.AccountNumber);
 
@@ -209,7 +213,7 @@ public class PaymentsController : ControllerBase
                 "Your transaction to the card has been completed successfully.", bankAccountDetails, aimedCard,
                 cardDto.Amount);
 
-            await _emailService.SendEmailAsync(email, "Your transaction to the card has been completed successfully.",
+            await _emailService.SendEmailAsync(user.UserName, "Your transaction to the card has been completed successfully.",
                 emailContent);
 
 
@@ -246,6 +250,7 @@ public class PaymentsController : ControllerBase
         {
             var userId = await _claimsService.GetUserIdAsync(User);
             var bankAccount = await _bankAccountService.GetDetailsById(Guid.Parse(userId)); // it check if null
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
             var card = await _cardsService.GetCardDetails(bankAccount.AccountNumber,
                 transactionDto.CardId); // it check if null
 
@@ -284,13 +289,12 @@ public class PaymentsController : ControllerBase
                 Balance = cardAfterTransaction.Balance.ToString("F2"),
                 Currency = Enum.GetName(typeof(EnumCurrency), cardAfterTransaction.Currency),
             };
-            var email = _configuration["Email"];
 
             string emailContent = _emailBodyBuilder.TransferToAccountHtmlResponse(
                 "Your transaction to the bank account has been completed successfully.", bankAccount, card,
                 transactionDto.Amount);
 
-            await _emailService.SendEmailAsync(email,
+            await _emailService.SendEmailAsync(user.UserName,
                 "Your transaction to the bank account has been completed successfully.", emailContent);
 
             return Ok(new

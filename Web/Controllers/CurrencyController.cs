@@ -7,9 +7,12 @@ using Application.DTOs.ExternalModels.StocksApiResponse.GetTopGainers_Losers_Act
 using Application.DTOs.ResponseDto;
 using Application.Interfaces;
 using Application.Services;
+using Core.Entities;
 using Core.Enums;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Web.Controllers;
@@ -26,8 +29,9 @@ public class CurrencyController : ControllerBase
     private readonly IEmailService _emailService;
     private readonly IEmailBodyBuilder _emailBodyBuilder;
     private readonly IConfiguration _configuration;
+    private readonly UserManager<User> _userManager;
 
-    public CurrencyController(IEmailService emailService, IEmailBodyBuilder emailBodyBuilder, IConfiguration configuration,IValidate validate, ICurrencyService currencyService, IClaimsService claimsService,
+    public CurrencyController(UserManager<User> userManager,IEmailService emailService, IEmailBodyBuilder emailBodyBuilder, IConfiguration configuration,IValidate validate, ICurrencyService currencyService, IClaimsService claimsService,
         ICardsService cardsService, IBankAccountService bankAccountService)
     {
         _currencyService = currencyService;
@@ -38,9 +42,10 @@ public class CurrencyController : ControllerBase
         _configuration = configuration;
         _emailService = emailService;
         _emailBodyBuilder = emailBodyBuilder;
+        _userManager = userManager;
     }
 
-    [HttpGet("exchange-rate")]
+    [HttpGet("exchange/rate")]
     [Authorize]
     public async Task<IActionResult> GetExchangeRate([FromQuery] string currentCurrency,
         [FromQuery] string aimedCurrency)
@@ -92,7 +97,7 @@ public class CurrencyController : ControllerBase
         }
     }
 
-    [HttpPost("card-to-card-exchange")]
+    [HttpPost("exchange/card-to-card")]
     [Authorize]
     public async Task<IActionResult> CardToCardExchangeMoney(ExchangeMoneyDtoCardToCard dtoCardToCard)
     {
@@ -103,6 +108,7 @@ public class CurrencyController : ControllerBase
 
             var userId = await _claimsService.GetUserIdAsync(User);
             var bankAccount = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
             var baseCard = await _cardsService.GetCardDetails(bankAccount.AccountNumber, dtoCardToCard.BaseCardId);
 
             if (dtoCardToCard.Amount < 5)
@@ -131,9 +137,7 @@ public class CurrencyController : ControllerBase
                 dtoCardToCard.Amount
             );
 
-            var email = _configuration["Email"];
-
-            await _emailService.SendEmailAsync(email, "Card-to-Card Exchange Completed", emailBody);
+            await _emailService.SendEmailAsync(user.UserName, "Card-to-Card Exchange Completed", emailBody);
 
             return Ok(new SuccessResponseDto
             {
@@ -168,7 +172,7 @@ public class CurrencyController : ControllerBase
         }
     }
 
-    [HttpPost("bank-to-card-exchange")]
+    [HttpPost("exchange/bank-to-card")]
     [Authorize]
     public async Task<IActionResult> BankToCardExchangeMoney(ExchangeMoneyDtoBankAndCard exchangeDto)
     {
@@ -176,6 +180,7 @@ public class CurrencyController : ControllerBase
         {
             var userId = await _claimsService.GetUserIdAsync(User);
             var bankAccount = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
             var card = await _cardsService.GetCardDetails(bankAccount.AccountNumber, exchangeDto.CardId);
 
             if (bankAccount.Currency == card.Currency)
@@ -197,8 +202,6 @@ public class CurrencyController : ControllerBase
             var cardAfterTransaction
                 = await _cardsService.GetCardDetails(bankAccount.AccountNumber, exchangeDto.CardId);
 
-            var email = _configuration["Email"];
-
             var emailBody = _emailBodyBuilder.BankToCardExchangeHtmlResponse(
                 "Bank-to-Card exchange completed successfully.",
                 bankAccountAfterTransaction,
@@ -206,7 +209,7 @@ public class CurrencyController : ControllerBase
                 exchangeDto.Amount
             );
 
-            await _emailService.SendEmailAsync(email, "Bank-to-Card Exchange Completed", emailBody);
+            await _emailService.SendEmailAsync(user.UserName, "Bank-to-Card Exchange Completed", emailBody);
             return Ok(new SuccessResponseDto() { Status = "Success", Message = $"Exchanged successfully." });
         }
         catch (Exception e)
@@ -215,7 +218,7 @@ public class CurrencyController : ControllerBase
         }
     }
 
-    [HttpPost("card-to-bank-exchange")]
+    [HttpPost("exchange/card-to-bank")]
     [Authorize]
     public async Task<IActionResult> CardToBankExchangeMoney(ExchangeMoneyDtoBankAndCard exchangeDto)
     {
@@ -223,6 +226,7 @@ public class CurrencyController : ControllerBase
         {
             var userId = await _claimsService.GetUserIdAsync(User);
             var bankAccount = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
             var card = await _cardsService.GetCardDetails(bankAccount.AccountNumber, exchangeDto.CardId);
 
             if (bankAccount.Currency == card.Currency)
@@ -252,7 +256,7 @@ public class CurrencyController : ControllerBase
                 exchangeDto.Amount
             );
 
-            await _emailService.SendEmailAsync(email, "Card-to-Bank Exchange Completed", emailBody);
+            await _emailService.SendEmailAsync(user.UserName, "Card-to-Bank Exchange Completed", emailBody);
 
             return Ok(new SuccessResponseDto() { Status = "Success", Message = $"Exchanged successfully." });
         }
@@ -262,7 +266,7 @@ public class CurrencyController : ControllerBase
         }
     }
 
-    [HttpGet("historical-exchange-rate")]
+    [HttpGet("exchange/historical")]
     public async Task<IActionResult> GetHistoricalExchangeRate([FromQuery] string baseCurrency,
         [FromQuery] string targetCurrency, [FromQuery] string timeSeries)
     {

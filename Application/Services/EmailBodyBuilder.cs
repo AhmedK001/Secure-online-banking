@@ -11,9 +11,9 @@ public class EmailBodyBuilder : IEmailBodyBuilder
     {
         string currencySymbol = currency switch
         {
-            EnumCurrency.SAR => "SAR",
-            EnumCurrency.EGP => "EGP",
-            EnumCurrency.AED => "AED",
+            EnumCurrency.SAR => "ريال",
+            EnumCurrency.EGP => "E£",
+            EnumCurrency.AED => "د.إ",
             EnumCurrency.USD => "$",
             EnumCurrency.EUR => "€",
             EnumCurrency.TRY => "₺",

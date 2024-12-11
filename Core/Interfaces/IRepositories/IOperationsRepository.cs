@@ -9,4 +9,5 @@ public interface IOperationsRepository
     Task<List<Operation>> GetCurrencyChangeLogs(string accountNumber);
     Task<List<Operation>> GetChargeAccountLogs(string accountNumber);
     Task<List<Operation>> GetTransactionsToCardLogs(string accountNumber);
+    Task<List<Operation>> GetAllLogs(string accountNumber, int periodAsMonth);
 }

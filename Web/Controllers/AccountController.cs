@@ -182,6 +182,8 @@ public class AccountController : ControllerBase
         int expirationTimeInMinutes = 5;
         var userName = $"{user.FirstName} {user.LastName}";
         var code = _twoFactorAuthService.Generate2FaCode(user.Id.ToString(),expirationTimeInMinutes);
+        Console.WriteLine(code);
+        Console.WriteLine(code);
         var body = _emailBodyBuilder.TwoFactorAuthHtmlResponse("Your Two-Factor auth code for login", userName, code,
             expirationTimeInMinutes);
         await _emailService.SendEmailAsync(user.UserName, "Two-Factor auth code", body);

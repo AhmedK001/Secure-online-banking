@@ -130,6 +130,7 @@ builder.Services.AddScoped<IValidate, Validate>();
 builder.Services.AddScoped<IEmailService, EmailsService>();
 builder.Services.AddScoped<IEmailBodyBuilder, EmailBodyBuilder>();
 builder.Services.AddScoped<ITwoFactorAuthService, TwoFactorAuthService>();
+builder.Services.AddScoped<IExcelService, ExcelService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<IJwtService, JwtService>();

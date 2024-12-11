@@ -3,7 +3,9 @@ using Application.Interfaces;
 using Core.Entities;
 using Core.Enums;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Web.Controllers;
@@ -18,8 +20,9 @@ public class CardsController : ControllerBase
     private readonly IEmailService _emailService;
     private readonly IEmailBodyBuilder _emailBodyBuilder;
     private readonly IConfiguration _configuration;
+    private readonly UserManager<User> _userManager;
 
-    public CardsController(IConfiguration configuration, IEmailService emailService, IEmailBodyBuilder emailBodyBuilder,IClaimsService claimsService, IBankAccountService bankAccountService,
+    public CardsController(UserManager<User> userManager,IConfiguration configuration, IEmailService emailService, IEmailBodyBuilder emailBodyBuilder,IClaimsService claimsService, IBankAccountService bankAccountService,
         ICardsService cardsService)
     {
         _claimsService = claimsService;
@@ -28,6 +31,7 @@ public class CardsController : ControllerBase
         _configuration = configuration;
         _emailService = emailService;
         _emailBodyBuilder = emailBodyBuilder;
+        _userManager = userManager;
     }
 
     [HttpPost("card")]
@@ -86,6 +90,7 @@ public class CardsController : ControllerBase
 
             // IF ACCOUNT GOT MONEY SO ASK FOR EXCHANGE BEFORE CHANGING CURRENCY
             var userId = await _claimsService.GetUserIdAsync(User);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
             var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
             var aimedCard = await _cardsService.GetCardDetails(bankAccountDetails.AccountNumber, currencyCardDto.CardId);
 
@@ -129,7 +134,7 @@ public class CardsController : ControllerBase
 
             var email = _configuration["Email"];
 
-            await _emailService.SendEmailAsync(email, "CARD currency change.",
+            await _emailService.SendEmailAsync(user.UserName, "CARD currency change.",
                 _emailBodyBuilder.ChangeCurrencyCardHtmlResponse("CARD currency change.", cardAfterCurrencyChanged));
 
             return Ok(new

@@ -4,7 +4,6 @@ using Core.Interfaces.IRepositories;
 
 namespace Application.Services;
 
-
 public class OperationServices : IOperationService
 {
     private readonly IOperationsRepository _operationsRepository;
@@ -14,7 +13,7 @@ public class OperationServices : IOperationService
         _operationsRepository = operationsRepository;
     }
 
-    public bool IsValidOperationObject (Operation? operation)
+    public bool IsValidOperationObject(Operation? operation)
     {
         if (operation == null)
             return false;
@@ -42,15 +41,14 @@ public class OperationServices : IOperationService
         do
         {
             randomId = random.Next(10000000, 99999999); // Random number between 100000 and 999999
-        }
-        while (!await _operationsRepository.IsOperationIdUnique(randomId));
+        } while (!await _operationsRepository.IsOperationIdUnique(randomId));
 
         return randomId; // Return unique random ID
     }
 
-    public async Task LogOperation(bool saveAsync,Operation operation)
+    public async Task LogOperation(bool saveAsync, Operation operation)
     {
-        await _operationsRepository.AddOperation(saveAsync,operation);
+        await _operationsRepository.AddOperation(saveAsync, operation);
     }
 
     public async Task<bool> AddAndSaveOperation(Operation operation)
@@ -62,7 +60,7 @@ public class OperationServices : IOperationService
                 throw new Exception("Operation object not valid");
             }
 
-            await _operationsRepository.AddOperation(true,operation);
+            await _operationsRepository.AddOperation(true, operation);
 
             return true;
         }
@@ -70,7 +68,6 @@ public class OperationServices : IOperationService
         {
             throw new Exception();
         }
-
     }
 
     public async Task<List<Operation>> GetCurrencyChangeLogs(string accountNumber)
@@ -102,6 +99,18 @@ public class OperationServices : IOperationService
         try
         {
             return await _operationsRepository.GetTransactionsToCardLogs(accountNumber);
+        }
+        catch (Exception e)
+        {
+            throw new Exception();
+        }
+    }
+
+    public async Task<List<Operation>> GetAllLogs(string accountNumber, int periodAsMonth)
+    {
+        try
+        {
+            return await _operationsRepository.GetAllLogs(accountNumber,periodAsMonth);
         }
         catch (Exception e)
         {

@@ -4,7 +4,9 @@ using Application.Interfaces;
 using Core.Entities;
 using Core.Enums;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Web.Controllers;
@@ -22,8 +24,9 @@ public class StocksController : ControllerBase
     private readonly string _sendGridApiKey;
     private readonly string _email;
     private readonly ILogger<StocksController> _logger;
+    private readonly UserManager<User> _userManager;
 
-    public StocksController(ILogger<StocksController> logger, IConfiguration configuration,
+    public StocksController(UserManager<User> userManager,ILogger<StocksController> logger, IConfiguration configuration,
         IEmailBodyBuilder emailBodyBuilder, IEmailService emailService, IStockService stockService,
         IClaimsService claimsService, IBankAccountService bankAccountService)
     {
@@ -35,87 +38,10 @@ public class StocksController : ControllerBase
         _sendGridApiKey = configuration["SendGrid:ApiKey"];
         _email = configuration["Email"];
         _logger = logger;
+        _userManager = userManager;
     }
 
-    [HttpPost("buy-stock")]
-    [Authorize]
-    public async Task<IActionResult> BuyStock([FromQuery] BuySellStockDto sellStockDto)
-    {
-        try
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var userId = await _claimsService.GetUserIdAsync(User);
-            var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
-            var stockPrice = await _stockService.GetStockLivePrice(sellStockDto.Symbol);
-            var stockDetails = await _stockService.GetStockDetails(sellStockDto.Symbol);
-            var buyStockResult
-                = await _stockService.BuyStockAsync(bankAccountDetails, stockPrice, stockDetails, sellStockDto);
-            if (!buyStockResult.Item1)
-            {
-                return BadRequest(new { Message = buyStockResult.Item2 });
-            }
-
-            var response = new
-            {
-                Message = "Operation done successfully!",
-                StockName = stockDetails.Result[0].Description,
-                stockDetails.Result[0].Symbol,
-                stockPrice.CurrentPrice,
-                sellStockDto.NumberOfStocks
-            };
-
-            var totalPrice = stockPrice.CurrentPrice * sellStockDto.NumberOfStocks;
-            var responseHtml = _emailBodyBuilder.BuyStockHtmlResponse("You have successfully purchased stocks",
-                stockDetails.Result[0].Description, stockDetails.Result[0].Symbol, stockPrice.CurrentPrice,
-                sellStockDto.NumberOfStocks, totalPrice);
-
-            await _emailService.SendEmailAsync(_email, "You have successfully purchased stocks", responseHtml);
-            return Ok(new
-            {
-                Message = "Operation done successfully!",
-                StockName = stockDetails.Result[0].Description,
-                stockDetails.Result[0].Symbol,
-                stockPrice.CurrentPrice,
-                sellStockDto.NumberOfStocks
-            });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
-    }
-
-    [HttpPost("sell-stock")]
-    [Authorize]
-    public async Task<IActionResult> SellStock([FromQuery] BuySellStockDto sellStockDto)
-    {
-        try
-        {
-            var userId = await _claimsService.GetUserIdAsync(User);
-            var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
-            if (bankAccountDetails.Currency != EnumCurrency.USD)
-            {
-                return BadRequest("You bank account currency must be in Dollar, in order to Sell owned Stocks");
-            }
-
-            var stocks = await _stockService.GetAllStocks(bankAccountDetails.AccountNumber);
-
-            var result = await _stockService.SellStockAsync(bankAccountDetails, sellStockDto);
-            if (!result.Item1)
-            {
-                return Ok(new { ErrorMessage = result.Item2 });
-            }
-
-            return Ok(new { Message = "Done successfully." });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new {e.Message});
-        }
-    }
-
-    [HttpGet("owned-stocks")]
+    [HttpGet("owned")]
     [Authorize]
     public async Task<IActionResult> GetOwnedStocks()
     {
@@ -151,7 +77,86 @@ public class StocksController : ControllerBase
         }
     }
 
-    [HttpGet("stock-live-price")]
+    [HttpPost("buy")]
+    [Authorize]
+    public async Task<IActionResult> BuyStock([FromQuery] BuySellStockDto sellStockDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var userId = await _claimsService.GetUserIdAsync(User);
+            var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
+            var stockPrice = await _stockService.GetStockLivePrice(sellStockDto.Symbol);
+            var stockDetails = await _stockService.GetStockDetails(sellStockDto.Symbol);
+            var buyStockResult
+                = await _stockService.BuyStockAsync(bankAccountDetails, stockPrice, stockDetails, sellStockDto);
+            if (!buyStockResult.Item1)
+            {
+                return BadRequest(new { Message = buyStockResult.Item2 });
+            }
+
+            var response = new
+            {
+                Message = "Operation done successfully!",
+                StockName = stockDetails.Result[0].Description,
+                stockDetails.Result[0].Symbol,
+                stockPrice.CurrentPrice,
+                sellStockDto.NumberOfStocks
+            };
+
+            var totalPrice = stockPrice.CurrentPrice * sellStockDto.NumberOfStocks;
+            var responseHtml = _emailBodyBuilder.BuyStockHtmlResponse("You have successfully purchased stocks",
+                stockDetails.Result[0].Description, stockDetails.Result[0].Symbol, stockPrice.CurrentPrice,
+                sellStockDto.NumberOfStocks, totalPrice);
+
+            await _emailService.SendEmailAsync(user.UserName, "You have successfully purchased stocks", responseHtml);
+            return Ok(new
+            {
+                Message = "Operation done successfully!",
+                StockName = stockDetails.Result[0].Description,
+                stockDetails.Result[0].Symbol,
+                stockPrice.CurrentPrice,
+                sellStockDto.NumberOfStocks
+            });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost("sell")]
+    [Authorize]
+    public async Task<IActionResult> SellStock([FromQuery] BuySellStockDto sellStockDto)
+    {
+        try
+        {
+            var userId = await _claimsService.GetUserIdAsync(User);
+            var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+
+            if (bankAccountDetails.Currency != EnumCurrency.USD)
+            {
+                return BadRequest("You bank account currency must be in Dollar, in order to Sell owned Stocks");
+            }
+            var stocks = await _stockService.GetAllStocks(bankAccountDetails.AccountNumber);
+
+            var result = await _stockService.SellStockAsync(bankAccountDetails, sellStockDto);
+            if (!result.Item1)
+            {
+                return Ok(new { ErrorMessage = result.Item2 });
+            }
+
+            return Ok(new { Message = "Done successfully." });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new {e.Message});
+        }
+    }
+
+    [HttpGet("live-price")]
     [Authorize]
     public async Task<IActionResult> GetStockLivePrice([FromQuery] CurrencySymbolDto currencySymbolDto)
     {
@@ -170,7 +175,7 @@ public class StocksController : ControllerBase
         }
     }
 
-    [HttpGet("stock-historical")]
+    [HttpGet("historical")]
     [Authorize]
     public async Task<IActionResult> GetStockPrices([FromQuery] StockPricesDto stockPricesDto)
     {

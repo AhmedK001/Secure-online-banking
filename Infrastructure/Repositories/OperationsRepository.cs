@@ -50,6 +50,7 @@ public class OperationsRepository : IOperationsRepository
             var result = await _dbContext.Operations
                 .Where(o => o.AccountNumber == accountNumber)
                 .Where(o => o.OperationType == EnumOperationType.CurrencyChange)
+                .OrderByDescending(o => o.DateTime)
                 .ToListAsync();
             return result;
         }
@@ -66,6 +67,7 @@ public class OperationsRepository : IOperationsRepository
             var result = await _dbContext.Operations
                 .Where(o => o.AccountNumber == accountNumber)
                 .Where(o => o.OperationType == EnumOperationType.Deposit)
+                .OrderByDescending(o => o.DateTime)
                 .ToListAsync();
             return result;
         }
@@ -82,6 +84,7 @@ public class OperationsRepository : IOperationsRepository
             var result = await _dbContext.Operations
                 .Where(o => o.AccountNumber == accountNumber)
                 .Where(o => o.OperationType == EnumOperationType.TransactionToCard)
+                .OrderByDescending(o => o.DateTime)
                 .ToListAsync();
             return result;
         }
@@ -90,4 +93,24 @@ public class OperationsRepository : IOperationsRepository
             throw new Exception();
         }
     }
+
+    public async Task<List<Operation>> GetAllLogs(string accountNumber, int periodAsMonth)
+    {
+        try
+        {
+            var startDate = DateTime.UtcNow.AddMonths(-periodAsMonth);
+
+            var result = await _dbContext.Operations
+                .Where(o => o.AccountNumber == accountNumber && o.DateTime >= startDate)
+                .OrderByDescending(o => o.DateTime)
+                .ToListAsync();
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            throw new Exception();
+        }
+    }
+
 }

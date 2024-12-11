@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Web.Controllers;
 
@@ -106,6 +107,7 @@ public class BankAccountController : ControllerBase
             // IF ACCOUNT GOT MONEY SO ASK FOR EXCHANGE BEFORE CHANGING CURRENCY
             var userId = await _claimsService.GetUserIdAsync(User);
             var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
 
             if (!Enum.TryParse(currencySymbolDto, out EnumCurrency currencySymbol))
             {
@@ -142,7 +144,7 @@ public class BankAccountController : ControllerBase
 
             var email = _configuration["Email"];
 
-            await _emailService.SendEmailAsync(email, "Bank Account Currency Change.",
+            await _emailService.SendEmailAsync(user.UserName, "Bank Account Currency Change.",
                 _emailBodyBuilder.ChangeCurrencyBankHtmlResponse("Bank Account Currency Change.", accountAfterCurrencyChanged));
             return Ok(new
             {
@@ -159,9 +161,7 @@ public class BankAccountController : ControllerBase
         }
         catch (Exception e)
         {
-            var errorMessage = e.InnerException?.Message ?? e.Message;
-
-            return BadRequest(new { Message = errorMessage, E = e });
+            return BadRequest(new { e.Message });
         }
     }
 }

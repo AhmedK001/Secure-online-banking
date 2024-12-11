@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Application.DTOs.ExternalModels;
+namespace Application.DTOs;
 
 public class CurrencySymbolDto
 {

@@ -18,8 +18,10 @@ public class ExcelController : ControllerBase
     private readonly IBankAccountService _bankAccountService;
     private readonly ICardsService _cardsService;
     private readonly IOperationService _operationService;
+    private readonly IEmailService _emailService;
+    private readonly IEmailBodyBuilder _emailBodyBuilder;
 
-    public ExcelController(IOperationService operationService,ICardsService cardsService, IBankAccountService bankAccountService, IExcelService excelService, UserManager<User> userManager, IClaimsService claimsService)
+    public ExcelController(IEmailBodyBuilder emailBodyBuilder,IEmailService emailService,IOperationService operationService,ICardsService cardsService, IBankAccountService bankAccountService, IExcelService excelService, UserManager<User> userManager, IClaimsService claimsService)
     {
         _excelService = excelService;
         _userManager = userManager;
@@ -27,11 +29,13 @@ public class ExcelController : ControllerBase
         _bankAccountService = bankAccountService;
         _cardsService = cardsService;
         _operationService = operationService;
+        _emailService = emailService;
+        _emailBodyBuilder = emailBodyBuilder;
     }
 
-    [HttpGet("statements/{periodAsMonth:int}")]
+    [HttpGet("statements/{period-as-month:int}/{send-email:bool}")]
     [Authorize]
-    public async Task<IActionResult> GetBankStatements(int periodAsMonth)
+    public async Task<IActionResult> GetBankStatements([FromRoute(Name = "period-as-month")] int periodAsMonth,[FromRoute(Name = "send-email")] bool sendEmil )
     {
 
         try
@@ -47,14 +51,23 @@ public class ExcelController : ControllerBase
             var bankAccount = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
             var operations = await _operationService.GetAllLogs(bankAccount.AccountNumber, periodAsMonth);
 
-            var streamContent = await _excelService.GetAllOperations(operations, user, bankAccount);
+            StreamContent streamContent;
+                streamContent = await _excelService.GetAllOperations(sendEmil,operations, user, bankAccount);
 
             // read the stream form stream content
             var memoryStream = await streamContent.ReadAsStreamAsync();
+            var stream = Stream.Synchronized(memoryStream);
+
+            var file = File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "MyBankStatements.xlsx");
+            if (sendEmil)
+            {
+                 await _emailService.SendEmailAsync(user.UserName, "Your Bank-Account Statements","Enjoy",stream,"MyBankStatements.xlsx");
+                 return Ok("Done");
+            }
 
             // Return the file
-            return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "MyBankStatements.xlsx");
+            return file;
         }
         catch (Exception e)
         {

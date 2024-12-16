@@ -7,21 +7,22 @@ using System.Threading.Tasks;
 using Core.Entities;
 using Infrastructure.Configurations;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Data;
 
 public class ApplicationDbContext : IdentityDbContext<User,Role,Guid>
 {
 
-    
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    private readonly IConfiguration _configuration;
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options,IConfiguration configuration)
         : base(options)
     {
+        _configuration = configuration;
     }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer(
-            "Data Source=TUF;Initial Catalog=BankDatabase;Integrated Security=True;Trust Server Certificate=True");
+        optionsBuilder.UseSqlServer(_configuration["DbContextAzure"]);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -6,7 +6,7 @@ using SendGrid.Helpers.Mail;
 
 namespace Application.Services;
 
-public class EmailsService : IEmailService
+public class EmailService : IEmailService
 {
     private readonly string _mailGunDomain;
     private readonly string _mailGunApiKey;
@@ -17,7 +17,7 @@ public class EmailsService : IEmailService
 
     private readonly HttpClient _httpClient;
 
-    public EmailsService(IConfiguration configuration)
+    public EmailService(IConfiguration configuration)
     {
         _mailGunDomain = configuration["Mailgun:Domain"];
         _mailGunApiKey = configuration["Mailgun:ApiKey"];
@@ -36,7 +36,10 @@ public class EmailsService : IEmailService
             Headers
                 =
                 {
-                    { "Authorization", "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes($"api:{_mailGunApiKey}")) }
+                    {
+                        "Authorization",
+                        "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes($"api:{_mailGunApiKey}"))
+                    }
                 },
             Content = new FormUrlEncodedContent(new[]
             {
@@ -60,6 +63,36 @@ public class EmailsService : IEmailService
         var to = new EmailAddress(toEmail);
 
         var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent: null, htmlContent: htmlContent);
+
+        var response = await client.SendEmailAsync(msg);
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"Failed to send email. Status Code: {response.StatusCode}");
+        }
+    }
+
+    public async Task SendEmailAsync(string toEmail, string subject, string htmlContent, Stream fileContent = null,
+        string fileName = null, string contentType = "application/octet-stream")
+    {
+        var client = new SendGridClient(_apiKey);
+
+        var from = new EmailAddress(_senderEmail, "SecureOnlineBanking");
+
+        var to = new EmailAddress(toEmail);
+
+        var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent: null, htmlContent: htmlContent);
+
+        // Check if a file attachment is provided
+        if (fileContent != null && !string.IsNullOrEmpty(fileName))
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                await fileContent.CopyToAsync(memoryStream);
+                var base64File = Convert.ToBase64String(memoryStream.ToArray());
+
+                msg.AddAttachment(fileName, base64File, contentType);
+            }
+        }
 
         var response = await client.SendEmailAsync(msg);
         if (!response.IsSuccessStatusCode)

@@ -30,7 +30,7 @@ public class ExcelService : IExcelService
         return $"{currencySymbol} {balance:F2}";
     }
 
-    public async Task<StreamContent> GetAllOperations(List<Operation> operations, User user,
+    public async Task<StreamContent> GetAllOperations(bool sendEmail,List<Operation> operations, User user,
         BankAccount bankAccount)
     {
         var book = new XLWorkbook();

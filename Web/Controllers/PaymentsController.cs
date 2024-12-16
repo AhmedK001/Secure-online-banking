@@ -64,11 +64,28 @@ public class PaymentsController : ControllerBase
             return NotFound("You must create a bank account to be able to use these services");
         }
 
+        if (!Enum.TryParse<EnumPaymentMethods>(chargeRequestDto.PaymentMethod, out var paymentMethod))
+        {
+            var names = string.Join(", ", Enum.GetNames<EnumPaymentMethods>());
+            return BadRequest($"Accepted payment methods are: {names}.");
+        }
+
+        var bankAccount = await _bankAccountService.GetDetailsById(userId);
+        var accountCurrency = Enum.GetName(typeof(EnumCurrency), bankAccount.Currency);
+        if (accountCurrency != "EUR" && accountCurrency != "AED" && accountCurrency != "USD")
+        {
+            return BadRequest(new
+            {
+                error = "Invalid Currency",
+                message = "The bank account currency must be one of the following: AED, USD, or EUR.",
+                allowedCurrencies = new[] { "AED", "USD", "EUR" }
+            });}
+
         var options = new PaymentIntentCreateOptions
         {
-            Amount = (long)(chargeRequestDto.Amount * 100), //
-            Currency = "usd",
-            PaymentMethod = chargeRequestDto.PaymentMethodId,
+            Amount = (long)(chargeRequestDto.Amount * 100),
+            Currency = accountCurrency,
+            PaymentMethod = paymentMethod.ToString(),
             AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
             {
                 Enabled = true, AllowRedirects = "never"
@@ -137,7 +154,9 @@ public class PaymentsController : ControllerBase
 
             await _emailService.SendEmailAsync(user.UserName, "You account has been Charge Successfully", emailContent);
 
-
+            // add operation as logs
+            await _operationService.ValidateAndSaveOperation(
+                await _operationService.BuildChargeOperation(bankAccount, _chargeAmount));
             // add currency for operation service, make default charge currency then validate.
             _chargeAmount = 0;
             return Ok(new
@@ -191,20 +210,11 @@ public class PaymentsController : ControllerBase
                 = await _cardsService.GetCardDetails(bankAccountDetails.AccountNumber, aimedCard.CardId);
             var bankAccountAfterBalanceDeducted = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
 
-            Operation operation = new Operation()
-            {
-                AccountNumber = bankAccountDetails.AccountNumber,
-                AccountId = bankAccountDetails.NationalId,
-                OperationId = await _operationService.GenerateUniqueRandomOperationIdAsync(),
-                OperationType = EnumOperationType.TransactionToCard,
-                Description = $"Transaction from your Bank account to your CARD," +
-                              $" Amount transferred is: {cardDto.Amount:F2}{bankAccountDetails.Currency}",
-                DateTime = DateTime.UtcNow,
-                Currency = aimedCard.Currency,
-                Amount = cardDto.Amount,
-            };
+            // add operation as logs
+            var operation = await _operationService.BuildTransferOperation(bankAccountDetails, cardDto.Amount,
+                EnumOperationType.TransactionToCard);
+            await _operationService.ValidateAndSaveOperation(operation);
 
-            await _operationService.LogOperation(true, operation);
             await _unitOfWork.CommitTransactionAsync(); // commit changes if all succeeded
 
             var email = _configuration["Email"];
@@ -296,6 +306,10 @@ public class PaymentsController : ControllerBase
 
             await _emailService.SendEmailAsync(user.UserName,
                 "Your transaction to the bank account has been completed successfully.", emailContent);
+
+            var operation = await _operationService.BuildTransferOperation(bankAccount, transactionDto.Amount,
+                EnumOperationType.TransactionToAccount);
+            await _operationService.ValidateAndSaveOperation(operation);
 
             return Ok(new
             {

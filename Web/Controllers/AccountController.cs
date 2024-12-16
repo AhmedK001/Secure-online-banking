@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using System.Web;
 using Application.DTOs;
 using Application.DTOs.RegistrationDTOs;
 using Application.DTOs.ResponseDto;
@@ -8,6 +9,7 @@ using Application.Mappers;
 using Application.Validators;
 using Core.Entities;
 using Core.Interfaces;
+using Core.Interfaces.IRepositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -29,12 +31,13 @@ public class AccountController : ControllerBase
     private readonly IEmailService _emailService;
     private readonly IEmailBodyBuilder _emailBodyBuilder;
     private readonly IClaimsService _claimsService;
+    private readonly IUnitOfWork _unitOfWork;
 
 
-    public AccountController(IClaimsService claimsService,IEmailService emailService, IEmailBodyBuilder emailBodyBuilder,
-        ITwoFactorAuthService twoFactorAuthService, IUpdatePassword updatePassword, IJwtService jwtService,
-        UserManager<User> userManager, SignInManager<User> signInManager, IRegistrationService registrationService,
-        ISearchUserService searchUserService)
+    public AccountController(IUnitOfWork unitOfWork, IClaimsService claimsService, IEmailService emailService,
+        IEmailBodyBuilder emailBodyBuilder, ITwoFactorAuthService twoFactorAuthService, IUpdatePassword updatePassword,
+        IJwtService jwtService, UserManager<User> userManager, SignInManager<User> signInManager,
+        IRegistrationService registrationService, ISearchUserService searchUserService)
     {
         _userManager = userManager;
         _registrationService = registrationService;
@@ -46,6 +49,7 @@ public class AccountController : ControllerBase
         _emailService = emailService;
         _emailBodyBuilder = emailBodyBuilder;
         _claimsService = claimsService;
+        _unitOfWork = unitOfWork;
     }
 
     [HttpPost("register")]
@@ -87,7 +91,7 @@ public class AccountController : ControllerBase
         }
 
         // Convert userDto to user object
-        User user = ConvertToSomeObject.ConvertToUserObject(userDto);
+        User user = Global.ConvertToUserObject(userDto);
         {
             user.UserName = userDto.Email;
         }
@@ -96,11 +100,9 @@ public class AccountController : ControllerBase
         var registrationResult = await _userManager.CreateAsync(user, userDto.Password);
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-        var confirmationLink = Url.Action(
-            "ConfirmEmail",
-            "Account",
-            new { Email = userDto.Email, token = token }, Request.Scheme);
-
+        var confirmationLink = Url.Action("ConfirmEmail", "Account", new { Email = userDto.Email, token = token },
+            Request.Scheme);
+        Console.WriteLine(token);
         var userName = $"{user.FirstName} {user.LastName}";
         var body = _emailBodyBuilder.EmailConfirmationHtmlResponse("Confirm your email", userName, confirmationLink);
         await _emailService.SendEmailAsync(user.UserName, "Confirm your email", body);
@@ -168,20 +170,20 @@ public class AccountController : ControllerBase
             });
         }
 
-        if (!await _userManager.CheckPasswordAsync(user,userLoginDto.Password))
+        if (!await _userManager.CheckPasswordAsync(user, userLoginDto.Password))
         {
             await _userManager.AccessFailedAsync(user);
             return Unauthorized("Email or password is incorrect.");
         }
-        var passwordLoginResult = await _signInManager.PasswordSignInAsync(
-            user.UserName, userLoginDto.Password, isPersistent: false,
-            lockoutOnFailure: false);
+
+        var passwordLoginResult = await _signInManager.PasswordSignInAsync(user.UserName, userLoginDto.Password,
+            isPersistent: false, lockoutOnFailure: false);
 
         await _userManager.ResetAccessFailedCountAsync(user);
         _twoFactorAuthService.RemoveCode(user.Id.ToString());
         int expirationTimeInMinutes = 5;
         var userName = $"{user.FirstName} {user.LastName}";
-        var code = _twoFactorAuthService.Generate2FaCode(user.Id.ToString(),expirationTimeInMinutes);
+        var code = _twoFactorAuthService.Generate2FaCode(user.Id.ToString(), expirationTimeInMinutes);
         Console.WriteLine(code);
         Console.WriteLine(code);
         var body = _emailBodyBuilder.TwoFactorAuthHtmlResponse("Your Two-Factor auth code for login", userName, code,
@@ -197,9 +199,14 @@ public class AccountController : ControllerBase
     {
         try
         {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return Ok(new { Message = "You are already logged in." });
+            }
+
             var email = verificationDto.EmailAddress.ToLower();
             var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email);
-            if (user is null) return BadRequest(new{ErrorMessage = "No users found."});
+            if (user is null) return BadRequest(new { ErrorMessage = "No users found." });
             var userId = user.Id.ToString();
             var code = _twoFactorAuthService.GetStoredCode(userId);
 
@@ -224,12 +231,7 @@ public class AccountController : ControllerBase
 
             _twoFactorAuthService.RemoveCode(userId);
             var token = _jwtService.CreateJwtToken(user);
-            return Ok(new
-            {
-                token.Token,
-                token.ExpirationTime,
-                Message = "Successfully signed in.",
-            });
+            return Ok(new { token.Token, token.ExpirationTime, Message = "Successfully signed in.", });
         }
         catch (Exception e)
         {
@@ -241,6 +243,11 @@ public class AccountController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> RequestResetPassword([FromBody] string email)
     {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return Ok(new { Message = "You are already logged in." });
+        }
+
         if (!ModelState.IsValid)
         {
             BadRequest(ModelState);
@@ -248,12 +255,12 @@ public class AccountController : ControllerBase
 
         var user = await _userManager.FindByNameAsync(email);
 
-        if (user is null) return BadRequest(new{ErrorMessage = "No users found."});
+        if (user is null) return BadRequest(new { ErrorMessage = "No users found." });
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
         var resetUrl = Url.Action("ResetPassword", "Account", new { token }, Request.Scheme);
-
+        Console.WriteLine(token);
         var body = _emailBodyBuilder.PasswordResetHtmlResponse("Password Reset Request.", email, resetUrl);
 
         await _emailService.SendEmailAsync(email, "Password Reset Request.", body);
@@ -265,10 +272,28 @@ public class AccountController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto passwordDto)
     {
-        var user = await _userManager.FindByNameAsync(passwordDto.Email);
-        if (user is null) return BadRequest(new{ErrorMessage = "No users found."});
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return Ok(new { Message = "You are already logged in." });
+        }
 
-        var result = await _userManager.ResetPasswordAsync(user, passwordDto.Token, passwordDto.Password);
+        var user = await _userManager.FindByNameAsync(passwordDto.Email);
+        if (user is null) return BadRequest(new { ErrorMessage = "No users found." });
+
+        var decodedToken = HttpUtility.UrlDecode(passwordDto.Token);
+
+        if (!await _userManager.VerifyUserTokenAsync(user,
+                _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", decodedToken))
+        {
+            return BadRequest(new { ErrorMessage = "Invalid Token." });
+        }
+
+        if (await _userManager.CheckPasswordAsync(user, passwordDto.Password))
+        {
+            return BadRequest(new { ErrorMessage = "Cannot use same old password." });
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, decodedToken, passwordDto.Password);
         if (!result.Succeeded)
         {
             return BadRequest(result.Errors);
@@ -279,6 +304,7 @@ public class AccountController : ControllerBase
         {
             await _userManager.SetLockoutEnabledAsync(user, false);
         }
+
         return Ok(new { Status = "Success", Message = "Your password has been reset successfully." });
     }
 

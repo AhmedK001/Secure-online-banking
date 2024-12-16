@@ -23,7 +23,7 @@ public class HomeController : ControllerBase
 
          var baseUrl = $"{protocol}://{host}";
 
-         var redirectUrl = $"{baseUrl}/swagger";
+         var redirectUrl = $"{baseUrl}/";
         return Redirect(redirectUrl);
     }
 }

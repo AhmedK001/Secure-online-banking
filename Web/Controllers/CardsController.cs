@@ -1,5 +1,6 @@
 using Application.DTOs;
 using Application.Interfaces;
+using Application.Mappers;
 using Core.Entities;
 using Core.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -21,8 +22,9 @@ public class CardsController : ControllerBase
     private readonly IEmailBodyBuilder _emailBodyBuilder;
     private readonly IConfiguration _configuration;
     private readonly UserManager<User> _userManager;
+    private readonly IOperationService _operationService;
 
-    public CardsController(UserManager<User> userManager,IConfiguration configuration, IEmailService emailService, IEmailBodyBuilder emailBodyBuilder,IClaimsService claimsService, IBankAccountService bankAccountService,
+    public CardsController(IOperationService operationService,UserManager<User> userManager,IConfiguration configuration, IEmailService emailService, IEmailBodyBuilder emailBodyBuilder,IClaimsService claimsService, IBankAccountService bankAccountService,
         ICardsService cardsService)
     {
         _claimsService = claimsService;
@@ -32,22 +34,27 @@ public class CardsController : ControllerBase
         _emailService = emailService;
         _emailBodyBuilder = emailBodyBuilder;
         _userManager = userManager;
+        _operationService = operationService;
     }
 
     [HttpPost("card")]
     [Authorize]
-    public async Task<IActionResult> CreateBankCard([FromQuery] string cardType)
+    public async Task<IActionResult> CreateBankCard([FromBody] CardTypeDto cardTypeDto)
     {
         try
         {
             var userId = await _claimsService.GetUserIdAsync(User);
             var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
             var createCardResult = await _cardsService.CreateCardAsync(bankAccountDetails.AccountNumber,
-                cardType, bankAccountDetails);
+                cardTypeDto.CardType, bankAccountDetails);
 
             var createdCardDetails
                 = await _cardsService.GetCardDetails(bankAccountDetails.AccountNumber,
                     createCardResult.Item2);
+
+            // save operation
+            var operation = await _operationService.BuildDeleteOrCreateCardOperation(bankAccountDetails, createdCardDetails,EnumOperationType.CreateCard);
+            await _operationService.AddOperation(true,operation);
 
             CardResponseDto cardResponseDto = new CardResponseDto()
             {
@@ -211,6 +218,16 @@ public class CardsController : ControllerBase
             {
                 return BadRequest("You do not have any cards with in this ID number.");
             }
+
+            if (aimedCard.Balance > 1)
+            {
+                return BadRequest(
+                    $"Balance must be below {Global.FormatCurrency(aimedCard.Currency, 1)} in order to delete the card.");
+            }
+
+            // save operation
+            var operation = await _operationService.BuildDeleteOrCreateCardOperation(bankAccountDetails, aimedCard,EnumOperationType.DeleteCard);
+            await _operationService.AddOperation(true,operation);
 
             await _cardsService.DeleteCard(aimedCard.CardId);
             return Ok("You card does not exist any more.");

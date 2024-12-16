@@ -28,6 +28,7 @@ public class RegisterUserDto
     [Required(ErrorMessage = "Date of birth is required.")]
     //[RegularExpression(@"^\d{4}-\d{2}-\d{2}$", ErrorMessage = "Date of Birth must be in the format yyyy-MM-dd")]
     [DataType(DataType.Date, ErrorMessage = "Invalid birth date format. Please use yyyy-MM-dd.")]
+    [DefaultValue("2000-01-01")]
     public string DateOfBirth { get; set; }
 
     [Required(ErrorMessage = "Email address is required.")]
@@ -42,21 +43,14 @@ public class RegisterUserDto
     
     [Required]
     [DataType(DataType.Password)]
+    [DefaultValue("ppppppppppppppppp")]
     [StringLength(30, MinimumLength = 6, ErrorMessage = "Password must be at least 6 up to 30 characters long.")]
     [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$", 
-        ErrorMessage = "Password must have at least one uppercase letter, one lowercase letter, and one number.")]
+        ErrorMessage = "Password must has at least one uppercase letter, one lowercase letter, and one number.")]
     public string Password { get; set; }
 
     [Compare("Password", ErrorMessage = "Passwords does not match.")]
+    [DefaultValue("ppppppppppppppppp")]
     [DataType(DataType.Password)]
     public string ConfirmPassword { get; set; }
-
-    
-    public override string ToString()
-    {
-        return $"NationalId: {NationalId}, " + $"FirstName: {FirstName}, " +
-               $"LastName: {LastName}, " +
-               $"DateOfBirth: {DateOfBirth}, " +
-               $"Email: {Email}, " + $"PhoneNumber: {PhoneNumber}";
-    }
 }

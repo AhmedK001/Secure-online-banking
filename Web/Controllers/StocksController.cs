@@ -25,10 +25,12 @@ public class StocksController : ControllerBase
     private readonly string _email;
     private readonly ILogger<StocksController> _logger;
     private readonly UserManager<User> _userManager;
+    private readonly IOperationService _operationService;
 
-    public StocksController(UserManager<User> userManager,ILogger<StocksController> logger, IConfiguration configuration,
-        IEmailBodyBuilder emailBodyBuilder, IEmailService emailService, IStockService stockService,
-        IClaimsService claimsService, IBankAccountService bankAccountService)
+    public StocksController(IOperationService operationService, UserManager<User> userManager,
+        ILogger<StocksController> logger, IConfiguration configuration, IEmailBodyBuilder emailBodyBuilder,
+        IEmailService emailService, IStockService stockService, IClaimsService claimsService,
+        IBankAccountService bankAccountService)
     {
         _stockService = stockService;
         _claimsService = claimsService;
@@ -39,6 +41,7 @@ public class StocksController : ControllerBase
         _email = configuration["Email"];
         _logger = logger;
         _userManager = userManager;
+        _operationService = operationService;
     }
 
     [HttpGet("owned")]
@@ -106,6 +109,12 @@ public class StocksController : ControllerBase
                 sellStockDto.NumberOfStocks
             };
 
+            // save operation
+            var operation = await _operationService.BuildStockOperation(bankAccountDetails, sellStockDto.NumberOfStocks,
+                sellStockDto.Symbol, stockDetails.Result[0].DisplaySymbol, stockPrice.CurrentPrice,
+                EnumOperationType.StockBuy);
+            await _operationService.ValidateAndSaveOperation(operation);
+
             var totalPrice = stockPrice.CurrentPrice * sellStockDto.NumberOfStocks;
             var responseHtml = _emailBodyBuilder.BuyStockHtmlResponse("You have successfully purchased stocks",
                 stockDetails.Result[0].Description, stockDetails.Result[0].Symbol, stockPrice.CurrentPrice,
@@ -140,6 +149,7 @@ public class StocksController : ControllerBase
             {
                 return BadRequest("You bank account currency must be in Dollar, in order to Sell owned Stocks");
             }
+
             var stocks = await _stockService.GetAllStocks(bankAccountDetails.AccountNumber);
 
             var result = await _stockService.SellStockAsync(bankAccountDetails, sellStockDto);
@@ -148,11 +158,19 @@ public class StocksController : ControllerBase
                 return Ok(new { ErrorMessage = result.Item2 });
             }
 
+            var livePrice = await _stockService.GetStockLivePrice(sellStockDto.Symbol);
+            var info = await _stockService.GetStockDetails(sellStockDto.Symbol);
+
+            var operation = await _operationService.BuildStockOperation(bankAccountDetails, sellStockDto.NumberOfStocks,
+                sellStockDto.Symbol, info.Result[0].DisplaySymbol, livePrice.CurrentPrice,
+                EnumOperationType.StockSell);
+            await _operationService.ValidateAndSaveOperation(operation);
+
             return Ok(new { Message = "Done successfully." });
         }
         catch (Exception e)
         {
-            return BadRequest(new {e.Message});
+            return BadRequest(new { e.Message });
         }
     }
 

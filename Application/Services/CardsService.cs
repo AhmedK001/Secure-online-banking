@@ -1,6 +1,7 @@
 using Application.DTOs;
 using Application.DTOs.ExternalModels.Currency;
 using Application.Interfaces;
+using Application.Mappers;
 using Core.Entities;
 using Core.Enums;
 using Core.Interfaces.IRepositories;
@@ -16,8 +17,9 @@ public class CardsService : ICardsService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IBankAccountService _bankAccountService;
 
-    public CardsService(IBankAccountService bankAccountService,ICardRepository cardRepository, IGenerateService generateService,
-        ICurrencyService currencyService, IOperationService operationService, IUnitOfWork unitOfWork)
+    public CardsService(IBankAccountService bankAccountService, ICardRepository cardRepository,
+        IGenerateService generateService, ICurrencyService currencyService, IOperationService operationService,
+        IUnitOfWork unitOfWork)
     {
         _cardRepository = cardRepository;
         _generateService = generateService;
@@ -206,7 +208,8 @@ public class CardsService : ICardsService
         }
     }
 
-    public async Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(bool saveAsync, decimal newBalance, int cardId)
+    public async Task<(bool isSuccess, decimal amountAfterExchange)> ChangeBalance(bool saveAsync, decimal newBalance,
+        int cardId)
     {
         try
         {
@@ -234,6 +237,7 @@ public class CardsService : ICardsService
             var cardDetails = await _cardRepository.GetCardDetails(accountNumber, cardId);
             var balanceBeforeExchange = cardDetails.Balance;
             var bankAccountDetails = cardDetails.BankAccount;
+            var currencyBefore = cardDetails.Currency;
 
             if (!zeroBalance)
             {
@@ -260,15 +264,14 @@ public class CardsService : ICardsService
                 AccountId = bankAccountDetails.NationalId,
                 OperationId = await _operationService.GenerateUniqueRandomOperationIdAsync(),
                 OperationType = EnumOperationType.CurrencyChange,
-                Description = $"CARD Currency Change. " + $"From {fromCurrency} To {toCurrency}," +
-                              $" Balance before exchange: {balanceBeforeExchange:F2}{fromCurrency}," +
-                              $" Balance After exchange: {amountAfterExchange:F2}{toCurrency}.",
+                Description = $"Card currency change. " +
+                              $"Balance before and after exchange: {Global.FormatCurrency(currencyBefore, balanceBeforeExchange)}, {Global.FormatCurrency(currency, amountAfterExchange)}",
                 DateTime = DateTime.UtcNow,
                 Currency = currency,
                 Amount = bankAccountDetails.Balance,
             };
 
-            await _operationService.LogOperation(true, operation);
+            await _operationService.AddOperation(true, operation);
             await _cardRepository.ChangeCurrencyAsync(true, currency, cardId);
             await _cardRepository.ChangeBalance(true, amountAfterExchange, cardId);
             await _unitOfWork.CommitTransactionAsync(); // save data
@@ -304,13 +307,15 @@ public class CardsService : ICardsService
         }
     }
 
-    public async Task<(bool, string)> CardToCardExchange(ExchangeMoneyDtoCardToCard dtoCardToCard, Card baseCard, Card targetCard)
+    public async Task<(bool, string)> CardToCardExchange(ExchangeMoneyDtoCardToCard dtoCardToCard, Card baseCard,
+        Card targetCard)
     {
         try
         {
             if (baseCard.BankAccount.AccountNumber != targetCard.BankAccount.AccountNumber)
                 return (false, "This service only valid for internal transactions");
-            var exchangeForm = await _currencyService.GetExchangeForm(Enum.GetName(typeof(EnumCurrency), baseCard.Currency),
+            var exchangeForm = await _currencyService.GetExchangeForm(
+                Enum.GetName(typeof(EnumCurrency), baseCard.Currency),
                 Enum.GetName(typeof(EnumCurrency), targetCard.Currency));
 
             var amountAfterExchange = dtoCardToCard.Amount * decimal.Parse(exchangeForm.BidPrice);

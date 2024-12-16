@@ -26,12 +26,11 @@ public class OperationsRepository : IOperationsRepository
         return false;
     }
 
-    public async Task AddOperation(bool saveAsync,Operation operation)
+    public async Task AddOperation(bool saveAsync, Operation operation)
     {
         try
         {
-            var addOperationAsync
-                = await _dbContext.Operations.AddAsync(operation);
+            var addOperationAsync = await _dbContext.Operations.AddAsync(operation);
             if (saveAsync)
             {
                 await _dbContext.SaveChangesAsync();
@@ -47,10 +46,8 @@ public class OperationsRepository : IOperationsRepository
     {
         try
         {
-            var result = await _dbContext.Operations
-                .Where(o => o.AccountNumber == accountNumber)
-                .Where(o => o.OperationType == EnumOperationType.CurrencyChange)
-                .OrderByDescending(o => o.DateTime)
+            var result = await _dbContext.Operations.Where(o => o.AccountNumber == accountNumber)
+                .Where(o => o.OperationType == EnumOperationType.CurrencyChange).OrderByDescending(o => o.DateTime)
                 .ToListAsync();
             return result;
         }
@@ -64,10 +61,8 @@ public class OperationsRepository : IOperationsRepository
     {
         try
         {
-            var result = await _dbContext.Operations
-                .Where(o => o.AccountNumber == accountNumber)
-                .Where(o => o.OperationType == EnumOperationType.Deposit)
-                .OrderByDescending(o => o.DateTime)
+            var result = await _dbContext.Operations.Where(o => o.AccountNumber == accountNumber)
+                .Where(o => o.OperationType == EnumOperationType.Deposit).OrderByDescending(o => o.DateTime)
                 .ToListAsync();
             return result;
         }
@@ -81,10 +76,8 @@ public class OperationsRepository : IOperationsRepository
     {
         try
         {
-            var result = await _dbContext.Operations
-                .Where(o => o.AccountNumber == accountNumber)
-                .Where(o => o.OperationType == EnumOperationType.TransactionToCard)
-                .OrderByDescending(o => o.DateTime)
+            var result = await _dbContext.Operations.Where(o => o.AccountNumber == accountNumber)
+                .Where(o => o.OperationType == EnumOperationType.TransactionToCard).OrderByDescending(o => o.DateTime)
                 .ToListAsync();
             return result;
         }
@@ -102,7 +95,42 @@ public class OperationsRepository : IOperationsRepository
 
             var result = await _dbContext.Operations
                 .Where(o => o.AccountNumber == accountNumber && o.DateTime >= startDate)
-                .OrderByDescending(o => o.DateTime)
+                .OrderByDescending(o => o.DateTime).ToListAsync();
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            throw new Exception();
+        }
+    }
+
+    public async Task<List<Operation>> GetTransactionLogs(string accountNumber)
+    {
+        try
+        {
+            var result = await _dbContext.Operations.Where(o =>
+                o.AccountNumber == accountNumber && o.OperationType == EnumOperationType.TransactionToAccount ||
+                o.OperationType == EnumOperationType.TransactionToCard ||
+                o.OperationType == EnumOperationType.TransactionCardToCard ||
+                o.OperationType == EnumOperationType.Deposit).OrderByDescending(o => o.DateTime).ToListAsync();
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            throw new Exception();
+        }
+    }
+
+    public async Task<List<Operation>> GetExchangeLogs(string accountNumber)
+    {
+        try
+        {
+            var result = await _dbContext.Operations.Where(o =>
+                    o.AccountNumber == accountNumber && o.OperationType == EnumOperationType.ExchangeToCard ||
+                    o.OperationType == EnumOperationType.ExchangeToAccount ||
+                    o.OperationType == EnumOperationType.ExchangeCardToCard).OrderByDescending(o => o.DateTime)
                 .ToListAsync();
 
             return result;
@@ -113,4 +141,20 @@ public class OperationsRepository : IOperationsRepository
         }
     }
 
+    public async Task<List<Operation>> GetStockLogs(string accountNumber)
+    {
+        try
+        {
+            var result = await _dbContext.Operations.Where(o =>
+                    o.AccountNumber == accountNumber && o.OperationType == EnumOperationType.StockBuy ||
+                    o.OperationType == EnumOperationType.StockSell).OrderByDescending(o => o.DateTime)
+                .ToListAsync();
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            throw new Exception();
+        }
+    }
 }

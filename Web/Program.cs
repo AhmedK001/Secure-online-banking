@@ -30,6 +30,11 @@ builder.Services.AddControllers().AddJsonOptions(o =>
 {
     o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
 });
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -55,6 +60,10 @@ builder.Services.AddSwaggerGen(options =>
     {
         { jwtSecurityScheme, Array.Empty<string>() }
     });
+});
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SchemaFilter<EnumSchemaFilter>();
 });
 
 // Database and Identity
@@ -127,7 +136,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPaymentsService, PaymentsService>();
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IValidate, Validate>();
-builder.Services.AddScoped<IEmailService, EmailsService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IEmailBodyBuilder, EmailBodyBuilder>();
 builder.Services.AddScoped<ITwoFactorAuthService, TwoFactorAuthService>();
 builder.Services.AddScoped<IExcelService, ExcelService>();
@@ -142,12 +151,13 @@ app.Use(async (context, next) =>
     Console.WriteLine($"Request Path: {context.Request.Path}");
     await next();
 });
-// Middleware
-if (app.Environment.IsDevelopment())
+// Enable Swagger in all environments
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"); });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    c.RoutePrefix = string.Empty;
+});
 
 app.UseHttpsRedirection();
 app.UseRouting();

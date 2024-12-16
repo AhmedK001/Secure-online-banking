@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.DTOs.ExternalModels.Currency;
 using Application.Interfaces;
+using Application.Mappers;
 using Core.Entities;
 using Core.Enums;
 using Core.Interfaces.IRepositories;
@@ -98,24 +99,24 @@ public class BankAccountService : IBankAccountService
         {
             return false;
         }
-
-        // create Operation object
-        Operation operation = new Operation()
-        {
-            AccountNumber = bankAccount.AccountNumber,
-            AccountId = bankAccount.NationalId,
-            OperationId
-                = await _operationService
-                    .GenerateUniqueRandomOperationIdAsync(),
-            OperationType = EnumOperationType.Deposit,
-            Amount = amount,
-            Currency = bankAccount.Currency,
-            DateTime = DateTime.UtcNow,
-            Description = null,
-            Receiver = null!
-        };
-
-        await _operationService.LogOperation(true,operation);
+        //
+        // // create Operation object
+        // Operation operation = new Operation()
+        // {
+        //     AccountNumber = bankAccount.AccountNumber,
+        //     AccountId = bankAccount.NationalId,
+        //     OperationId
+        //         = await _operationService
+        //             .GenerateUniqueRandomOperationIdAsync(),
+        //     OperationType = EnumOperationType.Deposit,
+        //     Amount = amount,
+        //     Currency = bankAccount.Currency,
+        //     DateTime = DateTime.UtcNow,
+        //     Description = null,
+        //     Receiver = null!
+        // };
+        //
+        // await _operationService.LogOperation(true,operation);
         return true;
     }
 
@@ -199,6 +200,7 @@ public class BankAccountService : IBankAccountService
             decimal amountAfterExchange;
             var bankAccountDetails = await _bankAccountRepository.GetBankAccountDetailsByAccountNumber(accountNumber);
             var balanceBeforeExchange = bankAccountDetails.Balance;
+            var oldCurrency = bankAccountDetails.Currency;
 
             if (!zeroBalance)
             {
@@ -226,16 +228,14 @@ public class BankAccountService : IBankAccountService
                         .GenerateUniqueRandomOperationIdAsync(),
                 OperationType = EnumOperationType.CurrencyChange,
                 Description
-                    = $"Bank Account Currency Change. " +
-                      $"From {fromCurrency} To {toCurrency}," +
-                      $" Balance before exchange: {balanceBeforeExchange:F2}{fromCurrency}," +
-                      $" Balance After exchange: {amountAfterExchange:F2}{toCurrency}.",
+                    = $"Account currency change. " +
+                      $" Balance before and after exchange: {Global.FormatCurrency(oldCurrency,balanceBeforeExchange)}, {Global.FormatCurrency(currency,amountAfterExchange)}" ,
                 DateTime = DateTime.UtcNow,
                 Currency = currency,
                 Amount = bankAccountDetails.Balance,
             };
 
-            await _operationService.LogOperation(true,operation);
+            await _operationService.AddOperation(true,operation);
             await _bankAccountRepository.ChangeCurrencyAsync(true,currency, accountNumber);
             if (!zeroBalance)
             {

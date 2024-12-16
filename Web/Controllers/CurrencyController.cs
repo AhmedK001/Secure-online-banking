@@ -30,8 +30,9 @@ public class CurrencyController : ControllerBase
     private readonly IEmailBodyBuilder _emailBodyBuilder;
     private readonly IConfiguration _configuration;
     private readonly UserManager<User> _userManager;
+    private readonly IOperationService _operationService;
 
-    public CurrencyController(UserManager<User> userManager,IEmailService emailService, IEmailBodyBuilder emailBodyBuilder, IConfiguration configuration,IValidate validate, ICurrencyService currencyService, IClaimsService claimsService,
+    public CurrencyController(IOperationService operationService,UserManager<User> userManager,IEmailService emailService, IEmailBodyBuilder emailBodyBuilder, IConfiguration configuration,IValidate validate, ICurrencyService currencyService, IClaimsService claimsService,
         ICardsService cardsService, IBankAccountService bankAccountService)
     {
         _currencyService = currencyService;
@@ -43,6 +44,7 @@ public class CurrencyController : ControllerBase
         _emailService = emailService;
         _emailBodyBuilder = emailBodyBuilder;
         _userManager = userManager;
+        _operationService = operationService;
     }
 
     [HttpGet("exchange/rate")]
@@ -130,6 +132,11 @@ public class CurrencyController : ControllerBase
             var targetCardAfterTransaction
                 = await _cardsService.GetCardDetails(bankAccount.AccountNumber, dtoCardToCard.TargetCardId);
 
+            // save operation
+            var operation = await _operationService.BuildExchangeOperation(bankAccount, baseCard, targetCard,
+                dtoCardToCard.Amount, EnumOperationType.ExchangeCardToCard);
+            await _operationService.AddOperation(true, operation);
+
             var emailBody = _emailBodyBuilder.CardToCardExchangeHtmlResponse(
                 "Card-to-Card exchange completed successfully.",
                 baseCardAfterTransaction,
@@ -196,6 +203,10 @@ public class CurrencyController : ControllerBase
 
             if (!result.Item1) return BadRequest(new { ErrorMessage = result.Item2 });
 
+            // save operation
+            var operation = await _operationService.BuildExchangeOperation(bankAccount, null, card,
+                exchangeDto.Amount, EnumOperationType.ExchangeToCard);
+            await _operationService.AddOperation(true, operation);
 
             var bankAccountAfterTransaction
                 = await _bankAccountService.GetDetailsByAccountNumber(bankAccount.AccountNumber);
@@ -241,6 +252,11 @@ public class CurrencyController : ControllerBase
             var result = await _bankAccountService.BankWithCardExchange(false,exchangeDto,card,bankAccount);
 
             if (!result.Item1) return BadRequest(new { ErrorMessage = result.Item2 });
+
+            // save operation
+            var operation = await _operationService.BuildExchangeOperation(bankAccount, card, null,
+                exchangeDto.Amount, EnumOperationType.ExchangeToAccount);
+            await _operationService.AddOperation(true, operation);
 
             var bankAccountAfterTransaction
                 = await _bankAccountService.GetDetailsByAccountNumber(bankAccount.AccountNumber);

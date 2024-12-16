@@ -1,5 +1,7 @@
 using Application.Interfaces;
+using Application.Mappers;
 using Core.Entities;
+using Core.Enums;
 using Core.Interfaces.IRepositories;
 
 namespace Application.Services;
@@ -46,12 +48,12 @@ public class OperationServices : IOperationService
         return randomId; // Return unique random ID
     }
 
-    public async Task LogOperation(bool saveAsync, Operation operation)
+    public async Task AddOperation(bool saveAsync, Operation operation)
     {
         await _operationsRepository.AddOperation(saveAsync, operation);
     }
 
-    public async Task<bool> AddAndSaveOperation(Operation operation)
+    public async Task<bool> ValidateAndSaveOperation(Operation operation)
     {
         try
         {
@@ -110,11 +112,216 @@ public class OperationServices : IOperationService
     {
         try
         {
-            return await _operationsRepository.GetAllLogs(accountNumber,periodAsMonth);
+            return await _operationsRepository.GetAllLogs(accountNumber, periodAsMonth);
         }
         catch (Exception e)
         {
             throw new Exception();
+        }
+    }
+
+    public async Task<Operation> BuildChargeOperation(BankAccount account, decimal amount)
+    {
+        try
+        {
+            var operationStr = new Operation()
+            {
+                OperationType = EnumOperationType.Deposit,
+                Amount = amount,
+                Description = $"Charged bank account with {Global.FormatCurrency(account.Currency, amount)}",
+                OperationId = await GenerateUniqueRandomOperationIdAsync(),
+                DateTime = DateTime.UtcNow,
+                AccountId = account.NationalId,
+                Currency = account.Currency,
+                AccountNumber = account.AccountNumber
+            };
+
+            return operationStr;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<Operation> BuildTransferOperation(BankAccount account, decimal amount, EnumOperationType type)
+    {
+        try
+        {
+            string summory = "";
+            if (type is EnumOperationType.TransactionToAccount)
+            {
+                summory = "Transaction to account from your card";
+            }
+
+            if (type is EnumOperationType.TransactionToCard)
+            {
+                summory = "Transaction to card from your account";
+            }
+
+            if (type is EnumOperationType.TransactionCardToCard)
+            {
+                summory = "Transaction between internal cards";
+            }
+
+            var operationStr = new Operation()
+            {
+                OperationType = type,
+                Amount = amount,
+                Description = $"{summory} by {Global.FormatCurrency(account.Currency, amount)}",
+                OperationId = await GenerateUniqueRandomOperationIdAsync(),
+                DateTime = DateTime.UtcNow,
+                AccountId = account.NationalId,
+                Currency = account.Currency,
+                AccountNumber = account.AccountNumber
+            };
+
+            return operationStr;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<Operation> BuildStockOperation(BankAccount account, int number, string symbol, string corpName,
+        decimal price, EnumOperationType operationType)
+    {
+        try
+        {
+            string desc = "";
+            decimal totalPrice = number * price;
+            string stocks = "stocks";
+            if (number == 1)
+            {
+                stocks = "stock";
+            }
+
+            if (operationType is EnumOperationType.StockBuy)
+            {
+                desc
+                    = $"Bought {number} {stocks} with total price {Global.FormatCurrency(account.Currency, totalPrice)} as {corpName} stock";
+            }
+
+            if (operationType is EnumOperationType.StockSell)
+            {
+                desc
+                    = $"Sold {number} {stocks} with total price {Global.FormatCurrency(account.Currency, totalPrice)} as {corpName} stock";
+            }
+
+            var operationStr = new Operation()
+            {
+                OperationType = operationType,
+                Amount = totalPrice,
+                Description = desc,
+                OperationId = await GenerateUniqueRandomOperationIdAsync(),
+                DateTime = DateTime.UtcNow,
+                AccountId = account.NationalId,
+                Currency = account.Currency,
+                AccountNumber = account.AccountNumber
+            };
+
+            return operationStr;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<Operation> BuildDeleteOrCreateCardOperation(BankAccount account, Card card,
+        EnumOperationType operationType)
+    {
+        try
+        {
+            string desc = "";
+            if (operationType == EnumOperationType.CreateCard)
+            {
+                desc = $"Created {card.CardType} with ID number: {card.CardId}";
+            }
+
+            if (operationType == EnumOperationType.DeleteCard)
+            {
+                desc = $"Deleted {card.CardType} with ID number: {card.CardId}";
+            }
+
+            var operationStr = new Operation()
+            {
+                OperationType = operationType,
+                Amount = 0,
+                Description = desc,
+                OperationId = await GenerateUniqueRandomOperationIdAsync(),
+                DateTime = DateTime.UtcNow,
+                AccountId = account.NationalId,
+                Currency = account.Currency,
+                AccountNumber = account.AccountNumber,
+            };
+
+            return operationStr;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<Operation> BuildExchangeOperation(BankAccount account, Card? baseCard, Card? targetCard,
+        decimal amount, EnumOperationType type)
+    {
+        try
+        {
+            string summory = "";
+            EnumCurrency baseCurrnecy = EnumCurrency.SAR;
+            EnumCurrency targetCurrnecy = EnumCurrency.SAR;
+            string from = "Card";
+            string to = "Card";
+            if (type is EnumOperationType.ExchangeToAccount)
+            {
+                to = "Account";
+                baseCurrnecy = baseCard.Currency;
+                targetCurrnecy = account.Currency;
+                summory = "Exchange to account from your card";
+            }
+
+            if (type is EnumOperationType.ExchangeToCard)
+            {
+                from = "Account";
+                baseCurrnecy = account.Currency;
+                targetCurrnecy = targetCard.Currency;
+                summory = "Exchange to card from your account";
+            }
+
+            if (type is EnumOperationType.ExchangeCardToCard)
+            {
+                baseCurrnecy = baseCard.Currency;
+                targetCurrnecy = targetCard.Currency;
+                summory = "Exchange between internal cards";
+            }
+
+            var operationStr = new Operation()
+            {
+                OperationType = type,
+                Amount = amount,
+                Description
+                    = $"{summory} by {Global.FormatCurrency(baseCurrnecy, amount)} from {from} to {to}, " +
+                      $"{Global.FormatCurrency(baseCurrnecy)} to {Global.FormatCurrency(targetCurrnecy)}",
+                OperationId = await GenerateUniqueRandomOperationIdAsync(),
+                DateTime = DateTime.UtcNow,
+                AccountId = account.NationalId,
+                Currency = account.Currency,
+                AccountNumber = account.AccountNumber
+            };
+
+            return operationStr;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
         }
     }
 }

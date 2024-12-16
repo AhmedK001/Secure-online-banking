@@ -5,9 +5,16 @@ public enum EnumOperationType
     Deposit,
     Withdraw,
     OnlinePayment,
-    Transfer,
     Loan,
     CurrencyChange,
     TransactionToCard,
-    TransactionToBankAccount
+    TransactionToAccount,
+    TransactionCardToCard,
+    ExchangeToCard,
+    ExchangeToAccount,
+    ExchangeCardToCard,
+    StockSell,
+    StockBuy,
+    CreateCard,
+    DeleteCard,
 }

@@ -428,8 +428,8 @@ public class EmailBodyBuilder : IEmailBodyBuilder
         return htmlContent;
     }
 
-    public string BuyStockHtmlResponse(string message, string stockName, string stockSymbol, decimal currentPrice,
-        int numberOfStocks, decimal totalPrice)
+    public string BuyStockHtmlResponse(string message, string stockName, string stockSymbol,
+        decimal currentPrice, int numberOfStocks, decimal totalPrice)
     {
         string htmlContent = $@"
     <html>
@@ -481,29 +481,76 @@ public class EmailBodyBuilder : IEmailBodyBuilder
     public string TwoFactorAuthHtmlResponse(string message, string userName, string verificationCode,
         int expirationMinutes)
     {
-        string htmlContent = $@"
+        var htmlContent = $@"
     <html>
     <head>
         <style>
-            body {{ font-family: Arial, sans-serif; }}
-            h1 {{ color: blue; }}
-            table {{ border-collapse: collapse; width: 100%; }}
-            td {{ padding: 8px; border: 1px solid #ddd; }}
-            th {{ padding: 8px; text-align: left; background-color: #f2f2f2; }}
-            .code {{ font-size: 1.2em; color: red; font-weight: bold; }}
-            footer {{ font-size: 0.8em; color: #888; }}
+            body {{
+                font-family: Arial, sans-serif;
+                background-color: #f9f9f9;
+                margin: 0;
+                padding: 0;
+                color: #333;
+            }}
+            .container {{
+                max-width: 600px;
+                margin: 20px auto;
+                background: #ffffff;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }}
+            .header {{
+                text-align: center;
+                border-bottom: 2px solid #007bff;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+            }}
+            .header h1 {{
+                color: #007bff;
+                font-size: 24px;
+                margin: 0;
+            }}
+            .content p {{
+                line-height: 1.6;
+                margin: 10px 0;
+            }}
+            .code {{
+                font-size: 1.5em;
+                color: #d9534f;
+                font-weight: bold;
+                text-align: center;
+                margin: 20px 0;
+                padding: 10px;
+                background-color: #f8d7da;
+                border-radius: 4px;
+                display: inline-block;
+            }}
+            .footer {{
+                margin-top: 20px;
+                font-size: 0.9em;
+                color: #666;
+                text-align: center;
+                border-top: 1px solid #ddd;
+                padding-top: 10px;
+            }}
         </style>
     </head>
     <body>
-        <h1>{message}</h1>
-        <p>Dear {userName},</p>
-        <p>Your 2FA verification code is:</p>
-        <p class='code'>{verificationCode}</p>
-        <p>Please use this code to complete your login. The code will expire in: {expirationMinutes} minutes</p>
-
-        <footer>
-            <p>Thank you for using Secure Online Banking.</p>
-        </footer>
+        <div class='container'>
+            <div class='header'>
+                <h1>{message}</h1>
+            </div>
+            <div class='content'>
+                <p>Dear <strong>{userName}</strong>,</p>
+                <p>Your Two-Factor Authentication (2FA) verification code is:</p>
+                <p class='code'>{verificationCode}</p>
+                <p>Please use this code to complete your login. The code will expire in <strong>{expirationMinutes} minutes</strong>.</p>
+            </div>
+            <div class='footer'>
+                <p>Thank you for using Secure Online Banking.</p>
+            </div>
+        </div>
     </body>
     </html>";
 
@@ -512,115 +559,175 @@ public class EmailBodyBuilder : IEmailBodyBuilder
 
     public string EmailConfirmationHtmlResponse(string message, string userName, string confirmationLink)
     {
-        string htmlContent = $@"
-<html>
-<head>
-    <style>
-        body {{
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }}
-        .email-container {{
-            width: 100%;
-            max-width: 600px;
-            margin: 20px auto;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }}
-        h1 {{
-            color: #333333;
-            font-size: 24px;
-            text-align: center;
-        }}
-        p {{
-            font-size: 16px;
-            color: #666666;
-            line-height: 1.6;
-        }}
-        .button {{
-            display: inline-block;
-            background-color: #4CAF50;
-            color: white;
-            padding: 12px 25px;
-            font-size: 16px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
-            transition: background-color 0.3s ease;
-        }}
-        .button:hover {{
-            background-color: #45a049;
-        }}
-        footer {{
-            text-align: center;
-            font-size: 12px;
-            color: #888888;
-            margin-top: 20px;
-        }}
-    </style>
-</head>
-<body>
-    <div class='email-container'>
-        <h1>{message}</h1>
-        <p>Hello {userName},</p>
-        <p>Thank you for registering with us. To complete your registration, please confirm your email address by clicking the button below:</p>
-        <a href='{confirmationLink}' class='button'>Confirm Email</a>
-        <p>If you did not register, please ignore this email.</p>
-        <footer>
-            <p>Secure Online Banking.</p>
-        </footer>
-    </div>
-</body>
-</html>
-";
-        return htmlContent;
-    }
-
-    public string PasswordResetHtmlResponse(string message, string userEmail, string resetLink)
-    {
-        string htmlContent = $@"
+        var htmlContent = $@"
     <html>
     <head>
         <style>
-            body {{ font-family: Arial, sans-serif; }}
-            h1 {{ color: green; }}
-            table {{ border-collapse: collapse; width: 100%; }}
-            td, th {{ padding: 8px; border: 1px solid #ddd; }}
-            th {{ background-color: #f2f2f2; text-align: left; }}
-            footer {{ font-size: 0.8em; color: #888; }}
+            body {{
+                font-family: Arial, sans-serif;
+                background-color: #f9f9f9;
+                margin: 0;
+                padding: 0;
+                color: #333;
+            }}
+            .container {{
+                max-width: 600px;
+                margin: 20px auto;
+                background: #ffffff;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }}
+            .header {{
+                text-align: center;
+                border-bottom: 2px solid #007bff;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+            }}
+            .header h1 {{
+                color: #007bff;
+                font-size: 24px;
+                margin: 0;
+            }}
+            .content p {{
+                line-height: 1.6;
+                margin: 10px 0;
+            }}
+            .confirmation-link {{
+                display: inline-block;
+                margin: 20px 0;
+                padding: 10px 20px;
+                font-size: 1.1em;
+                color: #fff;
+                background-color: #007bff;
+                text-decoration: none;
+                border-radius: 4px;
+            }}
+            .confirmation-link:hover {{
+                background-color: #0056b3;
+            }}
+            .plain-link {{
+                word-break: break-word;
+                color: #007bff;
+                text-decoration: underline;
+            }}
+            .footer {{
+                margin-top: 20px;
+                font-size: 0.9em;
+                color: #666;
+                text-align: center;
+                border-top: 1px solid #ddd;
+                padding-top: 10px;
+            }}
         </style>
     </head>
     <body>
-        <h1>{message}</h1>
-        <p>If you requested a password reset, click the link below to reset your password:</p>
-        <table>
-            <tr>
-                <th>Field</th>
-                <th>Details</th>
-            </tr>
-            <tr>
-                <td><strong>User Email</strong></td>
-                <td>{userEmail}</td>
-            </tr>
-            <tr>
-                <td><strong>Reset Link</strong></td>
-                <td><a href='{resetLink}'>Click here to reset your password</a></td>
-            </tr>
-        </table>
-        <footer>
-            <p>If you did not request a password reset, please ignore this email.</p>
-            <p>Thank you for using Secure Online Banking.</p>
-        </footer>
+        <div class='container'>
+            <div class='header'>
+                <h1>{message}</h1>
+            </div>
+            <div class='content'>
+                <p>Dear <strong>{userName}</strong>,</p>
+                <p>Thank you for signing up! Please confirm your email address by clicking the link below:</p>
+                <a href='{confirmationLink}' class='confirmation-link'>Confirm Email</a>
+                <p>If you prefer, you can copy and paste the following link into your browser:</p>
+                <p class='plain-link'>{confirmationLink}</p>
+                <p>If you did not create this account, please ignore this email.</p>
+            </div>
+            <div class='footer'>
+                <p>Thank you for using Secure Online Banking.</p>
+            </div>
+        </div>
     </body>
     </html>";
 
         return htmlContent;
     }
 
+    public string PasswordResetHtmlResponse(string message, string userEmail, string resetLink)
+    {
+        var htmlContent = $@"
+    <html>
+    <head>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                background-color: #f9f9f9;
+                margin: 0;
+                padding: 0;
+                color: #333;
+            }}
+            .container {{
+                max-width: 600px;
+                margin: 20px auto;
+                background: #ffffff;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }}
+            .header {{
+                text-align: center;
+                border-bottom: 2px solid #007bff;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+            }}
+            .header h1 {{
+                color: #007bff;
+                font-size: 24px;
+                margin: 0;
+            }}
+            .content p {{
+                line-height: 1.6;
+                margin: 10px 0;
+            }}
+            .reset-link {{
+                display: inline-block;
+                margin: 20px 0;
+                padding: 10px 20px;
+                font-size: 1.1em;
+                color: #fff;
+                background-color: #007bff;
+                text-decoration: none;
+                border-radius: 4px;
+            }}
+            .reset-link:hover {{
+                background-color: #0056b3;
+            }}
+            .plain-link {{
+                word-break: break-word;
+                color: #007bff;
+                text-decoration: underline;
+            }}
+            .footer {{
+                margin-top: 20px;
+                font-size: 0.9em;
+                color: #666;
+                text-align: center;
+                border-top: 1px solid #ddd;
+                padding-top: 10px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <div class='header'>
+                <h1>{message}</h1>
+            </div>
+            <div class='content'>
+                <p>Dear <strong>{userEmail}</strong>,</p>
+                <p>We received a request to reset your password. Please click the button below to reset it:</p>
+                <a href='{resetLink}' class='reset-link'>Reset Password</a>
+                <p>If you prefer, you can copy and paste the following link into your browser:</p>
+                <p class='plain-link'>{resetLink}</p>
+                <p>If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
+            </div>
+            <div class='footer'>
+                <p>Thank you for using Secure Online Banking.</p>
+            </div>
+        </div>
+    </body>
+    </html>";
+
+        return htmlContent;
+    }
 }

@@ -52,7 +52,7 @@ public class BankAccountController : ControllerBase
 
             if (bankAccount == null)
             {
-                return BadRequest("Something went wrong.");
+                return BadRequest("Unexpected error happened.");
             }
 
             return Ok(new

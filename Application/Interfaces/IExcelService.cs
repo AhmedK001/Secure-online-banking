@@ -4,5 +4,5 @@ namespace Application.Interfaces;
 
 public interface IExcelService
 {
-    Task<StreamContent> GetAllOperations(List<Operation> operations, User user, BankAccount bankAccount);
+    Task<StreamContent> GetAllOperations(bool sendEmail,List<Operation> operations, User user, BankAccount bankAccount);
 }

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace Web.Controllers;
@@ -98,7 +99,7 @@ public class BankAccountController : ControllerBase
 
     [HttpPut("change-currency")]
     [Authorize]
-    public async Task<IActionResult> ChangeCurrency([FromBody] string currencySymbolDto)
+    public async Task<IActionResult> ChangeCurrency([FromBody] CurrencySymbolDto currencySymbolDto)
     {
         try
         {
@@ -109,7 +110,7 @@ public class BankAccountController : ControllerBase
             var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
             var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
 
-            if (!Enum.TryParse(currencySymbolDto, out EnumCurrency currencySymbol))
+            if (!Enum.TryParse(currencySymbolDto.Symbol, out EnumCurrency currencySymbol))
             {
                 var availableSymbols = string.Join(", ", Enum.GetNames(typeof(EnumCurrency)));
                 return BadRequest(
@@ -124,7 +125,7 @@ public class BankAccountController : ControllerBase
             // If current currency is AED or SAR and target is AED or SAR, so it can be converted directly
             bool letThemPass = ((Enum.GetName(typeof(EnumCurrency), bankAccountDetails.Currency) == "SAR") ||
                                 Enum.GetName(typeof(EnumCurrency), bankAccountDetails.Currency) == "AED") &&
-                               (currencySymbolDto == "AED" || currencySymbolDto == "SAR");
+                               (currencySymbolDto.Symbol == "AED" || currencySymbolDto.Symbol == "SAR");
 
             // Any else must contain USD or EUR as current account currency or USD or EUR as a target
             if (letThemPass == false &&
@@ -141,11 +142,10 @@ public class BankAccountController : ControllerBase
             var accountAfterCurrencyChanged
                 = await _bankAccountService.GetDetailsByAccountNumber(bankAccountDetails.AccountNumber);
 
+            var htmlResponse
+                = _emailBodyBuilder.ChangeCurrencyBankHtmlResponse("Bank Account Currency Change.",accountAfterCurrencyChanged);
+            await _emailService.SendEmailAsync(user, "Currency of your bank account has updated",htmlResponse);
 
-            var email = _configuration["Email"];
-
-            await _emailService.SendEmailAsync(user.UserName, "Bank Account Currency Change.",
-                _emailBodyBuilder.ChangeCurrencyBankHtmlResponse("Bank Account Currency Change.", accountAfterCurrencyChanged));
             return Ok(new
             {
                 Message = "Your Bank Account currency changed successfully.",

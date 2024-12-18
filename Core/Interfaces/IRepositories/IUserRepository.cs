@@ -14,4 +14,6 @@ public interface IUserRepository
     Task<User?> FindUserAsyncByEmail(string email);
     Task<User?> FindUserAsyncByPhone(string phone);
     Task SaveChangesAsync();
+    Task<(bool isSuccess,string errorMessage)> EnableNotificationsAsync(User user);
+    Task<(bool isSuccess,string errorMessage)> DisableNotificationsAsync(User user);
 }

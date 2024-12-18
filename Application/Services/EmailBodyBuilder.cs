@@ -730,4 +730,81 @@ public class EmailBodyBuilder : IEmailBodyBuilder
 
         return htmlContent;
     }
+
+    public string SingleMessageHtmlResponse(string mainMessage,string detailedMessage, string userName)
+    {
+        var htmlContent = $@"
+    <html>
+    <head>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                background-color: #f9f9f9;
+                margin: 0;
+                padding: 0;
+                color: #333;
+            }}
+            .container {{
+                max-width: 600px;
+                margin: 20px auto;
+                background: #ffffff;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }}
+            .header {{
+                text-align: center;
+                border-bottom: 2px solid #007bff;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+            }}
+            .header h1 {{
+                color: #007bff;
+                font-size: 24px;
+                margin: 0;
+            }}
+            .content p {{
+                line-height: 1.6;
+                margin: 10px 0;
+            }}
+            .code {{
+                font-size: 1.5em;
+                color: #d9534f;
+                font-weight: bold;
+                text-align: center;
+                margin: 20px 0;
+                padding: 10px;
+                background-color: #f8d7da;
+                border-radius: 4px;
+                display: inline-block;
+            }}
+            .footer {{
+                margin-top: 20px;
+                font-size: 0.9em;
+                color: #666;
+                text-align: center;
+                border-top: 1px solid #ddd;
+                padding-top: 10px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <div class='header'>
+                <h1>{mainMessage}</h1>
+            </div>
+            <div class='content'>
+                <p>Dear <strong>{userName}</strong>,</p>
+                <p>{detailedMessage}</p>
+             
+            </div>
+            <div class='footer'>
+                <p>Thank you for using Secure Online Banking.</p>
+            </div>
+        </div>
+    </body>
+    </html>";
+
+        return htmlContent;
+    }
 }

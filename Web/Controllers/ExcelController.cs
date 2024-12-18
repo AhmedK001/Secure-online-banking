@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Web.Controllers;
 
 [ApiController]
-[AllowAnonymous]
+[Authorize]
 [Route("api/excel")]
 public class ExcelController : ControllerBase
 {
@@ -21,7 +21,10 @@ public class ExcelController : ControllerBase
     private readonly IEmailService _emailService;
     private readonly IEmailBodyBuilder _emailBodyBuilder;
 
-    public ExcelController(IEmailBodyBuilder emailBodyBuilder,IEmailService emailService,IOperationService operationService,ICardsService cardsService, IBankAccountService bankAccountService, IExcelService excelService, UserManager<User> userManager, IClaimsService claimsService)
+    public ExcelController(IEmailBodyBuilder emailBodyBuilder, IEmailService emailService,
+        IOperationService operationService, ICardsService cardsService,
+        IBankAccountService bankAccountService, IExcelService excelService, UserManager<User> userManager,
+        IClaimsService claimsService)
     {
         _excelService = excelService;
         _userManager = userManager;
@@ -33,11 +36,12 @@ public class ExcelController : ControllerBase
         _emailBodyBuilder = emailBodyBuilder;
     }
 
-    [HttpGet("statements/{period-as-month:int}/{send-email:bool}")]
-    [Authorize]
-    public async Task<IActionResult> GetBankStatements([FromRoute(Name = "period-as-month")] int periodAsMonth,[FromRoute(Name = "send-email")] bool sendEmil )
-    {
+    [HttpGet("statements/{number-of-months:int}/{send-email:bool}")]
 
+    public async Task<IActionResult> GetBankStatements(
+        [FromRoute(Name = "number-of-months")] int periodAsMonth,
+        [FromRoute(Name = "send-email")] bool sendEmil)
+    {
         try
         {
             if (periodAsMonth < 1)
@@ -52,7 +56,7 @@ public class ExcelController : ControllerBase
             var operations = await _operationService.GetAllLogs(bankAccount.AccountNumber, periodAsMonth);
 
             StreamContent streamContent;
-                streamContent = await _excelService.GetAllOperations(sendEmil,operations, user, bankAccount);
+            streamContent = await _excelService.GetAllOperations(sendEmil, operations, user, bankAccount);
 
             // read the stream form stream content
             var memoryStream = await streamContent.ReadAsStreamAsync();
@@ -62,8 +66,12 @@ public class ExcelController : ControllerBase
                 "MyBankStatements.xlsx");
             if (sendEmil)
             {
-                 await _emailService.SendEmailAsync(user.UserName, "Your Bank-Account Statements","Enjoy",stream,"MyBankStatements.xlsx");
-                 return Ok("Done");
+                var htmlResponse = _emailBodyBuilder.SingleMessageHtmlResponse("Your bank statements",
+                    "Enjoy checking your bank statements.", $"{user.FirstName} {user.LastName}");
+
+                await _emailService.SendEmailAsync(user, "Your Bank-Account Statements", htmlResponse, stream,
+                    "MyBankStatements.xlsx");
+                return Ok(new {Status = "Success",Message = "Check your email address."});
             }
 
             // Return the file

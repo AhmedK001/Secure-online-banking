@@ -2,7 +2,6 @@
 using System.Security.Claims;
 using System.Web;
 using Application.DTOs;
-using Application.DTOs.RegistrationDTOs;
 using Application.DTOs.ResponseDto;
 using Application.Interfaces;
 using Application.Mappers;
@@ -13,6 +12,7 @@ using Core.Interfaces.IRepositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace Web.Controllers;
@@ -35,9 +35,10 @@ public class AccountController : ControllerBase
 
 
     public AccountController(IUnitOfWork unitOfWork, IClaimsService claimsService, IEmailService emailService,
-        IEmailBodyBuilder emailBodyBuilder, ITwoFactorAuthService twoFactorAuthService, IUpdatePassword updatePassword,
-        IJwtService jwtService, UserManager<User> userManager, SignInManager<User> signInManager,
-        IRegistrationService registrationService, ISearchUserService searchUserService)
+        IEmailBodyBuilder emailBodyBuilder, ITwoFactorAuthService twoFactorAuthService,
+        IUpdatePassword updatePassword, IJwtService jwtService, UserManager<User> userManager,
+        SignInManager<User> signInManager, IRegistrationService registrationService,
+        ISearchUserService searchUserService)
     {
         _userManager = userManager;
         _registrationService = registrationService;
@@ -100,12 +101,13 @@ public class AccountController : ControllerBase
         var registrationResult = await _userManager.CreateAsync(user, userDto.Password);
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-        var confirmationLink = Url.Action("ConfirmEmail", "Account", new { Email = userDto.Email, token = token },
-            Request.Scheme);
+        var confirmationLink = Url.Action("ConfirmEmail", "Account",
+            new { Email = userDto.Email, token = token }, Request.Scheme);
         Console.WriteLine(token);
         var userName = $"{user.FirstName} {user.LastName}";
-        var body = _emailBodyBuilder.EmailConfirmationHtmlResponse("Confirm your email", userName, confirmationLink);
-        await _emailService.SendEmailAsync(user.UserName, "Confirm your email", body);
+        var body = _emailBodyBuilder.EmailConfirmationHtmlResponse("Confirm your email", userName,
+            confirmationLink);
+        await _emailService.ForceSendEmailAsync(user, "Confirm your email", body);
 
         return Ok(new { message = "Registration successful. Please check your email for confirmation." });
     }
@@ -176,8 +178,8 @@ public class AccountController : ControllerBase
             return Unauthorized("Email or password is incorrect.");
         }
 
-        var passwordLoginResult = await _signInManager.PasswordSignInAsync(user.UserName, userLoginDto.Password,
-            isPersistent: false, lockoutOnFailure: false);
+        var passwordLoginResult = await _signInManager.PasswordSignInAsync(user.UserName,
+            userLoginDto.Password, isPersistent: false, lockoutOnFailure: false);
 
         await _userManager.ResetAccessFailedCountAsync(user);
         _twoFactorAuthService.RemoveCode(user.Id.ToString());
@@ -185,12 +187,12 @@ public class AccountController : ControllerBase
         var userName = $"{user.FirstName} {user.LastName}";
         var code = _twoFactorAuthService.Generate2FaCode(user.Id.ToString(), expirationTimeInMinutes);
         Console.WriteLine(code);
-        Console.WriteLine(code);
-        var body = _emailBodyBuilder.TwoFactorAuthHtmlResponse("Your Two-Factor auth code for login", userName, code,
-            expirationTimeInMinutes);
-        await _emailService.SendEmailAsync(user.UserName, "Two-Factor auth code", body);
+        var body = _emailBodyBuilder.TwoFactorAuthHtmlResponse("Your Two-Factor auth code for login",
+            userName, code, expirationTimeInMinutes);
+        await _emailService.ForceSendEmailAsync(user, "Two-Factor auth code", body);
 
-        return Unauthorized(new { status = StatusCode(401), Message = "2FA code sent to your email address." });
+        return Unauthorized(
+            new { status = StatusCode(401), Message = "2FA code sent to your email address." });
     }
 
     [HttpPost("verify-2fa-code")]
@@ -237,108 +239,6 @@ public class AccountController : ControllerBase
         {
             return BadRequest("Email, verification code or both are invalid.");
         }
-    }
-
-    [HttpPost("request-password-reset")]
-    [AllowAnonymous]
-    public async Task<IActionResult> RequestResetPassword([FromBody] string email)
-    {
-        if (User.Identity?.IsAuthenticated == true)
-        {
-            return Ok(new { Message = "You are already logged in." });
-        }
-
-        if (!ModelState.IsValid)
-        {
-            BadRequest(ModelState);
-        }
-
-        var user = await _userManager.FindByNameAsync(email);
-
-        if (user is null) return BadRequest(new { ErrorMessage = "No users found." });
-
-        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-        var resetUrl = Url.Action("ResetPassword", "Account", new { token }, Request.Scheme);
-        Console.WriteLine(token);
-        var body = _emailBodyBuilder.PasswordResetHtmlResponse("Password Reset Request.", email, resetUrl);
-
-        await _emailService.SendEmailAsync(email, "Password Reset Request.", body);
-
-        return Ok(new { Status = "Success", Message = "Reset password link sent to your email address." });
-    }
-
-    [HttpPut("reset-password")]
-    [AllowAnonymous]
-    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto passwordDto)
-    {
-        if (User.Identity?.IsAuthenticated == true)
-        {
-            return Ok(new { Message = "You are already logged in." });
-        }
-
-        var user = await _userManager.FindByNameAsync(passwordDto.Email);
-        if (user is null) return BadRequest(new { ErrorMessage = "No users found." });
-
-        var decodedToken = HttpUtility.UrlDecode(passwordDto.Token);
-
-        if (!await _userManager.VerifyUserTokenAsync(user,
-                _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", decodedToken))
-        {
-            return BadRequest(new { ErrorMessage = "Invalid Token." });
-        }
-
-        if (await _userManager.CheckPasswordAsync(user, passwordDto.Password))
-        {
-            return BadRequest(new { ErrorMessage = "Cannot use same old password." });
-        }
-
-        var result = await _userManager.ResetPasswordAsync(user, decodedToken, passwordDto.Password);
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Errors);
-        }
-
-        // if account locked-out => unlock it
-        if (await _userManager.IsLockedOutAsync(user))
-        {
-            await _userManager.SetLockoutEnabledAsync(user, false);
-        }
-
-        return Ok(new { Status = "Success", Message = "Your password has been reset successfully." });
-    }
-
-    [HttpPut("update-password")]
-    [Authorize]
-    public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordDto _updatePasswordDto)
-    {
-        if (!ModelState.IsValid)
-        {
-            BadRequest(ModelState);
-        }
-
-        // get user id
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null) return Unauthorized("User not found.");
-
-        // get user object
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null) return NotFound("User not found.");
-
-        // check old password if matches current one.
-        var callUpdatePasswordServiceMethodResult = _updatePassword.UpdatePasswordAsync(user, _updatePasswordDto);
-
-        if (!callUpdatePasswordServiceMethodResult.Result.Succeeded)
-        {
-            return BadRequest(callUpdatePasswordServiceMethodResult.Result);
-        }
-
-        if (callUpdatePasswordServiceMethodResult.Result.Succeeded)
-        {
-            return Ok("Your password has been updated successfully.");
-        }
-
-        return Unauthorized("You are not logged in.");
     }
 
     [HttpGet("logout")]

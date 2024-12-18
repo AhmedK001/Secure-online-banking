@@ -116,11 +116,13 @@ public class StocksController : ControllerBase
             await _operationService.ValidateAndSaveOperation(operation);
 
             var totalPrice = stockPrice.CurrentPrice * sellStockDto.NumberOfStocks;
-            var responseHtml = _emailBodyBuilder.BuyStockHtmlResponse("You have successfully purchased stocks",
-                stockDetails.Result[0].Description, stockDetails.Result[0].Symbol, stockPrice.CurrentPrice,
-                sellStockDto.NumberOfStocks, totalPrice);
 
-            await _emailService.SendEmailAsync(user.UserName, "You have successfully purchased stocks", responseHtml);
+                var responseHtml = _emailBodyBuilder.BuyStockHtmlResponse("You have successfully purchased stocks",
+                    stockDetails.Result[0].Description, stockDetails.Result[0].Symbol, stockPrice.CurrentPrice,
+                    sellStockDto.NumberOfStocks, totalPrice);
+
+                await _emailService.SendEmailAsync(user, "You have successfully purchased stocks", responseHtml);
+
             return Ok(new
             {
                 Message = "Operation done successfully!",

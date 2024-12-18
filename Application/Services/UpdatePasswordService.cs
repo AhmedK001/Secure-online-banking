@@ -17,22 +17,19 @@ public class UpdatePasswordService : IUpdatePassword
     }
 
 
-    public async Task<IdentityResult> UpdatePasswordAsync(User user, UpdatePasswordDto updatePasswordDto)
+    public async Task<(bool isSuccess, string? errorMessage)> UpdatePasswordAsync(User user, UpdatePasswordDto updatePasswordDto)
     {
 
         // check if current password matches
         var checkCurrentPassword
             = await _userManager.CheckPasswordAsync(user,
                 updatePasswordDto.CurrentPassword);
-        if (!checkCurrentPassword) return IdentityResult.Failed(new IdentityError
-        {
-            Description = "Current password is incorrect."
-        });
+        if (!checkCurrentPassword) return (false, "Invalid password");
 
         // update password
         var changePasswordResult = await _userManager.ChangePasswordAsync(user,
             updatePasswordDto.CurrentPassword, updatePasswordDto.Password);
 
-        return changePasswordResult;
+        return (true,null);
     }
 }

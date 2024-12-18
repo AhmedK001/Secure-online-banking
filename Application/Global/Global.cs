@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-using Application.DTOs.RegistrationDTOs;
+using Application.DTOs;
 using Core.Entities;
 using Core.Enums;
 

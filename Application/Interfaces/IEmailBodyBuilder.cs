@@ -17,4 +17,6 @@ public interface IEmailBodyBuilder
     string TwoFactorAuthHtmlResponse(string message, string userName, string verificationCode, int expirationMinutes);
     string EmailConfirmationHtmlResponse(string message, string userName, string confirmationLink);
     string PasswordResetHtmlResponse(string message, string userEmail, string resetLink);
+
+    string SingleMessageHtmlResponse(string mainMessage, string detailedMessage, string userName);
 }

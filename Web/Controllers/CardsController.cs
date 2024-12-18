@@ -139,9 +139,7 @@ public class CardsController : ControllerBase
             var cardAfterCurrencyChanged
                 = await _cardsService.GetCardDetails(bankAccountDetails.AccountNumber, currencyCardDto.CardId);
 
-            var email = _configuration["Email"];
-
-            await _emailService.SendEmailAsync(user.UserName, "CARD currency change.",
+            await _emailService.SendEmailAsync(user, "CARD currency change.",
                 _emailBodyBuilder.ChangeCurrencyCardHtmlResponse("CARD currency change.", cardAfterCurrencyChanged));
 
             return Ok(new

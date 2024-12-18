@@ -6,5 +6,5 @@ namespace Application.Interfaces;
 
 public interface IUpdatePassword
 {
-    Task<IdentityResult> UpdatePasswordAsync(User user, UpdatePasswordDto updatePasswordDto);
+    Task<(bool isSuccess, string errorMessage)> UpdatePasswordAsync(User user, UpdatePasswordDto updatePasswordDto);
 }

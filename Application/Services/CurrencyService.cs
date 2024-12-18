@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Application.DTOs.ExternalModels.Currency;
@@ -25,33 +26,40 @@ public class CurrencyService : ICurrencyService
 
     public async Task<JsonObject?> FetchExchangeRate(string currentCurrency, string aimedCurrency)
     {
-        var apiKey = _configuration["AlphaVantageApi:ApiKey"];
-
-        string requestUri
-            = $"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={currentCurrency}&to_currency={aimedCurrency}&apikey={apiKey}";
-        var response = await _httpClient.GetAsync(requestUri);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            return null;
-        }
+            var apiKey = _configuration["AlphaVantageApi:ApiKey"];
 
-        var streamResponse = await response.Content.ReadAsStreamAsync();
-        var jsonNode = await JsonNode.ParseAsync(streamResponse);
+            string requestUri
+                = $"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={currentCurrency}&to_currency={aimedCurrency}&apikey={apiKey}";
+            var response = await _httpClient.GetAsync(requestUri);
 
-        if (jsonNode is JsonObject jsonObject)
-        {
-            if (jsonObject.TryGetPropertyValue("Error Message", out var errorMessageNode) && errorMessageNode != null)
+            if (!(response.StatusCode == HttpStatusCode.OK))
             {
-                // string errorMessage = errorMessageNode.ToString();
-                // throw new Exception($"Alpha Vantage API error: {errorMessage}");
-                return null;
+                throw new Exception("Unexpected error happened while calling external API service.");
             }
-            // return if successes
-            return jsonObject;
-        }
 
-        throw new JsonException();
+            var streamResponse = await response.Content.ReadAsStreamAsync();
+            var jsonNode = await JsonNode.ParseAsync(streamResponse);
+
+            if (jsonNode is JsonObject jsonObject)
+            {
+                if (jsonObject.TryGetPropertyValue("Error Message", out var errorMessageNode) && errorMessageNode != null)
+                {
+                    // string errorMessage = errorMessageNode.ToString();
+                    // throw new Exception($"Alpha Vantage API error: {errorMessage}");
+                    throw new Exception("Invalid operation, try again with valid currencies.");
+                }
+
+                // return if successes
+                return jsonObject;
+            }
+            throw new Exception("Invalid operation, try again with valid currencies.");
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Invalid operation, try again with valid currencies.");
+        }
     }
 
     public async Task<(bool isFirstChance, JsonObject data)> GetExchangeRate(string currentCurrency, string aimedCurrency)
@@ -73,7 +81,7 @@ public class CurrencyService : ICurrencyService
                 return (false,exchangeRate);
             }
 
-            throw new Exception("Could not get response from the External Api service.");
+            throw new Exception("Unexpected error happened while calling external API service.");
         }
         catch (Exception e)
         {
@@ -100,24 +108,32 @@ public class CurrencyService : ICurrencyService
     public async Task<JsonObject> GetHistoricalExchangeRate(EnumCurrency currentCurrency, EnumCurrency aimedCurrency,
         string timeSeries)
     {
-        var requestUri = await GetRequestUriForHistoricalExchangeRate(currentCurrency, aimedCurrency, timeSeries);
-        var response = await _httpClient.GetAsync(requestUri);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            throw new HttpRequestException();
+            var requestUri
+                = await GetRequestUriForHistoricalExchangeRate(currentCurrency, aimedCurrency, timeSeries);
+            var response = await _httpClient.GetAsync(requestUri);
+
+            if (!(response.StatusCode == HttpStatusCode.OK))
+            {
+                throw new HttpRequestException();
+            }
+
+            var streamResponse = await response.Content.ReadAsStreamAsync();
+            var jsonNode = await JsonNode.ParseAsync(streamResponse);
+
+            if (jsonNode is JsonObject jsonObject)
+            {
+                // return if successes
+                return jsonObject;
+            }
+
+            throw new JsonException();
         }
-
-        var streamResponse = await response.Content.ReadAsStreamAsync();
-        var jsonNode = await JsonNode.ParseAsync(streamResponse);
-
-        if (jsonNode is JsonObject jsonObject)
+        catch (Exception e)
         {
-            // return if successes
-            return jsonObject;
+            throw new Exception("Invalid currency symbol.");
         }
-
-        throw new JsonException();
     }
 
     public async Task<ExchangeRateDto> GetExchangeForm(string fromCurrency, string toCurrency)
@@ -137,6 +153,10 @@ public class CurrencyService : ICurrencyService
                 exchangeRateDto = await DeserializeExchangeRate(exchangeRateResult.data);
             }
 
+            if (exchangeRateDto is null)
+            {
+                throw new Exception("Unexpected error happened while calling external API service.");
+            }
             return exchangeRateDto;
         }
         catch (Exception e)
@@ -162,31 +182,38 @@ public class CurrencyService : ICurrencyService
     private async Task<string> GetRequestUriForHistoricalExchangeRate(EnumCurrency currentCurrency, EnumCurrency aimedCurrency,
         string timeSeries)
     {
-        var apiKey = _configuration["AlphaVantageApi:ApiKey"];
-        string requestUri
-            = $"https://www.alphavantage.co/query?function=FX_DAILY&from_symbol={currentCurrency}&to_symbol={aimedCurrency}&apikey={apiKey}";
-
-        if (timeSeries.Equals("daily", StringComparison.OrdinalIgnoreCase))
+        try
         {
-            requestUri
-                = $"https://www.alphavantage.co/query?function=FX_{timeSeries.ToUpper()}&from_symbol={currentCurrency}&to_symbol={aimedCurrency}&apikey={apiKey}";
+            var apiKey = _configuration["AlphaVantageApi:ApiKey"];
+            string requestUri
+                = $"https://www.alphavantage.co/query?function=FX_DAILY&from_symbol={currentCurrency}&to_symbol={aimedCurrency}&apikey={apiKey}";
+
+            if (timeSeries.Equals("daily", StringComparison.OrdinalIgnoreCase))
+            {
+                requestUri
+                    = $"https://www.alphavantage.co/query?function=FX_{timeSeries.ToUpper()}&from_symbol={currentCurrency}&to_symbol={aimedCurrency}&apikey={apiKey}";
+                return requestUri;
+            }
+
+            if (timeSeries.Equals("weekly", StringComparison.OrdinalIgnoreCase))
+            {
+                requestUri
+                    = $"https://www.alphavantage.co/query?function=FX_{timeSeries.ToUpper()}&from_symbol={currentCurrency}&to_symbol={aimedCurrency}&apikey={apiKey}";
+                return requestUri;
+            }
+
+            if (timeSeries.Equals("monthly", StringComparison.OrdinalIgnoreCase))
+            {
+                requestUri
+                    = $"https://www.alphavantage.co/query?function=FX_{timeSeries.ToUpper()}&from_symbol={currentCurrency}&to_symbol={aimedCurrency}&apikey={apiKey}";
+                return requestUri;
+            }
+
             return requestUri;
         }
-
-        if (timeSeries.Equals("weekly", StringComparison.OrdinalIgnoreCase))
+        catch (Exception e)
         {
-            requestUri
-                = $"https://www.alphavantage.co/query?function=FX_{timeSeries.ToUpper()}&from_symbol={currentCurrency}&to_symbol={aimedCurrency}&apikey={apiKey}";
-            return requestUri;
+            throw new Exception("Invalid currency symbol.");
         }
-
-        if (timeSeries.Equals("monthly", StringComparison.OrdinalIgnoreCase))
-        {
-            requestUri
-                = $"https://www.alphavantage.co/query?function=FX_{timeSeries.ToUpper()}&from_symbol={currentCurrency}&to_symbol={aimedCurrency}&apikey={apiKey}";
-            return requestUri;
-        }
-
-        return requestUri;
     }
 }

@@ -96,4 +96,44 @@ public class UserRepository : IUserRepository
     {
         await _applicationDbContext.SaveChangesAsync();
     }
+
+    public async Task<(bool isSuccess, string errorMessage)> DisableNotificationsAsync(User user)
+    {
+        try
+        {
+            if (!user.Notifications)
+            {
+                return (false, "Notifications are disabled already.");
+            }
+            user.Notifications = false;
+            await _applicationDbContext.SaveChangesAsync();
+            return (true, "");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    public async Task<(bool isSuccess, string errorMessage)> EnableNotificationsAsync(User user)
+    {
+        try
+        {
+            if (user.Notifications)
+            {
+                return (false, "Notifications are enabled already.");
+            }
+            user.Notifications = true;
+            await _applicationDbContext.SaveChangesAsync();
+            return (true, "");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+
 }

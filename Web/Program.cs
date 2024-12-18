@@ -1,8 +1,10 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Application.Interfaces;
 using Application.Services;
 using Application.Validators;
+using AspNetCoreRateLimit;
 using Core.Entities;
 using Core.Interfaces;
 using Core.Interfaces.IRepositories;
@@ -11,6 +13,7 @@ using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -35,6 +38,28 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
+
+// builder.Services.AddRateLimiter(o =>
+// {
+//     o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+//     o.AddPolicy("fixed", context =>
+//         RateLimitPartition.GetFixedWindowLimiter(
+//             partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+//             factory: _ => new FixedWindowRateLimiterOptions
+//             {
+//                 PermitLimit = 5,
+//                 Window = TimeSpan.FromSeconds(60)
+//             }));
+// });
+
+// builder.Services.AddRateLimiter(o => o.AddFixedWindowLimiter("fixed", o =>
+// {
+//     o.PermitLimit = 1;
+//     o.Window = TimeSpan.FromSeconds(10);
+//     o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+//     o.QueueLimit = 1;
+// }));
+
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -64,7 +89,9 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddSwaggerGen(options =>
 {
     options.SchemaFilter<EnumSchemaFilter>();
+    options.EnableAnnotations();
 });
+
 
 // Database and Identity
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -140,10 +167,15 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IEmailBodyBuilder, EmailBodyBuilder>();
 builder.Services.AddScoped<ITwoFactorAuthService, TwoFactorAuthService>();
 builder.Services.AddScoped<IExcelService, ExcelService>();
+builder.Services.AddScoped<IAccountSettingsService, AccountSettingsService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<IJwtService, JwtService>();
 
+builder.Services.AddMemoryCache();
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+builder.Services.AddInMemoryRateLimiting();
 var app = builder.Build();
 
 app.Use(async (context, next) =>
@@ -160,6 +192,8 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseHttpsRedirection();
+//app.UseRateLimiter();
+app.UseIpRateLimiting();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();

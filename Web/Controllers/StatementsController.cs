@@ -42,6 +42,7 @@ public class StatementsController : ControllerBase
             {
                 return BadRequest(new { ErrorMessage = "No records found." });
             }
+
             var operationsNewDto = operations.Select(o => new
             {
                 o.AccountNumber,
@@ -52,7 +53,7 @@ public class StatementsController : ControllerBase
                 Amount = o.Amount.ToString("F2"),
                 Currency = Enum.GetName(typeof(EnumCurrency), o.Currency),
                 Date = o.DateTime.ToString("dd-MM-yyyy HH:mm:ss"),
-            }).OrderByDescending(o => o.Date);
+            });
 
             return Ok(new { Operations = operationsNewDto });
         }

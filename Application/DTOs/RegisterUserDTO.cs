@@ -1,9 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System;
-using System.ComponentModel;
-using System.Globalization;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using Swashbuckle.AspNetCore.Annotations;
 
-namespace Application.DTOs.RegistrationDTOs;
+namespace Application.DTOs;
 
 public class RegisterUserDto
 {
@@ -13,6 +12,7 @@ public class RegisterUserDto
             = "National ID number must consist of exactly 10 digits. Starts with number 11.")]
     public required string NationalId { get; set; }
 
+    [SwaggerSchema(Description = "Provide your name here")]
     [Required(ErrorMessage = "First name is required..")]
     [RegularExpression("^[A-Z][a-zA-Z]{1,19}$",
         ErrorMessage

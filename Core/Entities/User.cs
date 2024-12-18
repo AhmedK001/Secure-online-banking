@@ -18,7 +18,7 @@ namespace Core.Entities
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public DateTime DateOfBirth { get; set; }
+        public bool Notifications { get; set; } = true;
         public BankAccount? Account { get; set; }
-    
     }
 }

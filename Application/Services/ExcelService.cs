@@ -30,7 +30,7 @@ public class ExcelService : IExcelService
         return $"{currencySymbol} {balance:F2}";
     }
 
-    public async Task<StreamContent> GetAllOperations(bool sendEmail,List<Operation> operations, User user,
+    public async Task<StreamContent> GetAllOperations(bool sendEmail, List<Operation> operations, User user,
         BankAccount bankAccount)
     {
         var book = new XLWorkbook();
@@ -102,7 +102,7 @@ public class ExcelService : IExcelService
         {
             ("Name Surname/Title", $"{bankAccount.User.FirstName} {bankAccount.User.LastName}"),
             ("Customer National ID", bankAccount.NationalId.ToString()),
-            ("Account IBAN" , bankAccount.AccountNumber),
+            ("Account IBAN", bankAccount.AccountNumber),
             ("Currency/Balance", FormatCurrency(bankAccount.Currency, bankAccount.Balance)),
             ("Creation Date", bankAccount.CreationDate.ToString("yyyy MMMM dd"))
         };
@@ -140,9 +140,9 @@ public class ExcelService : IExcelService
         sheet.Cell($"D{rowNumber}").Value = "Date";
         sheet.Cell($"E{rowNumber}").Value = "Description";
 
-        for (int j = 1; j < operations.Count; j++)
+        for (int j = 0; j < operations.Count; j++)
         {
-            int i = j + 9;
+            int i = j + 1 + rowNumber;
             sheet.Cell($"A{i}").Value = operations[j].OperationId;
             sheet.Cell($"B{i}").Value = Enum.GetName(typeof(EnumOperationType), operations[j].OperationType);
             sheet.Cell($"C{i}").Value = FormatCurrency(operations[j].Currency, operations[j].Amount);

@@ -152,7 +152,8 @@ public class PaymentsController : ControllerBase
             string emailContent = _emailBodyBuilder.ChargeAccountHtmlResponse("You account has been Charge Successfully!",
                 bankAccount, _chargeAmount, paymentIntent.Status);
 
-            await _emailService.SendEmailAsync(user.UserName, "You account has been Charge Successfully", emailContent);
+            await _emailService.SendEmailAsync(user, "You account has been Charge Successfully", emailContent);
+
 
             // add operation as logs
             await _operationService.ValidateAndSaveOperation(
@@ -223,7 +224,7 @@ public class PaymentsController : ControllerBase
                 "Your transaction to the card has been completed successfully.", bankAccountDetails, aimedCard,
                 cardDto.Amount);
 
-            await _emailService.SendEmailAsync(user.UserName, "Your transaction to the card has been completed successfully.",
+            await _emailService.SendEmailAsync(user, "Your transaction to the card has been completed successfully.",
                 emailContent);
 
 
@@ -304,7 +305,7 @@ public class PaymentsController : ControllerBase
                 "Your transaction to the bank account has been completed successfully.", bankAccount, card,
                 transactionDto.Amount);
 
-            await _emailService.SendEmailAsync(user.UserName,
+            await _emailService.SendEmailAsync(user,
                 "Your transaction to the bank account has been completed successfully.", emailContent);
 
             var operation = await _operationService.BuildTransferOperation(bankAccount, transactionDto.Amount,

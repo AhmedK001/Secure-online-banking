@@ -54,6 +54,7 @@ public class ExcelController : ControllerBase
             var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
             var bankAccount = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
             var operations = await _operationService.GetAllLogs(bankAccount.AccountNumber, periodAsMonth);
+            if (!operations.Any()) return BadRequest(new { Message = "No operations found." });
 
             StreamContent streamContent;
             streamContent = await _excelService.GetAllOperations(sendEmil, operations, user, bankAccount);

@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 using Application.DTOs.ExternalModels.Currency;
 using Application.Interfaces;
 using Core.Enums;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -14,17 +15,17 @@ public class CurrencyService : ICurrencyService
 {
     private readonly IConfiguration _configuration;
     private readonly HttpClient _httpClient;
+    private readonly IMemoryCache _memoryCache;
 
 
-
-    public CurrencyService(IConfiguration configuration, HttpClient httpClient)
+    public CurrencyService(IMemoryCache memoryCache, IConfiguration configuration, HttpClient httpClient)
     {
         _configuration = configuration;
         _httpClient = httpClient;
-
+        _memoryCache = memoryCache;
     }
 
-    public async Task<JsonObject?> FetchExchangeRate(string currentCurrency, string aimedCurrency)
+    private async Task<JsonObject?> FetchExchangeRate(string currentCurrency, string aimedCurrency)
     {
         try
         {
@@ -44,7 +45,8 @@ public class CurrencyService : ICurrencyService
 
             if (jsonNode is JsonObject jsonObject)
             {
-                if (jsonObject.TryGetPropertyValue("Error Message", out var errorMessageNode) && errorMessageNode != null)
+                if (jsonObject.TryGetPropertyValue("Error Message", out var errorMessageNode) &&
+                    errorMessageNode != null)
                 {
                     // string errorMessage = errorMessageNode.ToString();
                     // throw new Exception($"Alpha Vantage API error: {errorMessage}");
@@ -54,6 +56,7 @@ public class CurrencyService : ICurrencyService
                 // return if successes
                 return jsonObject;
             }
+
             throw new Exception("Invalid operation, try again with valid currencies.");
         }
         catch (Exception e)
@@ -62,15 +65,25 @@ public class CurrencyService : ICurrencyService
         }
     }
 
-    public async Task<(bool isFirstChance, JsonObject data)> GetExchangeRate(string currentCurrency, string aimedCurrency)
+    public async Task<(bool isFirstChance, JsonObject data)> GetExchangeRate(string currentCurrency,
+        string aimedCurrency)
     {
         try
         {
-            var exchangeRate = await FetchExchangeRate(currentCurrency, aimedCurrency);
+            string key = $"{currentCurrency}{aimedCurrency}";
+            JsonObject exchangeRate;
+            if (_memoryCache.TryGetValue(key, out JsonObject data))
+            {
+                exchangeRate = data;
+            }
+            else
+            {
+                exchangeRate = await FetchExchangeRate(currentCurrency, aimedCurrency);
+            }
 
             if (!exchangeRate.IsNullOrEmpty())
             {
-                return (true,exchangeRate);
+                return (true, exchangeRate);
             }
 
             // changed order of current & aimed currencies because it is one way API
@@ -78,14 +91,14 @@ public class CurrencyService : ICurrencyService
 
             if (!exchangeRate.IsNullOrEmpty())
             {
-                return (false,exchangeRate);
+                return (false, exchangeRate);
             }
 
             throw new Exception("Unexpected error happened while calling external API service.");
         }
         catch (Exception e)
         {
-            throw new Exception("",e);
+            throw new Exception("", e);
         }
     }
 
@@ -105,8 +118,8 @@ public class CurrencyService : ICurrencyService
         return response.ExchangeRateDto;
     }
 
-    public async Task<JsonObject> GetHistoricalExchangeRate(EnumCurrency currentCurrency, EnumCurrency aimedCurrency,
-        string timeSeries)
+    public async Task<JsonObject> GetHistoricalExchangeRate(EnumCurrency currentCurrency,
+        EnumCurrency aimedCurrency, string timeSeries)
     {
         try
         {
@@ -140,6 +153,12 @@ public class CurrencyService : ICurrencyService
     {
         try
         {
+            string key = $"{fromCurrency}{toCurrency}";
+            if (_memoryCache.TryGetValue(key,out ExchangeRateDto? data))
+            {
+                return data;
+            }
+
             ExchangeRateDto exchangeRateDto;
             var exchangeRateResult = await GetExchangeRate(fromCurrency, toCurrency);
 
@@ -157,6 +176,8 @@ public class CurrencyService : ICurrencyService
             {
                 throw new Exception("Unexpected error happened while calling external API service.");
             }
+
+            _memoryCache.Set(key, exchangeRateDto, TimeSpan.FromMinutes(5));
             return exchangeRateDto;
         }
         catch (Exception e)
@@ -179,8 +200,8 @@ public class CurrencyService : ICurrencyService
         return (exchangeRateObject);
     }
 
-    private async Task<string> GetRequestUriForHistoricalExchangeRate(EnumCurrency currentCurrency, EnumCurrency aimedCurrency,
-        string timeSeries)
+    private async Task<string> GetRequestUriForHistoricalExchangeRate(EnumCurrency currentCurrency,
+        EnumCurrency aimedCurrency, string timeSeries)
     {
         try
         {

@@ -23,6 +23,13 @@ using BankAccountService = Application.Services.BankAccountService;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Logging
+// builder.Host.ConfigureLogging(l =>
+// {
+//     l.ClearProviders();
+//     l.AddConsole();
+// });
+
 // Configuration
 builder.Configuration.AddJsonFile("SecureData.json", optional: true, reloadOnChange: true);
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
@@ -38,28 +45,6 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
-
-// builder.Services.AddRateLimiter(o =>
-// {
-//     o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-//     o.AddPolicy("fixed", context =>
-//         RateLimitPartition.GetFixedWindowLimiter(
-//             partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-//             factory: _ => new FixedWindowRateLimiterOptions
-//             {
-//                 PermitLimit = 5,
-//                 Window = TimeSpan.FromSeconds(60)
-//             }));
-// });
-
-// builder.Services.AddRateLimiter(o => o.AddFixedWindowLimiter("fixed", o =>
-// {
-//     o.PermitLimit = 1;
-//     o.Window = TimeSpan.FromSeconds(10);
-//     o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-//     o.QueueLimit = 1;
-// }));
-
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -177,6 +162,10 @@ builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection(
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 builder.Services.AddInMemoryRateLimiting();
 var app = builder.Build();
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
 
 app.Use(async (context, next) =>
 {
@@ -190,6 +179,16 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
     c.RoutePrefix = string.Empty;
 });
+
+// loggers config
+app.Logger.LogDebug("debug-message");
+app.Logger.LogError("error-message");
+app.Logger.LogInformation("information-message");
+app.Logger.LogCritical("information-message");
+app.Logger.LogWarning("warning-message");
+app.Logger.LogCritical("critical-message");
+app.Logger.LogDebug("debug-message");
+
 
 app.UseHttpsRedirection();
 //app.UseRateLimiter();

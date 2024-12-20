@@ -23,8 +23,9 @@ public class BankAccountController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
     private readonly IEmailBodyBuilder _emailBodyBuilder;
+    private readonly ILogger<BankAccountController> _logger;
 
-    public BankAccountController(IEmailBodyBuilder emailBodyBuilder,IEmailService emailService,IConfiguration configuration,UserManager<User> userManager, SignInManager<User> signInManager,
+    public BankAccountController(ILogger<BankAccountController> logger,IEmailBodyBuilder emailBodyBuilder,IEmailService emailService,IConfiguration configuration,UserManager<User> userManager, SignInManager<User> signInManager,
         IBankAccountService bankAccountService, IClaimsService claimsService)
     {
         _userManager = userManager;
@@ -34,6 +35,7 @@ public class BankAccountController : ControllerBase
         _configuration = configuration;
         _emailService = emailService;
         _emailBodyBuilder = emailBodyBuilder;
+        _logger = logger;
     }
 
     [HttpPost("bank-account")]
@@ -161,7 +163,7 @@ public class BankAccountController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(new { e.Message });
+            return BadRequest(new { ErrorMessage = "Cannot update your account currency at this moment." });
         }
     }
 }

@@ -1,12 +1,17 @@
-﻿using Application.DTOs;
+﻿using System.Text.Json.Nodes;
+using Application.DTOs;
 using Application.DTOs.ExternalModels;
+using Application.DTOs.ExternalModels.Finnhub;
+using Application.DTOs.ExternalModels.StocksApiResponse.GetTopGainers_Losers_Actice;
 using Application.Interfaces;
 using Core.Entities;
 using Core.Enums;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Web.Controllers;
@@ -26,8 +31,9 @@ public class StocksController : ControllerBase
     private readonly ILogger<StocksController> _logger;
     private readonly UserManager<User> _userManager;
     private readonly IOperationService _operationService;
+    private readonly IMemoryCache _memoryCache;
 
-    public StocksController(IOperationService operationService, UserManager<User> userManager,
+    public StocksController(IMemoryCache memoryCache,IOperationService operationService, UserManager<User> userManager,
         ILogger<StocksController> logger, IConfiguration configuration, IEmailBodyBuilder emailBodyBuilder,
         IEmailService emailService, IStockService stockService, IClaimsService claimsService,
         IBankAccountService bankAccountService)
@@ -42,6 +48,7 @@ public class StocksController : ControllerBase
         _logger = logger;
         _userManager = userManager;
         _operationService = operationService;
+        _memoryCache = memoryCache;
     }
 
     [HttpGet("owned")]
@@ -187,7 +194,20 @@ public class StocksController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            return Ok(await _stockService.GetStockLivePrice(currencySymbolDto.Symbol));
+            StockPriceFinnhubResponse result;
+            string key = $"{currencySymbolDto.Symbol}";
+
+            if (_memoryCache.TryGetValue(key,out StockPriceFinnhubResponse? data))
+            {
+                result = data;
+            }
+            else
+            {
+                result = await _stockService.GetStockLivePrice(currencySymbolDto.Symbol);
+                _memoryCache.Set(key, result, TimeSpan.FromMinutes(2));
+            }
+
+            return Ok(result);
         }
         catch (Exception e)
         {
@@ -204,11 +224,24 @@ public class StocksController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var stockPrices = await _stockService.GetStockPricesAsync(stockPricesDto);
 
-        if (stockPrices.IsNullOrEmpty())
+        JsonObject stockPrices;
+        string key = $"{stockPricesDto.Symbol}{stockPricesDto.Timestamp}";
+
+        if (_memoryCache.TryGetValue(key,out JsonObject? data))
         {
-            return BadRequest("Something went wrong.");
+            stockPrices = data;
+        }
+        else
+        {
+            stockPrices = await _stockService.GetStockPricesAsync(stockPricesDto);
+
+            if (stockPrices.IsNullOrEmpty())
+            {
+                return BadRequest("Something went wrong.");
+            }
+
+            _memoryCache.Set(key, stockPrices, TimeSpan.FromMinutes(stockPricesDto.Timestamp));
         }
 
         return Ok(stockPrices);
@@ -218,11 +251,23 @@ public class StocksController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetTopGainers()
     {
-        var topGainersResponse = await _stockService.GetTopGainers();
 
-        if (topGainersResponse == null)
+        string key = "topGainers";
+        List<TopGainers> topGainersResponse;
+        if (_memoryCache.TryGetValue(key, out List<TopGainers>? gainersList))
         {
-            return BadRequest("Something went wrong.");
+            topGainersResponse = gainersList;
+        }
+        else
+        {
+            topGainersResponse = await _stockService.GetTopGainers();
+
+            if (!topGainersResponse.Any())
+            {
+                return BadRequest("Something went wrong while fetching data from the Provider.");
+            }
+
+            _memoryCache.Set(key, topGainersResponse, TimeSpan.FromMinutes(10));
         }
 
         return Ok(topGainersResponse);
@@ -232,11 +277,23 @@ public class StocksController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetTopLosers()
     {
-        var topLosersResponse = await _stockService.GetTopLosers();
 
-        if (topLosersResponse == null)
+        List<TopLosers> topLosersResponse;
+        string key = "topLosers";
+        if (_memoryCache.TryGetValue(key, out List<TopLosers>? topLosers))
         {
-            return BadRequest("Something went wrong.");
+            topLosersResponse = topLosers;
+        }
+        else
+        {
+            topLosersResponse = await _stockService.GetTopLosers();
+
+            if (!topLosersResponse.Any())
+            {
+                return BadRequest("Something went wrong while fetching data from the Provider.");
+            }
+
+            _memoryCache.Set(key, topLosersResponse, TimeSpan.FromMinutes(10));
         }
 
         return Ok(topLosersResponse);
@@ -246,13 +303,25 @@ public class StocksController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetMostActively()
     {
-        var mostActivelyTradedResponse = await _stockService.GetMostActivelyStocks();
+        List<MostActivelyTraded> mostActively;
+        string key = "mostActively";
 
-        if (mostActivelyTradedResponse == null)
+        if (_memoryCache.TryGetValue(key, out List<MostActivelyTraded>? mostActivelyData))
         {
-            return BadRequest("Something went wrong.");
+            mostActively = mostActivelyData;
+        }
+        else
+        {
+            mostActively = await _stockService.GetMostActivelyStocks();
+
+            if (!mostActively.Any())
+            {
+                return BadRequest("Something went wrong while fetching data from the Provider.");
+            }
+
+            _memoryCache.Set(key, mostActively, TimeSpan.FromMinutes(10));
         }
 
-        return Ok(mostActivelyTradedResponse);
+        return Ok(mostActively);
     }
 }

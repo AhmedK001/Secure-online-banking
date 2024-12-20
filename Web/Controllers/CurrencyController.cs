@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Web.Controllers;
@@ -31,8 +32,9 @@ public class CurrencyController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly UserManager<User> _userManager;
     private readonly IOperationService _operationService;
+    private readonly IMemoryCache _memoryCache;
 
-    public CurrencyController(IOperationService operationService,UserManager<User> userManager,IEmailService emailService, IEmailBodyBuilder emailBodyBuilder, IConfiguration configuration,IValidate validate, ICurrencyService currencyService, IClaimsService claimsService,
+    public CurrencyController(IMemoryCache memoryCache,IOperationService operationService,UserManager<User> userManager,IEmailService emailService, IEmailBodyBuilder emailBodyBuilder, IConfiguration configuration,IValidate validate, ICurrencyService currencyService, IClaimsService claimsService,
         ICardsService cardsService, IBankAccountService bankAccountService)
     {
         _currencyService = currencyService;
@@ -45,6 +47,7 @@ public class CurrencyController : ControllerBase
         _emailBodyBuilder = emailBodyBuilder;
         _userManager = userManager;
         _operationService = operationService;
+        _memoryCache = memoryCache;
     }
 
     [HttpGet("exchange/rate")]
@@ -55,43 +58,33 @@ public class CurrencyController : ControllerBase
         // Make an independent method for Direct exchange rate, Not related to card or bank account
         // make a DTO with validations for this method
         // make a DTO with validations for this method
-        if (string.IsNullOrWhiteSpace(baseCurrency) || string.IsNullOrWhiteSpace(targetCurrency))
+        if (string.IsNullOrWhiteSpace(baseCurrency) || string.IsNullOrWhiteSpace(targetCurrency) || baseCurrency == targetCurrency)
         {
-            return BadRequest("Invalid input. Please provide both currentCurrency and aimedCurrency.");
+            return BadRequest(new{ErrorMessage = "Invalid operation. Please provide both currentCurrency and aimedCurrency."});
         }
 
         try
         {
-            // EnumCurrency.TryParse(currentCurrency, out EnumCurrency fromCurrencye);
-            // EnumCurrency.TryParse(aimedCurrency, out EnumCurrency toCurrency);
-            //
-            //
-            // // If current currency is AED or SAR and target is AED or SAR, so it can be converted directly
-            // bool letThemPass = (fromCurrencye == EnumCurrency.SAR || fromCurrencye == EnumCurrency.AED) &&
-            //                    (toCurrency == EnumCurrency.SAR || toCurrency == EnumCurrency.AED);
-            //
-            // // Any else must contain USD or EUR as current account currency or USD or EUR as a target
-            // if (letThemPass == false && !(toCurrency == EnumCurrency.USD || toCurrency == EnumCurrency.EUR ||
-            //                               fromCurrencye == EnumCurrency.USD ||
-            //                               fromCurrencye == EnumCurrency.EUR))
-            //     // Validate if given are real currencies or not before executing
-            // {
-            //     return BadRequest(new
-            //     {
-            //         ErrorMessage
-            //             = $"Exchange rate not directly available between {fromCurrencye} and {toCurrency}.",
-            //         Solution
-            //             = $"Try between {fromCurrencye} and USD or EUR or Between {toCurrency} and USD or EUR."
-            //     });
-            //
-            // }
-            var exchangeRateResult = await _currencyService.GetExchangeRate(baseCurrency, targetCurrency);
-            if (exchangeRateResult.data.IsNullOrEmpty())
+
+            JsonObject data;
+            string key = $"{baseCurrency}{targetCurrency}";
+            if (_memoryCache.TryGetValue(key, out JsonObject? jsonObject))
             {
-                return NotFound("Exchange rate not found.");
+                data = jsonObject;
+            }
+            else
+            {
+                var exchangeRateResult = await _currencyService.GetExchangeRate(baseCurrency, targetCurrency);
+                if (exchangeRateResult.data.IsNullOrEmpty())
+                {
+                    return NotFound("Exchange rate not found.");
+                }
+
+                data = exchangeRateResult.data;
+                _memoryCache.Set(key, exchangeRateResult.data,TimeSpan.FromMinutes(5));
             }
 
-            return Ok(exchangeRateResult.data);
+            return Ok(data);
         }
         catch (Exception e)
         {
@@ -175,7 +168,7 @@ public class CurrencyController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { ErrorMessage = "Cannot exchange money at this moment." });
         }
     }
 
@@ -225,7 +218,7 @@ public class CurrencyController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { ErrorMessage = "Cannot exchange money at this moment." });
         }
     }
 
@@ -276,7 +269,7 @@ public class CurrencyController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { ErrorMessage = "Cannot exchange money at this moment." });
         }
     }
 
@@ -295,29 +288,37 @@ public class CurrencyController : ControllerBase
             EnumCurrency.TryParse(baseCurrency, out EnumCurrency fromCurrencye);
             EnumCurrency.TryParse(targetCurrency, out EnumCurrency toCurrency);
 
-
-            // If current currency is AED or SAR and target is AED or SAR, so it can be converted directly
-            bool letThemPass = (fromCurrencye == EnumCurrency.SAR || fromCurrencye == EnumCurrency.AED) &&
-                               (toCurrency == EnumCurrency.SAR || toCurrency == EnumCurrency.AED);
-
-            // Any else must contain USD or EUR as current account currency or USD or EUR as a target
-            if (letThemPass == false && !(toCurrency == EnumCurrency.USD || toCurrency == EnumCurrency.EUR ||
-                                          fromCurrencye == EnumCurrency.USD || fromCurrencye == EnumCurrency.EUR))
+            JsonObject historicalExchangeRateResult;
+            string key = $"{fromCurrencye}{toCurrency}";
+            if (_memoryCache.TryGetValue(key, out JsonObject? data))
             {
-                return BadRequest(new
-                {
-                    ErrorMessage
-                        = $"Exchange rate not directly available between {fromCurrencye} and {toCurrency}.",
-                    Solution = $"Search for {fromCurrencye} to USD or EUR or From USD or EUR to {toCurrency}."
-                });
+                historicalExchangeRateResult = data;
             }
-
-            var historicalExchangeRateResult
-                = await _currencyService.GetHistoricalExchangeRate(fromCurrencye, toCurrency, timeSeries);
-
-            if (historicalExchangeRateResult == null)
+            else
             {
-                return NotFound("Historical exchange rate not found.");
+                // If current currency is AED or SAR and target is AED or SAR, so it can be converted directly
+                bool letThemPass = (fromCurrencye == EnumCurrency.SAR || fromCurrencye == EnumCurrency.AED) &&
+                                   (toCurrency == EnumCurrency.SAR || toCurrency == EnumCurrency.AED);
+
+                // Any else must contain USD or EUR as current account currency or USD or EUR as a target
+                if (letThemPass == false && !(toCurrency == EnumCurrency.USD || toCurrency == EnumCurrency.EUR ||
+                                              fromCurrencye == EnumCurrency.USD || fromCurrencye == EnumCurrency.EUR))
+                {
+                    return BadRequest(new
+                    {
+                        ErrorMessage
+                            = $"Exchange rate not directly available between {fromCurrencye} and {toCurrency}.",
+                        Solution = $"Search for {fromCurrencye} to USD or EUR or From USD or EUR to {toCurrency}."
+                    });
+                }
+
+                historicalExchangeRateResult
+                    = await _currencyService.GetHistoricalExchangeRate(fromCurrencye, toCurrency, timeSeries);
+                _memoryCache.Set(key, historicalExchangeRateResult, TimeSpan.FromMinutes(int.Parse(timeSeries)));
+                if (historicalExchangeRateResult == null)
+                {
+                    return NotFound("Historical exchange rate not found.");
+                }
             }
 
             return Ok(historicalExchangeRateResult);

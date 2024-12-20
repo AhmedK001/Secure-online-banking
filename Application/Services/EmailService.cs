@@ -111,10 +111,6 @@ public class EmailService : IEmailService
     public async Task SendEmailAsync(User user, string subject, string htmlContent, Stream fileContent = null,
         string fileName = null, string contentType = "application/octet-stream")
     {
-        if (!user.Notifications)
-        {
-            return;
-        }
         var client = new SendGridClient(_apiKey);
 
         var from = new EmailAddress(_senderEmail, "SecureOnlineBanking");

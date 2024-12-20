@@ -156,7 +156,7 @@ public class CardsController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new { ErrorMessage = "Cannot update your card currency at this moment." });
         }
     }
 

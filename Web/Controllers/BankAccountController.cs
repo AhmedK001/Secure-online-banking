@@ -38,7 +38,7 @@ public class BankAccountController : ControllerBase
         _logger = logger;
     }
 
-    [HttpPost("bank-account")]
+    [HttpPost("account")]
     [Authorize]
     public async Task<IActionResult> CreateBankAccount()
     {
@@ -74,7 +74,7 @@ public class BankAccountController : ControllerBase
         }
     }
 
-    [HttpGet("bank-account")]
+    [HttpGet("account")]
     [Authorize]
     public async Task<IActionResult> GetBankAccountDetails()
     {
@@ -99,7 +99,7 @@ public class BankAccountController : ControllerBase
         }
     }
 
-    [HttpPut("change-currency")]
+    [HttpPut("currency")]
     [Authorize]
     public async Task<IActionResult> ChangeCurrency([FromBody] CurrencySymbolDto currencySymbolDto)
     {

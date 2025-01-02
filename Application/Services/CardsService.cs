@@ -289,20 +289,15 @@ public class CardsService : ICardsService
     {
         try
         {
-            await _unitOfWork.BeginTransactionAsync();
-
             var newCardBalance = card.Balance - transactionDto.Amount;
             await _cardRepository.ChangeBalance(true, newCardBalance, card.CardId);
             var newBankAccountBalance = bankAccount.Balance + transactionDto.Amount;
             await _bankAccountService.ChangeBalance(true, newBankAccountBalance, bankAccount.AccountNumber);
 
-            await _unitOfWork.CommitTransactionAsync();
-
             return (true, "");
         }
         catch (Exception e)
         {
-            await _unitOfWork.RollbackTransactionAsync();
             throw new Exception();
         }
     }

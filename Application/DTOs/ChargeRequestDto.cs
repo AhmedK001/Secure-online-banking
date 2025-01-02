@@ -12,5 +12,5 @@ public class ChargeRequestDto
     [Required]
     [DefaultValue(50)]
     [Range(1,90000,ErrorMessage = $"Accepted range is 1$ up to 90000$")]
-    public decimal Amount { get; set; }
+    public long Amount { get; set; }
 }

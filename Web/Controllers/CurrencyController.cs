@@ -92,7 +92,7 @@ public class CurrencyController : ControllerBase
         }
     }
 
-    [HttpPost("exchange/card-to-card")]
+    [HttpPost("exchange/cards")]
     [Authorize]
     public async Task<IActionResult> CardToCardExchangeMoney(ExchangeMoneyDtoCardToCard dtoCardToCard)
     {
@@ -172,7 +172,7 @@ public class CurrencyController : ControllerBase
         }
     }
 
-    [HttpPost("exchange/bank-to-card")]
+    [HttpPost("exchange/banks-to-cards")]
     [Authorize]
     public async Task<IActionResult> BankToCardExchangeMoney(ExchangeMoneyDtoBankAndCard exchangeDto)
     {
@@ -222,7 +222,7 @@ public class CurrencyController : ControllerBase
         }
     }
 
-    [HttpPost("exchange/card-to-bank")]
+    [HttpPost("exchange/cards-to-banks")]
     [Authorize]
     public async Task<IActionResult> CardToBankExchangeMoney(ExchangeMoneyDtoBankAndCard exchangeDto)
     {

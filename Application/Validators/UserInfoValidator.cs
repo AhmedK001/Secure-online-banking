@@ -155,9 +155,13 @@ public class UserInfoValidator
         }
 
         // Validate age
-        if (age < 16 || age > 120)
+        if (age < 16)
         {
             return new ValidationResult("The minimum required age is 16.");
+        }
+        if (age > 120)
+        {
+            return new ValidationResult("Invalid Age.");
         }
 
         // Validation passed

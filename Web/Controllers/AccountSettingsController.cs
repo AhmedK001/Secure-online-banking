@@ -79,13 +79,13 @@ public class AccountSettingsController : ControllerBase
     }
 
 
-    [HttpPost("request-password-reset")]
+    [HttpPost("passwords/request-reset")]
     [AllowAnonymous]
     public async Task<IActionResult> RequestResetPassword([FromBody] EmailDto emailDto)
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            return Ok(new { Message = "You are already logged in." });
+            return Ok(new { ErrorMessage = "You cannot request password reset while logged in." });
         }
 
         if (!ModelState.IsValid)
@@ -102,18 +102,15 @@ public class AccountSettingsController : ControllerBase
         var resetUrl = Url.Action("ResetPassword", "AccountSettings", new { token }, Request.Scheme);
         Console.WriteLine(token);
 
-        if (user.Notifications)
-        {
             var body = _emailBodyBuilder.PasswordResetHtmlResponse("Password Reset Request.", emailDto.Email,
                 resetUrl);
 
             await _emailService.ForceSendEmailAsync(user, "Password Reset Request.", body);
-        }
 
         return Ok(new { Status = "Success", Message = "Reset password link sent to your email address." });
     }
 
-    [HttpPut("reset-password")]
+    [HttpPut("passwords/reset")]
     [AllowAnonymous]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto passwordDto)
     {
@@ -157,7 +154,7 @@ public class AccountSettingsController : ControllerBase
         return Ok(new { Status = "Success", Message = "Your password has been reset successfully." });
     }
 
-    [HttpPut("update-password")]
+    [HttpPut("passwords/password")]
     public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordDto _updatePasswordDto)
     {
         if (!ModelState.IsValid)

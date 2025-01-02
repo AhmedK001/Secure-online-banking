@@ -83,7 +83,7 @@ public class CardsController : ControllerBase
         }
     }
 
-    [HttpPut("change-currency")]
+    [HttpPut("currency")]
     [Authorize]
     public async Task<IActionResult> ChangeCurrency([FromBody] ChangeCurrencyCardDto currencyCardDto)
     {

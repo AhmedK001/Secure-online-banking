@@ -112,7 +112,7 @@ public class AccountController : ControllerBase
         return Ok(new { message = "Registration successful. Please check your email for confirmation." });
     }
 
-    [HttpGet("confirm-email")]
+    [HttpGet("email/confirm")]
     public async Task<IActionResult> ConfirmEmail(string email, string token)
     {
         if (email == null || token == null)
@@ -195,7 +195,7 @@ public class AccountController : ControllerBase
             new { status = StatusCode(401), Message = "2FA code sent to your email address." });
     }
 
-    [HttpPost("verify-2fa-code")]
+    [HttpPost("2fa/verify")]
     [AllowAnonymous]
     public async Task<IActionResult> VerifyTwoFactorCode(TwoFactorVerificationDto verificationDto)
     {

@@ -30,11 +30,12 @@ public class PaymentsController : ControllerBase
     private readonly IEmailService _emailService;
     private readonly IEmailBodyBuilder _emailBodyBuilder;
     private readonly UserManager<User> _userManager;
+    private readonly ILogger<PaymentsController> _logger;
 
-    public PaymentsController(UserManager<User> userManager,IEmailService emailService, IEmailBodyBuilder emailBodyBuilder,
-        IConfiguration configuration, IBankAccountService bankAccountService, IClaimsService claimsService,
-        ICardsService cardsService, IOperationService operationService, IPaymentsService paymentsService,
-        IUnitOfWork unitOfWork)
+    public PaymentsController(ILogger<PaymentsController> logger, UserManager<User> userManager,
+        IEmailService emailService, IEmailBodyBuilder emailBodyBuilder, IConfiguration configuration,
+        IBankAccountService bankAccountService, IClaimsService claimsService, ICardsService cardsService,
+        IOperationService operationService, IPaymentsService paymentsService, IUnitOfWork unitOfWork)
     {
         _configuration = configuration;
         _bankAccountService = bankAccountService;
@@ -46,279 +47,223 @@ public class PaymentsController : ControllerBase
         _emailService = emailService;
         _emailBodyBuilder = emailBodyBuilder;
         _userManager = userManager;
+        _logger = logger;
     }
 
 
-    [HttpPost("charge")]
-    [Authorize]
-    public async Task<IActionResult> Charge([FromBody] ChargeRequestDto chargeRequestDto)
+[HttpPost("charge")]
+[Authorize]
+public async Task<IActionResult> CreatePaymentIntentAsync(ChargeRequestDto chargeRequestDto)
+{
+    if (chargeRequestDto == null) return BadRequest("Charge request data is required.");
+
+    var userId = await _claimsService.GetUserIdAsync(User);
+    var user = await _userManager.FindByIdAsync(userId);
+    if (user is null) return BadRequest("Invalid Request.");
+
+    Guid guid = Guid.Parse(userId);
+    var bankAccount = await _bankAccountService.GetDetailsById(guid);
+    if (bankAccount == null) return BadRequest("Bank account not found.");
+
+    if (!Enum.TryParse<EnumPaymentMethods>(chargeRequestDto.PaymentMethod, out var paymentMethod))
     {
-        // get user claims
-        if (!Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid userId))
-        {
-            return Unauthorized("User ID not found.");
-        }
-
-        if (!await _bankAccountService.IsUserHasBankAccount(userId))
-        {
-            return NotFound("You must create a bank account to be able to use these services");
-        }
-
-        if (!Enum.TryParse<EnumPaymentMethods>(chargeRequestDto.PaymentMethod, out var paymentMethod))
-        {
-            var names = string.Join(", ", Enum.GetNames<EnumPaymentMethods>());
-            return BadRequest($"Accepted payment methods are: {names}.");
-        }
-
-        var bankAccount = await _bankAccountService.GetDetailsById(userId);
-        var accountCurrency = Enum.GetName(typeof(EnumCurrency), bankAccount.Currency);
-        if (accountCurrency != "EUR" && accountCurrency != "AED" && accountCurrency != "USD")
-        {
-            return BadRequest(new
-            {
-                error = "Invalid Currency",
-                message = "The bank account currency must be one of the following: AED, USD, or EUR.",
-                allowedCurrencies = new[] { "AED", "USD", "EUR" }
-            });}
-
-        var options = new PaymentIntentCreateOptions
-        {
-            Amount = (long)(chargeRequestDto.Amount * 100),
-            Currency = accountCurrency,
-            PaymentMethod = paymentMethod.ToString(),
-            AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
-            {
-                Enabled = true, AllowRedirects = "never"
-            },
-            Confirm = false
-        };
-
-        var service = new PaymentIntentService();
-        try
-        {
-            // Create a PaymentIntent
-            var paymentIntent = await service.CreateAsync(options);
-
-            // Return the PaymentIntentId
-            _chargeAmount = chargeRequestDto.Amount;
-            return Ok(new { PaymentIntentId = paymentIntent.Id, Status = paymentIntent.Status });
-        }
-        catch (StripeException e)
-        {
-            return BadRequest(new { Error = e.Message });
-        }
+        var names = string.Join(", ", Enum.GetNames<EnumPaymentMethods>());
+        return BadRequest($"Accepted payment methods are: {names}.");
     }
 
+    var isValidCurrency = _paymentsService.IsValidCurrencyTypeToCharge(bankAccount);
+    if (!isValidCurrency.isValid)
+        return BadRequest(new { isValidCurrency.ErrorMessage });
 
-    [HttpPut("confirm")]
-    [Authorize]
-    public async Task<IActionResult> ConfirmPayment([FromBody] ConfirmRequestDto confirmRequestDto)
+    long amountInCents;
+    switch (bankAccount.Currency)
     {
-        var service = new PaymentIntentService();
-        try
-        {
-            // Confirm the Payment
-            var paymentIntent = await service.ConfirmAsync(confirmRequestDto.PaymentIntentId,
-                new PaymentIntentConfirmOptions());
-
-            // get user claims
-            if (!Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid userId))
+        case EnumCurrency.USD:
+            amountInCents = chargeRequestDto.Amount * 100;
+            if (amountInCents < 50)
             {
-                return Unauthorized("User ID not found.");
+                return BadRequest("Amount must be at least $0.50.");
             }
+            break;
 
-            if (!await _bankAccountService.IsUserHasBankAccount(userId))
+        case EnumCurrency.AED:
+            amountInCents = chargeRequestDto.Amount;
+            if (amountInCents < 20)
             {
-                return NotFound("You must create a bank account to be able to use these services");
+                return BadRequest("Amount must be at least 0.20 AED.");
             }
+            break;
 
-            var bankAccount = await _bankAccountService.GetDetailsById(userId);
-            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
-
-            if (bankAccount == null)
+        case EnumCurrency.EUR:
+            amountInCents = chargeRequestDto.Amount * 100;
+            if (amountInCents < 50)
             {
-                return Ok(
-                    $"You account has been charged with {_chargeAmount}\nAdditionally something went wrong while getting you bank account details");
+                return BadRequest("Amount must be at least €0.50.");
             }
+            break;
 
-
-            var chargeBankResult = await _bankAccountService.ChargeAccount(userId, _chargeAmount, bankAccount);
-
-            if (chargeBankResult == false)
-            {
-                return BadRequest("Something went wrong.");
-            }
-
-            string emailContent = _emailBodyBuilder.ChargeAccountHtmlResponse("You account has been Charge Successfully!",
-                bankAccount, _chargeAmount, paymentIntent.Status);
-
-            await _emailService.SendEmailAsync(user, "You account has been Charge Successfully", emailContent);
-
-
-            // add operation as logs
-            await _operationService.ValidateAndSaveOperation(
-                await _operationService.BuildChargeOperation(bankAccount, _chargeAmount));
-            // add currency for operation service, make default charge currency then validate.
-            _chargeAmount = 0;
-            return Ok(new
-            {
-                paymentIntent.Status,
-                bankAccount.AccountNumber,
-                Currency = Enum.GetName(typeof(EnumCurrency), bankAccount.Currency),
-                bankAccount.Balance,
-                bankAccount.UserId
-            });
-        }
-        catch (StripeException e)
-        {
-            return BadRequest(new { Error = e.StripeError.Message });
-        }
+        default:
+            return BadRequest("Unsupported currency.");
     }
 
-    [HttpPost("transfer-to-card")]
+    // Stripe section
+    var options = new PaymentIntentCreateOptions()
+    {
+        Amount = amountInCents,
+        Currency = Enum.GetName(typeof(EnumCurrency), bankAccount.Currency),
+        PaymentMethod = paymentMethod.ToString(),
+        Confirm = false,
+        AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions()
+        {
+            Enabled = true,
+            AllowRedirects = "never"
+        }
+    };
+
+    var paymentService = new PaymentIntentService();
+    var paymentIntent = await paymentService.CreateAsync(options);
+
+    return Ok(new
+    {
+        paymentIntent.Status,
+        paymentIntent.Id,
+        Amount = chargeRequestDto.Amount,
+        paymentIntent.Currency,
+        paymentIntent.CanceledAt,
+        paymentIntent.AmountDetails
+    });
+}
+
+[HttpPut("confirm")]
+[Authorize]
+public async Task<IActionResult> ConfirmPayment([FromBody] ConfirmRequestDto confirmRequestDto)
+{
+    if (confirmRequestDto == null) return BadRequest("Confirmation data is required.");
+
+    await _unitOfWork.BeginTransactionAsync();
+    var service = new PaymentIntentService();
+
+    try
+    {
+        var userId = await _claimsService.GetUserIdAsync(User);
+        var user = await _userManager.FindByIdAsync(userId);
+
+        if (user is null) return BadRequest("Invalid Request.");
+
+        Guid guid = Guid.Parse(userId);
+        var bankAccount = await _bankAccountService.GetDetailsById(guid);
+
+        if (bankAccount == null) return BadRequest("Bank account not found.");
+
+        // Confirm the Payment Intent
+        var paymentIntent = await service.ConfirmAsync(
+            confirmRequestDto.PaymentIntentId,
+            new PaymentIntentConfirmOptions()
+        );
+
+        // Calculate the amount to charge based on the currency
+        decimal amountToCharge;
+        switch (paymentIntent.Currency.ToLower())
+        {
+            case "usd":
+            case "eur":
+                amountToCharge = paymentIntent.Amount / 100m;
+                break;
+            case "aed":
+                amountToCharge = paymentIntent.Amount;
+                break;
+            default:
+                return BadRequest("Unsupported currency.");
+        }
+
+        // Charge the bank account
+        var chargeBankResult = await _bankAccountService.ChargeAccount(guid, amountToCharge, bankAccount);
+
+        if (!chargeBankResult)
+        {
+            return BadRequest("Something went wrong while charging the account.");
+        }
+
+        // Send email notification
+        string emailContent = _emailBodyBuilder.ChargeAccountHtmlResponse(
+            "Your account has been charged successfully!", bankAccount, amountToCharge, paymentIntent.Status
+        );
+
+        await _emailService.SendEmailAsync(user, "Your account has been charged successfully", emailContent);
+
+        // Log the operation
+        await _operationService.ValidateAndSaveOperation(
+            await _operationService.BuildChargeOperation(bankAccount, paymentIntent.Amount)
+        );
+
+        await _unitOfWork.CommitTransactionAsync();
+        return Ok(new { paymentIntent.Status, Message = "Charged successfully." });
+    }
+    catch (StripeException e)
+    {
+        await _unitOfWork.RollbackTransactionAsync();
+        return BadRequest(new { Error = e.StripeError.Message });
+    }
+    catch (Exception e)
+    {
+        await _unitOfWork.RollbackTransactionAsync();
+        return BadRequest(new { Error = e.Message });
+    }
+}
+
+
+    [HttpPost("transfers/cards")]
     [Authorize]
     public async Task<IActionResult> TransferToCard([FromBody] InternalTransactionDto cardDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
         try
         {
-            await _unitOfWork.BeginTransactionAsync();
             var userId = await _claimsService.GetUserIdAsync(User);
-
-            if (!await _bankAccountService.IsUserHasBankAccount(Guid.Parse(userId)))
-            {
-                return BadRequest("You must create Bank Account in order to use this service.");
-            }
             var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
             var bankAccountDetails = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
             var cardDetails = await _cardsService.GetAllCards(bankAccountDetails.AccountNumber);
 
             Card aimedCard = cardDetails.Find(c => c.CardId == cardDto.CardId);
 
-            // this method will throw exception if not valid transaction
-            await _paymentsService.IsValidTransactionToCard(cardDto.Amount, userId, bankAccountDetails, aimedCard);
+            var transactionResult
+                = await _paymentsService.MakeTransactionToCard(user, bankAccountDetails, aimedCard, cardDto);
 
+            if (!transactionResult.isSuccess) return BadRequest(new { transactionResult.ErrorMessage });
 
-            await _bankAccountService.DeductAccountBalance(bankAccountDetails.AccountNumber, cardDto.Amount);
-            await _cardsService.ChargeCardBalanceAsync(bankAccountDetails.AccountNumber, aimedCard.CardId,
-                cardDto.Amount);
-
-            var cardAfterBalanceAdded
-                = await _cardsService.GetCardDetails(bankAccountDetails.AccountNumber, aimedCard.CardId);
-            var bankAccountAfterBalanceDeducted = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
-
-            // add operation as logs
-            var operation = await _operationService.BuildTransferOperation(bankAccountDetails, cardDto.Amount,
-                EnumOperationType.TransactionToCard);
-            await _operationService.ValidateAndSaveOperation(operation);
-
-            await _unitOfWork.CommitTransactionAsync(); // commit changes if all succeeded
-
-            var email = _configuration["Email"];
-
-            string emailContent = _emailBodyBuilder.TransferToCardHtmlResponse(
-                "Your transaction to the card has been completed successfully.", bankAccountDetails, aimedCard,
-                cardDto.Amount);
-
-            await _emailService.SendEmailAsync(user, "Your transaction to the card has been completed successfully.",
-                emailContent);
-
-
-            return Ok(new
-            {
-                Message = "Your card has been charged successfully.",
-                Card = new
-                {
-                    CardId = cardAfterBalanceAdded.CardId,
-                    Currency = Enum.GetName(typeof(EnumCurrency), cardAfterBalanceAdded.Currency),
-                    Balance = cardAfterBalanceAdded.Balance,
-                    CardType = Enum.GetName(typeof(EnumCardType), cardAfterBalanceAdded.CardType)
-                },
-                BankAccount = new
-                {
-                    AccountNumber = bankAccountDetails.AccountNumber,
-                    Currency = Enum.GetName(typeof(EnumCurrency), bankAccountAfterBalanceDeducted.Currency),
-                    Balance = bankAccountAfterBalanceDeducted.Balance
-                }
-            });
+            return Ok(new { Message = "Your card has been charged successfully.", });
         }
         catch (Exception e)
         {
-            await _unitOfWork.RollbackTransactionAsync();
             return BadRequest(e.Message);
         }
     }
 
-    [HttpPost("transfer-to-account")]
+    [HttpPost("transfers/accounts")]
     [Authorize]
     public async Task<IActionResult> TransferToAccount(InternalTransactionDto transactionDto)
     {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
         try
         {
             var userId = await _claimsService.GetUserIdAsync(User);
-            var bankAccount = await _bankAccountService.GetDetailsById(Guid.Parse(userId)); // it check if null
-            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
-            var card = await _cardsService.GetCardDetails(bankAccount.AccountNumber,
-                transactionDto.CardId); // it check if null
 
-            if (card.Currency != bankAccount.Currency)
-                return BadRequest(new
-                {
-                    ErrorMessage = "Bank account and Card currency does not match.",
-                    Details = $"Bank account currency: {bankAccount.Currency}, Card currency: {card.Currency}"
-                });
+            var user = await _userManager.FindByIdAsync(userId);
 
-            if (card.Balance < transactionDto.Amount)
-                return BadRequest(new
-                {
-                    ErrorMessage
-                        = $"No enough balance, Your card balance is {card.Balance.ToString("F2")}{card.Currency}"
-                });
+            if (user is null) return BadRequest("Invalid Request.");
 
-            var result = await _cardsService.TransferToBankAccount(transactionDto, bankAccount, card);
+            var bankAccount = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
 
-            if (!result.Item1)
-            {
-                return BadRequest(new { ErrorMessage = result.Item2 });
-            }
+            var card = await _cardsService.GetCardDetails(bankAccount.AccountNumber, transactionDto.CardId);
 
-            var bankAccountAfterTransaction = await _bankAccountService.GetDetailsById(Guid.Parse(userId));
-            var cardAfterTransaction
-                = await _cardsService.GetCardDetails(bankAccount.AccountNumber, transactionDto.CardId);
+            var transactionResult
+                = await _paymentsService.MakeTransactionToBank(user, bankAccount, card, transactionDto);
 
-            var bankResponse = new
-            {
-                Balance = bankAccountAfterTransaction.Balance.ToString("F2"),
-                Currency = Enum.GetName(typeof(EnumCurrency), bankAccountAfterTransaction.Currency),
-            };
-            var cardResponse = new
-            {
-                Balance = cardAfterTransaction.Balance.ToString("F2"),
-                Currency = Enum.GetName(typeof(EnumCurrency), cardAfterTransaction.Currency),
-            };
+            if (!transactionResult.isSuccess) return BadRequest(new { transactionResult.ErrorMessage });
 
-            string emailContent = _emailBodyBuilder.TransferToAccountHtmlResponse(
-                "Your transaction to the bank account has been completed successfully.", bankAccount, card,
-                transactionDto.Amount);
-
-            await _emailService.SendEmailAsync(user,
-                "Your transaction to the bank account has been completed successfully.", emailContent);
-
-            var operation = await _operationService.BuildTransferOperation(bankAccount, transactionDto.Amount,
-                EnumOperationType.TransactionToAccount);
-            await _operationService.ValidateAndSaveOperation(operation);
-
-            return Ok(new
-            {
-                Status = "Success",
-                Message = $"Transferred successfully",
-                CardResponse = cardResponse,
-                BankAccount = bankResponse
-            });
+            return Ok(new { Status = "Success", Message = $"Transferred successfully", });
         }
         catch (Exception e)
         {

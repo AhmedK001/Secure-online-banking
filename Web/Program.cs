@@ -40,11 +40,16 @@ builder.Services.AddControllers().AddJsonOptions(o =>
 {
     o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
 });
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
-    });
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        builder => builder
+            .WithOrigins("http://127.0.0.1:5500")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -82,15 +87,13 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddIdentity<User, Role>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders()
-    .AddUserStore<UserStore<User, Role, ApplicationDbContext, Guid>>()
+builder.Services.AddIdentity<User, Role>().AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders().AddUserStore<UserStore<User, Role, ApplicationDbContext, Guid>>()
     .AddRoleStore<RoleStore<Role, ApplicationDbContext, Guid>>();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
-    options.Password.RequireDigit = false;
+    options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireUppercase = true;
     options.Password.RequireNonAlphanumeric = false;
@@ -111,8 +114,7 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
+}).AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -194,6 +196,7 @@ app.UseHttpsRedirection();
 //app.UseRateLimiter();
 app.UseIpRateLimiting();
 app.UseRouting();
+app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();
 app.UseAuthorization();
 

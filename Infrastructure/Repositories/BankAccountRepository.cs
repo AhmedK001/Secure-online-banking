@@ -120,7 +120,11 @@ public class BankAccountRepository : IBankAccountRepository
             {
                 return false;
             }
-            chargeRequestResult.Balance = chargeRequestResult.Balance + amount;
+
+            var newAmount = chargeRequestResult.Balance + amount;
+            Console.WriteLine(newAmount);
+
+            chargeRequestResult.Balance = newAmount;
             await _dbContext.SaveChangesAsync();
             return true;
         }

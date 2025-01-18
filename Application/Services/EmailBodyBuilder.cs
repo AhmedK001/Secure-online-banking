@@ -303,10 +303,6 @@ public class EmailBodyBuilder : IEmailBodyBuilder
                 <td>{bankAccount.AccountNumber}</td>
             </tr>
             <tr>
-                <td><strong>Payment Status</strong></td>
-                <td>{paymentStatus}</td>
-            </tr>
-            <tr>
                 <td><strong>Currency</strong></td>
                 <td>{Enum.GetName(typeof(EnumCurrency), bankAccount.Currency)}</td>
             </tr>

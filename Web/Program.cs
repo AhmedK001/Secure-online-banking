@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -20,6 +21,7 @@ using Microsoft.OpenApi.Models;
 using Stripe;
 using Stripe.BillingPortal;
 using BankAccountService = Application.Services.BankAccountService;
+using File = System.IO.File;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,8 +82,18 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SchemaFilter<EnumSchemaFilter>();
     options.EnableAnnotations();
-});
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
+    else
+    {
+        Console.WriteLine($"Warning: XML documentation file not found at {xmlPath}");
+    }
 
+});
 
 // Database and Identity
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

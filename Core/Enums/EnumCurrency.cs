@@ -2,9 +2,9 @@
 
 public enum EnumCurrency
 {
-    SAR = 0,
+    SAR = 2,
     EGP = 1,
-    AED = 2,
+    AED = 0,
     USD = 3,
     EUR = 4,
     TRY = 5,

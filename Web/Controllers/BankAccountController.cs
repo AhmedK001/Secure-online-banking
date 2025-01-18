@@ -38,6 +38,10 @@ public class BankAccountController : ControllerBase
         _logger = logger;
     }
 
+    /// <summary>
+    /// Create a new bank account linked to your profile.
+    /// </summary>
+    /// <returns></returns>
     [HttpPost("account")]
     [Authorize]
     public async Task<IActionResult> CreateBankAccount()
@@ -74,6 +78,10 @@ public class BankAccountController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Retrieve details of your linked bank account.
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("account")]
     [Authorize]
     public async Task<IActionResult> GetBankAccountDetails()
@@ -99,6 +107,11 @@ public class BankAccountController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Update the currency associated with your bank account.
+    /// </summary>
+    /// <param name="currencySymbolDto"></param>
+    /// <returns></returns>
     [HttpPut("currency")]
     [Authorize]
     public async Task<IActionResult> ChangeCurrency([FromBody] CurrencySymbolDto currencySymbolDto)

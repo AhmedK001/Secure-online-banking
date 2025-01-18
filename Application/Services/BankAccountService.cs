@@ -217,6 +217,7 @@ public class BankAccountService : IBankAccountService
             }
 
             EnumCurrency.TryParse(toCurrency,out EnumCurrency currency);
+            EnumCurrency.TryParse(fromCurrency,out EnumCurrency baseCurrency);
 
 
             Operation operation = new Operation()
@@ -226,12 +227,12 @@ public class BankAccountService : IBankAccountService
                 OperationId
                     = await _operationService
                         .GenerateUniqueRandomOperationIdAsync(),
-                OperationType = EnumOperationType.CurrencyChange,
+                OperationType = EnumOperationType.CurrencyUpdate,
                 Description
                     = $"Account currency change. " +
                       $" Balance before and after exchange: {Global.FormatCurrency(oldCurrency,balanceBeforeExchange)}, {Global.FormatCurrency(currency,amountAfterExchange)}" ,
                 DateTime = DateTime.UtcNow,
-                Currency = currency,
+                Currency = baseCurrency,
                 Amount = bankAccountDetails.Balance,
             };
 

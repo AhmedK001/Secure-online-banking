@@ -51,6 +51,11 @@ public class StocksController : ControllerBase
         _memoryCache = memoryCache;
     }
 
+
+    /// <summary>
+    /// Retrieve a list of all stocks owned by your account.
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("owned")]
     [Authorize]
     public async Task<IActionResult> GetOwnedStocks()
@@ -87,6 +92,11 @@ public class StocksController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Purchase stocks at current real-time market price
+    /// </summary>
+    /// <param name="sellStockDto"></param>
+    /// <returns></returns>
     [HttpPost("buy")]
     [Authorize]
     public async Task<IActionResult> BuyStock([FromQuery] BuySellStockDto sellStockDto)
@@ -145,6 +155,11 @@ public class StocksController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Sell stocks at current real-time market price
+    /// </summary>
+    /// <param name="sellStockDto"></param>
+    /// <returns></returns>
     [HttpPost("sell")]
     [Authorize]
     public async Task<IActionResult> SellStock([FromQuery] BuySellStockDto sellStockDto)
@@ -183,6 +198,11 @@ public class StocksController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Retrieve the real-time price of stocks available on American markets.
+    /// </summary>
+    /// <param name="currencySymbolDto"></param>
+    /// <returns></returns>
     [HttpGet("live-price")]
     [Authorize]
     public async Task<IActionResult> GetStockLivePrice([FromQuery] CurrencySymbolDto currencySymbolDto)
@@ -207,7 +227,19 @@ public class StocksController : ControllerBase
                 _memoryCache.Set(key, result, TimeSpan.FromMinutes(2));
             }
 
-            return Ok(result);
+            var prices = new
+            {
+                Currenct = result.CurrentPrice,
+                Change = result.Change,
+                PercentChange = result.PercentChange,
+                HighPrice = result.HighPrice,
+                LowPrice = result.LowPrice,
+                OpenPrice = result.OpenPrice,
+                PreviousClosePrice = result.PreviousClosePrice,
+                Timestamp = result.Timestamp
+            };
+
+            return Ok(prices);
         }
         catch (Exception e)
         {
@@ -215,6 +247,11 @@ public class StocksController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Retrieve historical stock prices at specified intervals (1, 5, 15, 30, or 60 minutes).
+    /// </summary>
+    /// <param name="stockPricesDto"></param>
+    /// <returns></returns>
     [HttpGet("historical")]
     [Authorize]
     public async Task<IActionResult> GetStockPrices([FromQuery] StockPricesDto stockPricesDto)
@@ -247,6 +284,10 @@ public class StocksController : ControllerBase
         return Ok(stockPrices);
     }
 
+    /// <summary>
+    /// Retrieve a list of the top-performing stocks on American markets.
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("top-gainers")]
     [Authorize]
     public async Task<IActionResult> GetTopGainers()
@@ -273,6 +314,10 @@ public class StocksController : ControllerBase
         return Ok(topGainersResponse);
     }
 
+    /// <summary>
+    /// Retrieve a list of the stocks with the highest losses on American markets.
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("top-losers")]
     [Authorize]
     public async Task<IActionResult> GetTopLosers()
@@ -299,6 +344,10 @@ public class StocksController : ControllerBase
         return Ok(topLosersResponse);
     }
 
+    /// <summary>
+    /// Retrieve a list of the most actively traded stocks on American markets.
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("most-actively")]
     [Authorize]
     public async Task<IActionResult> GetMostActively()

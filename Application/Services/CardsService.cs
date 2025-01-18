@@ -263,7 +263,7 @@ public class CardsService : ICardsService
                 AccountNumber = bankAccountDetails.AccountNumber,
                 AccountId = bankAccountDetails.NationalId,
                 OperationId = await _operationService.GenerateUniqueRandomOperationIdAsync(),
-                OperationType = EnumOperationType.CurrencyChange,
+                OperationType = EnumOperationType.CurrencyUpdate,
                 Description = $"Card currency change. " +
                               $"Balance before and after exchange: {Global.FormatCurrency(currencyBefore, balanceBeforeExchange)}, {Global.FormatCurrency(currency, amountAfterExchange)}",
                 DateTime = DateTime.UtcNow,

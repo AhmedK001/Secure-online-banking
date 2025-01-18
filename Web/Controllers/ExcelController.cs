@@ -36,8 +36,14 @@ public class ExcelController : ControllerBase
         _emailBodyBuilder = emailBodyBuilder;
     }
 
-    [HttpGet("statements/{number-of-months:int}/{send-email:bool}")]
 
+    /// <summary>
+    /// Get all your account movements documented as excel format through your email address.
+    /// </summary>
+    /// <param name="periodAsMonth"></param>
+    /// <param name="sendEmil"></param>
+    /// <returns></returns>
+    [HttpGet("statements/{number-of-months:int}/{send-email:bool}")]
     public async Task<IActionResult> GetBankStatements(
         [FromRoute(Name = "number-of-months")] int periodAsMonth,
         [FromRoute(Name = "send-email")] bool sendEmil)

@@ -50,6 +50,12 @@ public class CurrencyController : ControllerBase
         _memoryCache = memoryCache;
     }
 
+    /// <summary>
+    /// Retrieve the current exchange rate between two currencies.
+    /// </summary>
+    /// <param name="baseCurrency"></param>
+    /// <param name="targetCurrency"></param>
+    /// <returns></returns>
     [HttpGet("exchange/rate")]
     [Authorize]
     public async Task<IActionResult> GetExchangeRate([FromQuery] string baseCurrency,
@@ -92,6 +98,11 @@ public class CurrencyController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Exchange balance between two of your linked cards.
+    /// </summary>
+    /// <param name="dtoCardToCard"></param>
+    /// <returns></returns>
     [HttpPost("exchange/cards")]
     [Authorize]
     public async Task<IActionResult> CardToCardExchangeMoney(ExchangeMoneyDtoCardToCard dtoCardToCard)
@@ -172,6 +183,11 @@ public class CurrencyController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Exchange balance from your bank account to a linked cards.
+    /// </summary>
+    /// <param name="exchangeDto"></param>
+    /// <returns></returns>
     [HttpPost("exchange/banks-to-cards")]
     [Authorize]
     public async Task<IActionResult> BankToCardExchangeMoney(ExchangeMoneyDtoBankAndCard exchangeDto)
@@ -222,6 +238,11 @@ public class CurrencyController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Exchange balance from any of your cards to your bank account.
+    /// </summary>
+    /// <param name="exchangeDto"></param>
+    /// <returns></returns>
     [HttpPost("exchange/cards-to-banks")]
     [Authorize]
     public async Task<IActionResult> CardToBankExchangeMoney(ExchangeMoneyDtoBankAndCard exchangeDto)
@@ -273,6 +294,13 @@ public class CurrencyController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Retrieve historical exchange rates for a specified currency.
+    /// </summary>
+    /// <param name="baseCurrency"></param>
+    /// <param name="targetCurrency"></param>
+    /// <param name="timeSeries"></param>
+    /// <returns></returns>
     [HttpGet("exchange/historical")]
     public async Task<IActionResult> GetHistoricalExchangeRate([FromQuery] string baseCurrency,
         [FromQuery] string targetCurrency, [FromQuery] string timeSeries)

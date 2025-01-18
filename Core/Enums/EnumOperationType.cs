@@ -6,7 +6,7 @@ public enum EnumOperationType
     Withdraw,
     OnlinePayment,
     Loan,
-    CurrencyChange,
+    CurrencyUpdate,
     TransactionToCard,
     TransactionToAccount,
     TransactionCardToCard,

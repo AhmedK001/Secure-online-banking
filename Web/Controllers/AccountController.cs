@@ -53,6 +53,11 @@ public class AccountController : ControllerBase
         _unitOfWork = unitOfWork;
     }
 
+    /// <summary>
+    /// Register a new account. This is the first step to create a user profile.
+    /// </summary>
+    /// <param name="userDto"></param>
+    /// <returns></returns>
     [HttpPost("register")]
     public async Task<IActionResult> RegisterNewUser([FromBody] RegisterUserDto? userDto)
     {
@@ -112,6 +117,12 @@ public class AccountController : ControllerBase
         return Ok(new { message = "Registration successful. Please check your email for confirmation." });
     }
 
+    /// <summary>
+    /// Confirm your email address by clicking the link sent to your email. This endpoint is typically not used manually.
+    /// </summary>
+    /// <param name="email"></param>
+    /// <param name="token"></param>
+    /// <returns></returns>
     [HttpGet("email/confirm")]
     public async Task<IActionResult> ConfirmEmail(string email, string token)
     {
@@ -141,6 +152,11 @@ public class AccountController : ControllerBase
         return BadRequest("Error confirming email.");
     }
 
+    /// <summary>
+    /// Authenticate and log in to your account. Requires a registered and confirmed email address.
+    /// </summary>
+    /// <param name="userLoginDto"></param>
+    /// <returns></returns>
     [HttpPost("login")]
     public async Task<IActionResult> LoginUser([FromBody] LoginDto userLoginDto)
     {
@@ -195,6 +211,12 @@ public class AccountController : ControllerBase
             new { status = StatusCode(401), Message = "2FA code sent to your email address." });
     }
 
+
+   /// <summary>
+   /// Verify your identity by submitting the two-factor authentication (2FA) code received after login.
+   /// </summary>
+   /// <param name="verificationDto"></param>
+   /// <returns></returns>
     [HttpPost("2fa/verify")]
     [AllowAnonymous]
     public async Task<IActionResult> VerifyTwoFactorCode(TwoFactorVerificationDto verificationDto)

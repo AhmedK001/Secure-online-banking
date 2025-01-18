@@ -34,6 +34,11 @@ public class AccountSettingsController : ControllerBase
         _updatePassword = updatePassword;
     }
 
+
+    /// <summary>
+    /// Disable notifications for your account movements.
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("notifications/disable")]
     public async Task<IActionResult> DisableNotifications()
     {
@@ -56,6 +61,11 @@ public class AccountSettingsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Enable notifications for your account movements.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     [HttpGet("notifications/enable")]
     public async Task<IActionResult> EnableNotifications()
     {
@@ -73,12 +83,15 @@ public class AccountSettingsController : ControllerBase
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw;
+            throw new Exception(e.Message);
         }
     }
 
-
+    /// <summary>
+    /// Request a password reset. This can be if you are not logged in.
+    /// </summary>
+    /// <param name="emailDto"></param>
+    /// <returns></returns>
     [HttpPost("passwords/request-reset")]
     [AllowAnonymous]
     public async Task<IActionResult> RequestResetPassword([FromBody] EmailDto emailDto)
@@ -110,6 +123,11 @@ public class AccountSettingsController : ControllerBase
         return Ok(new { Status = "Success", Message = "Reset password link sent to your email address." });
     }
 
+    /// <summary>
+    /// Reset your password using the token received via email.
+    /// </summary>
+    /// <param name="passwordDto"></param>
+    /// <returns></returns>
     [HttpPut("passwords/reset")]
     [AllowAnonymous]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto passwordDto)
@@ -154,6 +172,11 @@ public class AccountSettingsController : ControllerBase
         return Ok(new { Status = "Success", Message = "Your password has been reset successfully." });
     }
 
+    /// <summary>
+    /// Update your account password. Requires authentication.
+    /// </summary>
+    /// <param name="_updatePasswordDto"></param>
+    /// <returns></returns>
     [HttpPut("passwords/password")]
     public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordDto _updatePasswordDto)
     {

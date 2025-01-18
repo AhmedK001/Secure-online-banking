@@ -37,6 +37,11 @@ public class CardsController : ControllerBase
         _operationService = operationService;
     }
 
+    /// <summary>
+    /// Create a new card linked to your account. This allows you to manage transactions and balances.
+    /// </summary>
+    /// <param name="cardTypeDto"></param>
+    /// <returns></returns>
     [HttpPost("card")]
     [Authorize]
     public async Task<IActionResult> CreateBankCard([FromBody] CardTypeDto cardTypeDto)
@@ -56,21 +61,22 @@ public class CardsController : ControllerBase
             var operation = await _operationService.BuildDeleteOrCreateCardOperation(bankAccountDetails, createdCardDetails,EnumOperationType.CreateCard);
             await _operationService.AddOperation(true,operation);
 
-            CardResponseDto cardResponseDto = new CardResponseDto()
+            var response = new
             {
+                CardId = createdCardDetails.CardId,
+                Cvv = createdCardDetails.Cvv,
+                CardType = Enum.GetName(typeof(EnumCardType),createdCardDetails.CardType),
+                Currency = Enum.GetName(typeof(EnumCurrency),createdCardDetails.Currency),
                 Balance = createdCardDetails.Balance,
                 ExpiryDate = createdCardDetails.ExpiryDate,
-                IsActivated = createdCardDetails.IsActivated,
                 OpenedForInternalOperations = createdCardDetails.OpenedForInternalOperations,
                 OpenedForOnlinePurchase = createdCardDetails.OpenedForOnlinePurchase,
-                CardType = createdCardDetails.CardType,
-                CardId = createdCardDetails.CardId,
-                Cvv = createdCardDetails.Cvv
+                IsActivated = createdCardDetails.IsActivated,
             };
 
             return Ok(new
             {
-                Message = "You card has been created successfully.", CreatedCardDetails = cardResponseDto
+                Message = "You card has been created successfully.", CreatedCardDetails = response
             });
         }
         catch (Exception e)
@@ -83,6 +89,11 @@ public class CardsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Update the currency associated with a specific card. This changes the currency in which the card operates.
+    /// </summary>
+    /// <param name="currencyCardDto"></param>
+    /// <returns></returns>
     [HttpPut("currency")]
     [Authorize]
     public async Task<IActionResult> ChangeCurrency([FromBody] ChangeCurrencyCardDto currencyCardDto)
@@ -160,6 +171,10 @@ public class CardsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Retrieve detailed information about all the cards linked to your account.
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("cards")]
     [Authorize]
     public async Task<IActionResult> GetAllCards()
@@ -201,6 +216,11 @@ public class CardsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Delete an existing card from your account. This will remove the card and its associated details.
+    /// </summary>
+    /// <param name="cardId"></param>
+    /// <returns></returns>
     [HttpDelete("card")]
     [Authorize]
     public async Task<IActionResult> DeleteCard([FromQuery] int cardId)

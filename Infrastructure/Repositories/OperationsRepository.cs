@@ -47,7 +47,7 @@ public class OperationsRepository : IOperationsRepository
         try
         {
             var result = await _dbContext.Operations.Where(o => o.AccountNumber == accountNumber)
-                .Where(o => o.OperationType == EnumOperationType.CurrencyChange).OrderByDescending(o => o.DateTime)
+                .Where(o => o.OperationType == EnumOperationType.CurrencyUpdate).OrderByDescending(o => o.DateTime)
                 .ToListAsync();
             return result;
         }

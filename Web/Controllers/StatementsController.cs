@@ -29,6 +29,10 @@ public class StatementsController : ControllerBase
         _operationsRepository = operationsRepository;
     }
 
+    /// <summary>
+    /// Retrieve a complete history of operations and transactions for your account.
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("account-history")]
     [Authorize]
     public async Task<IActionResult> GetAllOperations()
@@ -63,6 +67,10 @@ public class StatementsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Retrieve a list of transactions associated with your account.
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("transactions")]
     [Authorize]
     public async Task<IActionResult> GetTransactions()
@@ -96,6 +104,10 @@ public class StatementsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Retrieve all stock-related movements for your account.
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("stocks")]
     [Authorize]
     public async Task<IActionResult> GetStockLogs()
@@ -129,6 +141,10 @@ public class StatementsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Retrieve all currency exchange movements for your account.
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("exchanges")]
     [Authorize]
     public async Task<IActionResult> GetExchangeLogs()
